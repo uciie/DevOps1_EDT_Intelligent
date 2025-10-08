@@ -13,3 +13,12 @@ Membres de l'équipe :
 - [Manda Dabo]() 42012949
 - [Sylvain Huang](https://github.com/Kusanagies) 41005688
 - [Lucie Pan](https://github.com/uciie) 45004162
+
+Bonne pratique: 
+TOUJOURS : "$ GIT PULL" avant de commencer à travailler sur le projet
+
+SUR LINUX:
+Sudo apt install docker-compose
+Aller dans le ficher docker 
+Lancer: 
+docker-compose up -d //ca devrait lancer le build 
