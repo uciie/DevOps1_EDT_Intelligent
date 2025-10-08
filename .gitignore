@@ -1,0 +1,46 @@
+# backend
+/backend/.gradle/
+/backend/build/
+/backend/out/
+/backend/.idea/
+/backend/.vscode/
+/backend/*.iml
+/backend/logs/
+/backend/tmp/
+/backend/.classpath
+/backend/.project
+/backend/.settings/
+
+# frontend
+/frontend/node_modules/
+/frontend/build/
+/frontend/dist/
+/frontend/.env
+/frontend/.vite
+/frontend/.parcel-cache
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/.DS_Store
+
+# docker
+*.env.local
+*.env.development.local
+*.env.production.local
+*.env.test.local
+
+# système
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+
+a.txt
+arbo.py
