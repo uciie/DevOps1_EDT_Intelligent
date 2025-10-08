@@ -8,5 +8,5 @@ M1 - DevOps - EDT Intelligent
 Membres de l'équipe :
 - [Paul Beyssac]() 42006035
 - [Manda Dabo]() 42012949
-- [Sylvain Huang]() 41005688
+- [Sylvain Huang]((https://github.com/Kusanagies) 41005688
 - [Lucie Pan](https://github.com/uciie) 45004162
