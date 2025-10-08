@@ -15,10 +15,11 @@ Membres de l'équipe :
 - [Lucie Pan](https://github.com/uciie) 45004162
 
 Bonne pratique: 
-TOUJOURS : "$ GIT PULL" avant de commencer à travailler sur le projet
+TOUJOURS : "GIT PULL" avant de commencer à travailler sur le projet
 
 SUR LINUX:
 Sudo apt install docker-compose
 Aller dans le ficher docker 
 Lancer: 
-docker-compose up -d //ca devrait lancer le build 
+docker compose up -d --build //ca devrait lancer le build, prend beaucoup de temps la première fois
+
