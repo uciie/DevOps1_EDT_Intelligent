@@ -39,7 +39,5 @@ jobs:
           node-version: '22'
 
       - name: Run frontend tests
+        run: npm test
         working-directory: ./frontend
-        run: |
-          npm install
-          npm test -- --watchAll=false
