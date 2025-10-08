@@ -1,0 +1,38 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # --- Backend tests ---
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Run backend tests
+        working-directory: ./backend
+        run: mvn test
+
+      # --- Frontend tests ---
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm test -- --watchAll=false
