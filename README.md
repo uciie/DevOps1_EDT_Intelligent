@@ -14,3 +14,9 @@ Membres de l'équipe :
 - [Manda Dabo]() 42012949
 - [Sylvain Huang](https://github.com/Kusanagies) 41005688
 - [Lucie Pan](https://github.com/uciie) 45004162
+
+SUR LINUX:
+Sudo apt install docker-compose
+Aller dans le ficher docker 
+Lancer: 
+docker-compose up -d //ca devrait lancer le build 
