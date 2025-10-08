@@ -15,15 +15,22 @@ jobs:
         uses: actions/checkout@v4
 
       # --- Backend tests ---
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
+
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x ./backend/gradlew
+
+      - name: Build backend
+        run: ./gradlew build --no-daemon
+        working-directory: ./backend
 
       - name: Run backend tests
         working-directory: ./backend
-        run: mvn test
+        run: ./gradlew test --no-daemon
 
       # --- Frontend tests ---
       - name: Set up Node.js
