@@ -15,6 +15,9 @@ Membres de l'équipe :
 - [Sylvain Huang](https://github.com/Kusanagies) 41005688
 - [Lucie Pan](https://github.com/uciie) 45004162
 
+Bonne pratique: 
+TOUJOURS : "$ GIT PULL" avant de commencer à travailler sur le projet
+
 SUR LINUX:
 Sudo apt install docker-compose
 Aller dans le ficher docker 
