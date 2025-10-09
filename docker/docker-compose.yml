@@ -4,32 +4,33 @@ services:
   backend:
     build:
       context: ../backend
-      dockerfile: ../docker/backend.Dockerfile
+      dockerfile: ../docker/Dockerfile.backend
+    container_name: backend
     ports:
-      - "${APP_PORT}:8080"
+      - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: "jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE}&channelBinding=${DB_CHANNELBINDING}"
-      SPRING_DATASOURCE_USERNAME: ${DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=dev
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ../backend:/app
+    working_dir: /app
     depends_on:
-      - db
+      - frontend
 
   frontend:
     build:
       context: ../frontend
-      dockerfile: ../docker/frontend.Dockerfile
+      dockerfile: ../docker/Dockerfile.frontend
+    container_name: frontend
+    command: npm run dev
     ports:
-      - "${FRONTEND_PORT}:5173"
+      - "5173:5173"   # ou 3000 si React
     environment:
-      - VITE_API_URL=${BACKEND_URL}
-    depends_on:
-      - backend
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
 
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
-    ports:
-      - "${DB_PORT}:5432"
