@@ -11,7 +11,10 @@ WORKDIR /app
 COPY --chown=appuser:appgroup gradlew gradlew
 COPY --chown=appuser:appgroup gradle gradle
 COPY --chown=appuser:appgroup build.gradle settings.gradle ./
-COPY --chown=appuser:appgroup src src
+RUN chmod a-w build.gradle settings.gradle
+
+COPY --chown=appuser:appgroup src ./src
+RUN chmod -R a-w /app/src
 
 # Rend les ressources copiées en lecture seule (principe demandé)
 # Note: le bind mount du compose recouvrira /app en dev, mais cette étape garantit l'image propre.
