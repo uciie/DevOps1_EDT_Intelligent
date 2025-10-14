@@ -1,36 +1,58 @@
-version: "3.9"
-
 services:
   backend:
     build:
       context: ../backend
-      dockerfile: ../docker/Dockerfile.backend
+      dockerfile: ../docker/Dockerfile.backend   # tu gardes la structure actuelle
+      # Si tu veux un ARG pour activer/désactiver le hot reload, on peut l’ajouter ici.
     container_name: backend
     ports:
       - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - DB_HOST=${DB_HOST}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
+    env_file:
+      - ../docker/.env          # ou ./docker/.env selon ton arbo
     volumes:
-      - ../backend:/app
-    working_dir: /app
-    depends_on:
-      - frontend
+      # Code en lecture seule (pas d'écriture sur les sources)
+      - ../backend:/app:ro
+      # Sorties & caches en lecture/écriture (volumes nommés)
+      - backend-build:/app/build
+      - gradle-cache:/home/gradle/.gradle
+      # /tmp nécessaire pour certains frameworks
+    tmpfs:
+      - /tmp
+    read_only: true             # rends le root FS en lecture seule (volumes restent RW)
+    user: "10001:10001"         # user non-root cohérent avec le Dockerfile
+    networks:
+      - app-network
 
   frontend:
     build:
       context: ../frontend
       dockerfile: ../docker/Dockerfile.frontend
     container_name: frontend
-    command: npm run dev
     ports:
-      - "5173:5173"   # ou 3000 si React
-    environment:
-      - NODE_ENV=development
-      - CHOKIDAR_USEPOLLING=true
+      - "5173:5173"
+    env_file:
+      - ../docker/.env
     volumes:
-      - ../frontend:/app
-      - /app/node_modules
+      # Code en lecture seule
+      - ../frontend:/app:ro
+      # node_modules séparé pour autoriser l’écriture
+      - frontend-node-modules:/app/node_modules
+      # Optionnel: cache npm/pnpm/yarn selon ton gestionnaire
+      - npm-cache:/home/node/.npm
+    tmpfs:
+      - /tmp
+    read_only: true
+    user: "10002:10002"
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]  # hot reload
+    networks:
+      - app-network
 
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  gradle-cache:
+  backend-build:
+  frontend-node-modules:
+  npm-cache:

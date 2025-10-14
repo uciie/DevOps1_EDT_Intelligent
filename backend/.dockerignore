@@ -1,0 +1,9 @@
+.git
+.gitignore
+.gradle
+build
+out
+*.iml
+*.log
+*.env
+node_modules

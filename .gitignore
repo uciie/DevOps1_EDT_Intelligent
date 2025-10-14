@@ -29,6 +29,7 @@
 *.env.production.local
 *.env.test.local
 docker/.env
+.env
 
 # système
 *.log
