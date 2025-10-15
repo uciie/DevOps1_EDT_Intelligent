@@ -33,6 +33,12 @@ public class Event {
         this.user = user;
     }
 
+    public Event(String summary, LocalDateTime startTime, LocalDateTime endTime) {
+        this.summary = summary;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+
     public Long getId() { return id; }
 
     public String getSummary() { return summary; }
