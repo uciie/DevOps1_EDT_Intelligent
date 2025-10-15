@@ -70,11 +70,3 @@ jobs:
         run: |
           npm install
           npm run build
-
-      # ----------------------
-      # 6. Build des images Docker
-      # ----------------------
-      - name: Build Docker images
-        working-directory: ./docker
-        run: |
-          docker compose -f docker-compose.yml build
