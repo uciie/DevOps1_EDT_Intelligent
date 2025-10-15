@@ -1,4 +1,4 @@
-package com.example.backend.service.parser;
+package service.parser;
 
 import com.example.backend.model.Event;
 import org.junit.jupiter.api.Test;
