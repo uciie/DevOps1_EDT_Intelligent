@@ -18,9 +18,8 @@ public class CalendarImportController {
     /**
      * Gère l'importation d'un fichier de calendrier et traite ses événements.
      *
-     * @param file le fichier de calendrier téléchargé à importer, fourni en tant que 
-     *             {@link MultipartFile}.
-     * @return un {@link ResponseEntity} contenant un message de succès avec le 
+     * @param file le fichier de calendrier téléchargé à importer, (au format ICS ou équivalent)
+     * @return une reponse contenant un message de succès avec le
      *         nombre d'événements importés, ou un message d'erreur en cas d'échec.
      */
     @PostMapping
