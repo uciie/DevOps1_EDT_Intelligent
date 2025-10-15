@@ -1,8 +1,8 @@
 package com.example.backend.controller;
 
-import com.example.scheduler.service.ScheduleOptimizerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.backend.service.ScheduleOptimizerService;
 
 @RestController
 @RequestMapping("/api/schedule")
