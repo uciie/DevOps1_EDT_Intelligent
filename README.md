@@ -57,7 +57,7 @@ Cette solution propose un moteur d’optimisation extensible (stratégies de sé
 - Librairie [`biweekly`](https://github.com/mangstadt/biweekly)
 
 **Diagramme UML :**
-- Voir `uml/domain-model.puml` (PlantUML)
+- Voir `uml/diagram_classes.puml` (PlantUML)
 
 ---
 

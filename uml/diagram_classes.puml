@@ -1,0 +1,187 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class BackendApplication {
+  + BackendApplication(): 
+  + main(String[]): void
+}
+class BackendApplicationTests {
+  + BackendApplicationTests(): 
+  ~ contextLoads(): void
+}
+class BiweeklyCalendarParser {
+  + BiweeklyCalendarParser(): 
+  + parse(InputStream): List<Event>
+}
+class BiweeklyCalendarParserTest {
+  + BiweeklyCalendarParserTest(): 
+  ~ testParseEventWithoutEndDate(): void
+  ~ testParseMultipleEvents(): void
+  ~ testParseSingleEvent(): void
+}
+class CalendarImportController {
+  + CalendarImportController(CalendarImportService): 
+  + importCalendar(MultipartFile): ResponseEntity<String>
+}
+class CalendarImportService {
+  + CalendarImportService(EventRepository, ICalendarParser): 
+  + importCalendar(MultipartFile): int
+}
+class CalendarImportServiceTest {
+  + CalendarImportServiceTest(): 
+  ~ testImportCalendar(): void
+  ~ setUp(): void
+}
+class DefaultScheduleOptimizerService {
+  + DefaultScheduleOptimizerService(EventRepository, TaskRepository, TaskSelectionStrategy): 
+  + reshuffle(Long): void
+}
+class DefaultTaskSelectionStrategy {
+  + DefaultTaskSelectionStrategy(TaskRepository): 
+  + selectTask(Long, long): Task
+}
+class Event {
+  + Event(String, LocalDateTime, LocalDateTime): 
+  + Event(String, LocalDateTime, LocalDateTime, User): 
+  + Event(): 
+  - endTime: LocalDateTime
+  - startTime: LocalDateTime
+  - tasks: List<Task>
+  - user: User
+  - status: String
+  - id: Long
+  - summary: String
+   endTime: LocalDateTime
+   summary: String
+   tasks: List<Task>
+   id: Long
+   startTime: LocalDateTime
+   userId: Long
+   status: String
+   user: User
+}
+interface EventRepository << interface >>
+class EventTest {
+  + EventTest(): 
+  ~ testEventRelationsAndStatus(): void
+  ~ testEventConstructorAndGetters(): void
+  ~ testEventAliasMethods(): void
+}
+interface ICalendarParser << interface >> {
+  + parse(InputStream): List<Event>
+}
+class ScheduleController {
+  + ScheduleController(ScheduleOptimizerService): 
+  + reshuffle(Long): ResponseEntity<String>
+}
+interface ScheduleOptimizerService << interface >> {
+  + reshuffle(Long): void
+}
+class Task {
+  + Task(): 
+  + Task(String, int, int, boolean, User, Event): 
+  - estimatedDuration: int
+  - id: Long
+  - priority: int
+  - event: Event
+  - title: String
+  - done: boolean
+  - user: User
+   estimatedDuration: int
+   priority: int
+   title: String
+   id: Long
+   done: boolean
+   event: Event
+   user: User
+}
+interface TaskRepository << interface >> {
+  + findByUser_Id(Long): List<Task>
+}
+interface TaskSelectionStrategy << interface >> {
+  + selectTask(Long, long): Task
+}
+class TaskTest {
+  + TaskTest(): 
+  ~ testTaskSetters(): void
+  ~ testTaskConstructorAndGetters(): void
+}
+class User {
+  + User(): 
+  + User(String, String): 
+  - username: String
+  - events: List<Event>
+  - id: Long
+  - tasks: List<Task>
+  - password: String
+   password: String
+   username: String
+   tasks: List<Task>
+   id: Long
+   events: List<Event>
+}
+class UserController {
+  + UserController(UserService): 
+  + register(User): ResponseEntity<User>
+   all: List<User>
+}
+interface UserRepository << interface >> {
+  + findByUsername(String): Optional<User>
+}
+class UserService {
+  + UserService(UserRepository): 
+  + registerUser(String, String): User
+   allUsers: List<User>
+}
+class UserTest {
+  + UserTest(): 
+  ~ testUserConstructorAndGetters(): void
+  ~ testUserSetters(): void
+  ~ testUserRelations(): void
+}
+class WebConfig {
+  + WebConfig(): 
+  + corsConfigurer(): WebMvcConfigurer
+}
+
+BiweeklyCalendarParser           -[#595959,dashed]->  Event                           : "«create»"
+BiweeklyCalendarParser           -[#008200,dashed]-^  ICalendarParser                 
+BiweeklyCalendarParserTest       -[#595959,dashed]->  BiweeklyCalendarParser          : "«create»"
+CalendarImportController        "1" *-[#595959,plain]-> "importService\n1" CalendarImportService           
+CalendarImportService           "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository                 
+CalendarImportService           "1" *-[#595959,plain]-> "parser\n1" ICalendarParser                 
+CalendarImportServiceTest        -[#595959,dashed]->  CalendarImportService           : "«create»"
+CalendarImportServiceTest       "1" *-[#595959,plain]-> "importService\n1" CalendarImportService           
+CalendarImportServiceTest        -[#595959,dashed]->  Event                           : "«create»"
+CalendarImportServiceTest       "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository                 
+CalendarImportServiceTest       "1" *-[#595959,plain]-> "parser\n1" ICalendarParser                 
+DefaultScheduleOptimizerService  -[#595959,dashed]->  Event                           : "«create»"
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository                 
+DefaultScheduleOptimizerService  -[#008200,dashed]-^  ScheduleOptimizerService        
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository                  
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "taskSelectionStrategy\n1" TaskSelectionStrategy           
+DefaultTaskSelectionStrategy    "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository                  
+DefaultTaskSelectionStrategy     -[#008200,dashed]-^  TaskSelectionStrategy           
+Event                           "1" *-[#595959,plain]-> "tasks\n*" Task                            
+Event                           "1" *-[#595959,plain]-> "user\n1" User                            
+EventTest                        -[#595959,dashed]->  Event                           : "«create»"
+EventTest                        -[#595959,dashed]->  Task                            : "«create»"
+EventTest                        -[#595959,dashed]->  User                            : "«create»"
+ScheduleController              "1" *-[#595959,plain]-> "optimizerService\n1" ScheduleOptimizerService        
+Task                            "1" *-[#595959,plain]-> "event\n1" Event                           
+Task                            "1" *-[#595959,plain]-> "user\n1" User                            
+TaskTest                         -[#595959,dashed]->  Event                           : "«create»"
+TaskTest                         -[#595959,dashed]->  Task                            : "«create»"
+TaskTest                         -[#595959,dashed]->  User                            : "«create»"
+User                            "1" *-[#595959,plain]-> "events\n*" Event                           
+User                            "1" *-[#595959,plain]-> "tasks\n*" Task                            
+UserController                  "1" *-[#595959,plain]-> "userService\n1" UserService                     
+UserService                      -[#595959,dashed]->  User                            : "«create»"
+UserService                     "1" *-[#595959,plain]-> "userRepository\n1" UserRepository                  
+UserTest                         -[#595959,dashed]->  Event                           : "«create»"
+UserTest                         -[#595959,dashed]->  Task                            : "«create»"
+UserTest                         -[#595959,dashed]->  User                            : "«create»"
+@enduml
