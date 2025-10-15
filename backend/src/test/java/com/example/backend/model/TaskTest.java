@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
  * Elle vérifie que les constructeurs, accesseurs (getters/setters)
  * et méthodes utilitaires fonctionnent correctement.
  */
-public class TaskTest {
+class TaskTest {
 
     /**
      * Teste le constructeur complet de Task ainsi que tous ses getters.
@@ -18,7 +18,7 @@ public class TaskTest {
      * sont bien stockées et retournées correctement.
      */
     @Test
-    public void testTaskConstructorAndGetters() {
+    void testTaskConstructorAndGetters() {
         // Création d'un utilisateur (nécessaire car Task est lié à User)
         User user = new User("john_doe", "password123");
 
@@ -42,9 +42,6 @@ public class TaskTest {
         assertEquals(user, task.getUser());
         assertEquals(event, task.getEvent());
 
-        // Vérifie que getDurationMinutes() retourne bien la même valeur
-        // que estimatedDuration (alias)
-        assertEquals(60, task.getDurationMinutes());
     }
 
     /**
@@ -53,7 +50,7 @@ public class TaskTest {
      * puis vérifie qu'elles ont bien été enregistrées.
      */
     @Test
-    public void testTaskSetters() {
+    void testTaskSetters() {
         // Création d'un utilisateur pour le lien de tâche
         User user = new User("alice", "password");
 
@@ -81,25 +78,5 @@ public class TaskTest {
         assertTrue(task.isDone());
         assertEquals(user, task.getUser());
         assertEquals(event, task.getEvent());
-    }
-
-    /**
-     * Teste la cohérence entre getEstimatedDuration() et getDurationMinutes().
-     * Ces deux méthodes doivent retourner la même valeur.
-     */
-    @Test
-    public void testDurationAlias() {
-        // Création d'une tâche vide
-        Task task = new Task();
-
-        // Définition d'une durée
-        task.setEstimatedDuration(45);
-
-        // Vérifie que l'alias renvoie la même valeur
-        assertEquals(
-            45,
-            task.getDurationMinutes(),
-            "getDurationMinutes doit renvoyer la même valeur que estimatedDuration"
-        );
     }
 }

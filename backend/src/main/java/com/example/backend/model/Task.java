@@ -53,10 +53,6 @@ public class Task {
         this.estimatedDuration = estimatedDuration;
     }
 
-    public int getDurationMinutes() {
-        return estimatedDuration;
-    }
-
     public int getPriority() {
         return priority;
     }
