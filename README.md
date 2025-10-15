@@ -86,9 +86,15 @@ cd DevOps1_EDT_Intelligent
 ## 🚀 Lancer le backend
 
 ### En développement :
+La commande classique pour démarrer l’application est :
 ```bash
 cd backend
 ./gradlew bootRun
+```
+ou sous Windows :
+```bash
+cd backend
+gradlew.bat bootRun
 ```
 
 Le backend est accessible sur :  
