@@ -15,13 +15,15 @@ class BiweeklyCalendarParserTest {
     void testParseSingleEvent() throws Exception {
         BiweeklyCalendarParser parser = new BiweeklyCalendarParser();
 
-        String icsContent = "BEGIN:VCALENDAR\n" +
-                            "BEGIN:VEVENT\n" +
-                            "SUMMARY:My Test Event\n" +
-                            "DTSTART:20251014T100000Z\n" +
-                            "DTEND:20251014T110000Z\n" +
-                            "END:VEVENT\n" +
-                            "END:VCALENDAR";
+        String icsContent = """
+                            BEGIN:VCALENDAR
+                            BEGIN:VEVENT
+                            SUMMARY:My Test Event
+                            DTSTART:20251014T100000Z
+                            DTEND:20251014T110000Z
+                            END:VEVENT
+                            END:VCALENDAR
+                            """;
 
         InputStream inputStream = new ByteArrayInputStream(icsContent.getBytes());
 
@@ -38,18 +40,20 @@ class BiweeklyCalendarParserTest {
     void testParseMultipleEvents() throws Exception {
         BiweeklyCalendarParser parser = new BiweeklyCalendarParser();
 
-        String icsContent = "BEGIN:VCALENDAR\n" +
-                            "BEGIN:VEVENT\n" +
-                            "SUMMARY:Event 1\n" +
-                            "DTSTART:20251014T100000Z\n" +
-                            "DTEND:20251014T110000Z\n" +
-                            "END:VEVENT\n" +
-                            "BEGIN:VEVENT\n" +
-                            "SUMMARY:Event 2\n" +
-                            "DTSTART:20251015T120000Z\n" +
-                            "DTEND:20251015T130000Z\n" +
-                            "END:VEVENT\n" +
-                            "END:VCALENDAR";
+        String icsContent = """
+                            BEGIN:VCALENDAR
+                            BEGIN:VEVENT
+                            SUMMARY:Event 1
+                            DTSTART:20251014T100000Z
+                            DTEND:20251014T110000Z
+                            END:VEVENT
+                            BEGIN:VEVENT
+                            SUMMARY:Event 2
+                            DTSTART:20251015T120000Z
+                            DTEND:20251015T130000Z
+                            END:VEVENT
+                            END:VCALENDAR
+                            """;
 
         InputStream inputStream = new ByteArrayInputStream(icsContent.getBytes());
         List<Event> events = parser.parse(inputStream);
@@ -63,12 +67,14 @@ class BiweeklyCalendarParserTest {
     void testParseEventWithoutEndDate() throws Exception {
         BiweeklyCalendarParser parser = new BiweeklyCalendarParser();
 
-        String icsContent = "BEGIN:VCALENDAR\n" +
-                            "BEGIN:VEVENT\n" +
-                            "SUMMARY:No End Event\n" +
-                            "DTSTART:20251014T100000Z\n" +
-                            "END:VEVENT\n" +
-                            "END:VCALENDAR";
+        String icsContent = """
+                            BEGIN:VCALENDAR
+                            BEGIN:VEVENT
+                            SUMMARY:No End Event
+                            DTSTART:20251014T100000Z
+                            END:VEVENT
+                            END:VCALENDAR
+                            """;
 
         InputStream inputStream = new ByteArrayInputStream(icsContent.getBytes());
         List<Event> events = parser.parse(inputStream);
