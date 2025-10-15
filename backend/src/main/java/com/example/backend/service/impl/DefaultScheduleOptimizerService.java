@@ -42,7 +42,7 @@ public class DefaultScheduleOptimizerService implements ScheduleOptimizerService
             Event newEvent = new Event(
                     bestTask.getTitle(),
                     start,
-                    start.plusMinutes(bestTask.getDurationMinutes()),
+                    start.plusMinutes(bestTask.getEstimatedDuration()),
                     cancelledEvent.getUser()
             );
             eventRepository.save(newEvent);
