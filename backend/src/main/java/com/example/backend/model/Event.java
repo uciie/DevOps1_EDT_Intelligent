@@ -4,6 +4,11 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Représente un événement dans le calendrier.
+ * Un événement a un début, une fin, un résumé et est associé à un utilisateur.
+ * Il peut également contenir une liste de tâches.
+ */
 @Entity
 public class Event {
 
@@ -24,8 +29,19 @@ public class Event {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks;
 
+    /**
+     * Constructeur par défaut.
+     */
     public Event() {}
 
+    /**
+     * Construit un nouvel événement avec le résumé, l'heure de début, l'heure de fin et l'utilisateur donnés.
+     *
+     * @param summary le résumé de l'événement.
+     * @param startTime l'heure de début de l'événement.
+     * @param endTime l'heure de fin de l'événement.
+     * @param user l'utilisateur associé à l'événement.
+     */
     public Event(String summary, LocalDateTime startTime, LocalDateTime endTime, User user) {
         this.summary = summary;
         this.startTime = startTime;
@@ -33,6 +49,13 @@ public class Event {
         this.user = user;
     }
 
+    /**
+     * Construit un nouvel événement avec le résumé, l'heure de début et l'heure de fin donnés.
+     *
+     * @param summary le résumé de l'événement.
+     * @param startTime l'heure de début de l'événement.
+     * @param endTime l'heure de fin de l'événement.
+     */
     public Event(String summary, LocalDateTime startTime, LocalDateTime endTime) {
         this.summary = summary;
         this.startTime = startTime;
@@ -59,6 +82,11 @@ public class Event {
     public List<Task> getTasks() { return tasks; }
     public void setTasks(List<Task> tasks) { this.tasks = tasks; }
 
+    /**
+     * Renvoie l'ID de l'utilisateur associé à cet événement.
+     *
+     * @return l'ID de l'utilisateur, ou null si aucun utilisateur n'est associé.
+     */
     public Long getUserId() {
         return user != null ? user.getId() : null;
     }

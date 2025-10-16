@@ -3,6 +3,10 @@ package com.example.backend.model;
 import jakarta.persistence.*;
 import java.util.List;
 
+/**
+ * Représente un utilisateur de l'application.
+ * Un utilisateur a un nom d'utilisateur unique, un mot de passe, et des listes d'événements et de tâches associés.
+ */
 @Entity
 @Table(name = "users")
 public class User {
@@ -22,8 +26,17 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks;
 
+    /**
+     * Constructeur par défaut.
+     */
     public User() {}
 
+    /**
+     * Construit un nouvel utilisateur avec le nom d'utilisateur et le mot de passe donnés.
+     *
+     * @param username le nom d'utilisateur.
+     * @param password le mot de passe.
+     */
     public User(String username, String password) {
         this.username = username;
         this.password = password;

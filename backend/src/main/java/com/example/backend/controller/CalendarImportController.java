@@ -5,12 +5,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * Contrôleur pour l'importation de calendriers.
+ * Fournit des points de terminaison pour l'importation de fichiers de calendrier.
+ */
 @RestController
 @RequestMapping("/import")
 public class CalendarImportController {
 
     private final CalendarImportService importService;
 
+    /**
+     * Construit un nouveau CalendarImportController avec le service d'importation de calendrier donné.
+     *
+     * @param importService le service à utiliser for l'importation de calendriers.
+     */
     public CalendarImportController(CalendarImportService importService) {
         this.importService = importService;
     }

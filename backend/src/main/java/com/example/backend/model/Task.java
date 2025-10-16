@@ -2,6 +2,11 @@ package com.example.backend.model;
 
 import jakarta.persistence.*;
 
+/**
+ * Représente une tâche à effectuer.
+ * Une tâche a un titre, une durée estimée, une priorité, un statut (terminé ou non),
+ * et est associée à un utilisateur et éventuellement à un événement.
+ */
 @Entity
 public class Task {
 
@@ -22,8 +27,21 @@ public class Task {
     @JoinColumn(name = "event_id")
     private Event event;
 
+    /**
+     * Constructeur par défaut.
+     */
     public Task() {}
 
+    /**
+     * Construit une nouvelle tâche avec le titre, la durée estimée, la priorité, le statut, l'utilisateur et l'événement donnés.
+     *
+     * @param title le titre de la tâche.
+     * @param estimatedDuration la durée estimée de la tâche en minutes.
+     * @param priority la priorité de la tâche.
+     * @param done le statut de la tâche (terminé ou non).
+     * @param user l'utilisateur associé à la tâche.
+     * @param event l'événement associé à la tâche.
+     */
     public Task(String title, int estimatedDuration, int priority, boolean done, User user, Event event) {
         this.title = title;
         this.estimatedDuration = estimatedDuration;
