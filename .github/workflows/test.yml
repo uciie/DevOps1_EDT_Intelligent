@@ -1,85 +1,47 @@
-name: 🧪 Backend Tests (PostgreSQL → H2 fallback)
+name: Tests
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
-    env:
-      # ===============================
-      # VARIABLES GLOBALES
-      # ===============================
-      APP_ENV: dev
-      APP_PORT: 8080
-
-      # ===============================
-      # BASE DE DONNÉES NEON (cloud)
-      # ===============================
-      DB_HOST: ${{ secrets.DB_HOST }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_NAME: neondb
-      DB_SSLMODE: require
-      DB_CHANNELBINDING: require
-      DB_URL: jdbc:postgresql://${{ secrets.DB_HOST }}:5432/neondb?sslmode=require&channel_binding=require
-
-      # ===============================
-      # FRONTEND (React)
-      # ===============================
-      FRONTEND_PORT: 5173
-      VITE_API_URL: http://localhost:8080/api
-      BACKEND_URL: http://localhost:8080
-
     steps:
-      # -------------------------------
-      # 🧾 Checkout du repo
-      # -------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # -------------------------------
-      # ☕ Java 21
-      # -------------------------------
+      # --- Backend tests ---
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
 
-      # -------------------------------
-      # ⚙️ Gradle Wrapper Permission
-      # -------------------------------
       - name: Grant execute permission for Gradle wrapper
-        working-directory: backend
-        run: chmod +x gradlew
+        run: chmod +x ./backend/gradlew
 
-      # -------------------------------
-      # 🧪 Lancer les tests
-      # -------------------------------
-      - name: Run tests (PostgreSQL → H2 fallback)
-        working-directory: backend
-        env:
-          SPRING_PROFILES_ACTIVE: test
-        run: |
-          echo "🔍 Checking Neon PostgreSQL connectivity..."
-          if pg_isready -h "${DB_HOST}" -p 5432 -U "${DB_USER}" > /dev/null 2>&1; then
-            echo "✅ PostgreSQL Neon is reachable — running tests with PostgreSQL."
-            ./gradlew clean test
-          else
-            echo "⚠️ PostgreSQL not reachable — using H2 in-memory fallback."
-            SPRING_PROFILES_ACTIVE=test ./gradlew clean test
-          fi
+      - name: Build backend
+        run: ./gradlew build --no-daemon
+        working-directory: ./backend
 
-      # -------------------------------
-      # 📦 Export des rapports de test
-      # -------------------------------
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Run backend tests
+        working-directory: ./backend
+        run: ./gradlew test --no-daemon
+
+      # --- Frontend tests ---
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          name: backend-test-report
-          path: backend/build/reports/tests/test
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: ./frontend
+              
+      - name: Run frontend tests
+        run: npm test
+        working-directory: ./frontend
