@@ -9,5 +9,7 @@ import org.springframework.test.context.ActiveProfiles;
 class BackendApplicationTests {
     @Test
     void contextLoads() {
+        // This test ensures that the Spring application context loads successfully.
+        throw new UnsupportedOperationException("Test not implemented yet.");
     }
 }
