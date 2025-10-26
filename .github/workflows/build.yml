@@ -1,4 +1,4 @@
-name: CI - Build & Test (Backend + Frontend)
+name: CI - Build (Backend + Frontend)
 
 on:
   push:
@@ -52,7 +52,7 @@ jobs:
         working-directory: ./backend
         run: |
           chmod +x gradlew
-          ./gradlew clean build --no-daemon
+          ./gradlew clean assemble -x test --no-daemon
 
       # ----------------------
       # 4. Setup Node (frontend)

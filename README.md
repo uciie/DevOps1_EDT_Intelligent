@@ -1,11 +1,11 @@
+# Smart Scheduler
+
 [![License](https://img.shields.io/github/license/uciie/DevOps1_EDT_Intelligent)](./LICENSE)
 [![Version](https://img.shields.io/github/v/tag/uciie/DevOps1_EDT_Intelligent)](https://github.com/uciie/DevOps1_EDT_Intelligent/releases)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=uciie_DevOps1_EDT_Intelligent&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=uciie_DevOps1_EDT_Intelligent)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=uciie_DevOps1_EDT_Intelligent&metric=coverage)](https://sonarcloud.io/summary/new_code?id=uciie_DevOps1_EDT_Intelligent)
 [![Build](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/build.yml/badge.svg)](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/build.yml)
-[![Tests](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/tests.yml/badge.svg)](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/tests.yml)
-
-
-# Smart Scheduler
+[![Tests & SonarCloud](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/test.yml/badge.svg)](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/test.yml)
 
 > **Emploi du temps intelligent** — import ICS, gestion d'utilisateurs et optimisation automatique des créneaux pour insérer des tâches.
 
@@ -19,6 +19,7 @@
   - [⚙️ Prérequis](#️-prérequis)
   - [🧩 Installation et configuration](#-installation-et-configuration)
     - [1️⃣ Cloner le projet](#1️⃣-cloner-le-projet)
+    - [2️⃣ Ajouter le fichier `.env` dans `DevOps1_EDT_Intelligent/backend`](#2️⃣-ajouter-le-fichier-env-dans-devops1_edt_intelligentbackend)
   - [🚀 Lancer le backend](#-lancer-le-backend)
     - [En développement :](#en-développement-)
   - [💻 Lancer le frontend](#-lancer-le-frontend)
@@ -81,6 +82,14 @@ git clone <votre-repo> DevOps1_EDT_Intelligent
 cd DevOps1_EDT_Intelligent
 ```
 
+### 2️⃣ Ajouter le fichier `.env` dans `DevOps1_EDT_Intelligent/backend`
+> ⚠️ **Ne pas committer** le fichier .env (il contient des informations sensibles et doit rester privé)
+```bash
+# fichier .env
+DB_URL=jdbc:postgresql://ep-autumn-wind-abwdkup1-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+DB_USER=neondb_owner
+DB_PASSWORD=npg_5Vx0NjUkQYun
+```
 ---
 
 ## 🚀 Lancer le backend

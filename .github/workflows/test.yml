@@ -1,47 +1,78 @@
-name: Tests
+name: CI - Tests (Backend + Frontend + Sonar)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
+    env:
+      APP_ENV: test
+      APP_PORT: 8080
+
+      # Base de données (Neon)
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
+      # Token SonarCloud
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
     steps:
+      # 1️⃣ Checkout du dépôt
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # requis pour SonarCloud
 
-      # --- Backend tests ---
-      - name: Set up JDK 21
+      # 2️⃣ Setup Java (pour le backend)
+      - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          distribution: temurin
+          java-version: 21
+          cache: gradle
 
+      # 3️⃣ Rendre Gradle exécutable
       - name: Grant execute permission for Gradle wrapper
-        run: chmod +x ./backend/gradlew
+        working-directory: backend
+        run: chmod +x gradlew
 
-      - name: Build backend
-        run: ./gradlew build --no-daemon
-        working-directory: ./backend
+      # 4️⃣ Exécuter les tests backend avec JaCoCo
+      - name: Run backend tests with coverage
+        working-directory: backend
+        run: ./gradlew clean test jacocoTestReport --info
 
-      - name: Run backend tests
-        working-directory: ./backend
-        run: ./gradlew test --no-daemon
+      # 5️⃣ Sauvegarder le rapport JaCoCo (optionnel)
+      - name: Upload JaCoCo coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: backend/build/reports/jacoco/test/
 
-      # --- Frontend tests ---
-      - name: Set up Node.js
+      # 6️⃣ Setup Node.js (pour le frontend)
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ./frontend/package-lock.json
 
+      # 7️⃣ Installer les dépendances frontend
       - name: Install frontend dependencies
-              run: npm ci
-              working-directory: ./frontend
-              
+        working-directory: frontend
+        run: npm ci
+
+      # 8️⃣ Lancer les tests frontend
       - name: Run frontend tests
+        working-directory: frontend
         run: npm test
-        working-directory: ./frontend
+
+      # 9️⃣ Lancer l'analyse SonarCloud
+      - name: Run SonarCloud analysis
+        working-directory: backend
+        run: ./gradlew sonar --info

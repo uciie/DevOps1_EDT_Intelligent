@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest";
 import App from "./App";
 
 // Empêche le fetch d'échouer
-global.fetch = vi.fn(() =>
+globalThis.fetch = vi.fn(() =>
   Promise.resolve({
     json: () => Promise.resolve([]),
   })
