@@ -76,4 +76,4 @@ jobs:
       # 9️⃣ Lancer l'analyse SonarCloud
       - name: Run SonarCloud analysis
         working-directory: backend
-        run: ./gradlew sonar --info
+        run: ./gradlew sonar --stacktrace --debug
