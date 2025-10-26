@@ -21,6 +21,7 @@ jobs:
 
       # Token SonarCloud
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_USER_HOME: ~/.sonar
 
     steps:
       # 1️⃣ Checkout du dépôt
