@@ -76,4 +76,10 @@ jobs:
       # 9️⃣ Lancer l'analyse SonarCloud
       - name: Run SonarCloud analysis
         working-directory: backend
-        run: ./gradlew sonar --stacktrace --debug
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_USER_HOME: /home/runner/.sonar
+          GRADLE_USER_HOME: /home/runner/.gradle
+        run: |
+          export HOME=/home/runner
+          ./gradlew sonar --info
