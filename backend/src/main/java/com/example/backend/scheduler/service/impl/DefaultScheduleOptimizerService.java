@@ -1,12 +1,13 @@
-package com.example.scheduler.service.impl;
+package com.example.backend.scheduler.service.impl;
 
-import com.example.scheduler.model.Event;
-import com.example.scheduler.model.Task;
-import com.example.scheduler.repository.EventRepository;
-import com.example.scheduler.repository.TaskRepository;
-import com.example.scheduler.service.ScheduleOptimizerService;
-import com.example.scheduler.service.TaskSelectionStrategy;
 import org.springframework.stereotype.Service;
+
+import com.example.backend.model.Event;
+import com.example.backend.model.Task;
+import com.example.backend.repository.EventRepository;
+import com.example.backend.repository.TaskRepository;
+import com.example.backend.scheduler.service.ScheduleOptimizerService;
+import com.example.backend.scheduler.service.TaskSelectionStrategy;
 
 import java.time.Duration;
 import java.time.LocalDateTime;

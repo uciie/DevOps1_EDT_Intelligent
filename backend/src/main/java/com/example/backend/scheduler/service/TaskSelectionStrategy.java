@@ -1,6 +1,6 @@
-package com.example.scheduler.service;
+package com.example.backend.scheduler.service;
 
-import com.example.scheduler.model.Task;
+import com.example.backend.model.Task;
 
 public interface TaskSelectionStrategy {
     Task selectTask(Long userId, long availableMinutes);

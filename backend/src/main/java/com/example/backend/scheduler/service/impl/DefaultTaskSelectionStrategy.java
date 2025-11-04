@@ -1,9 +1,10 @@
-package com.example.scheduler.service.impl;
+package com.example.backend.scheduler.service.impl;
 
-import com.example.scheduler.model.Task;
-import com.example.scheduler.repository.TaskRepository;
-import com.example.scheduler.service.TaskSelectionStrategy;
 import org.springframework.stereotype.Component;
+
+import com.example.backend.model.Task;
+import com.example.backend.repository.TaskRepository;
+import com.example.backend.scheduler.service.TaskSelectionStrategy;
 
 import java.util.Comparator;
 import java.util.List;
