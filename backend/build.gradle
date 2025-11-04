@@ -1,32 +1,42 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.6'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'org.springframework.boot' version '3.5.6'
+    id 'io.spring.dependency-management' version '1.1.6'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
-description = 'Demo project for Spring Boot'
+sourceCompatibility = '21'
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+configurations {
+    developmentOnly
+    runtimeClasspath {
+        extendsFrom developmentOnly
+    }
 }
 
 repositories {
 	mavenCentral()
+	maven { url "https://jitpack.io" }			  //pour biweekly
+	maven { url "https://repo1.maven.org/maven2" }//pour biweekly
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+	implementation 'com.github.mangstadt:biweekly:0.6.6' //parser
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'com.h2database:h2'//tests d'intégration avec H2
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testImplementation 'org.mockito:mockito-core:5.6.0' // Mockito
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.6.0' // Mockito avec JUnit5
+
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+tasks.withType(org.springframework.boot.gradle.tasks.bundling.BootJar) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

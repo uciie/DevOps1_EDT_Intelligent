@@ -4,6 +4,11 @@ import com.example.scheduler.service.ScheduleOptimizerService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import com.example.backend.scheduler.service.ScheduleOptimizerService;
+
 @RestController
 @RequestMapping("/api/schedule")
 public class ScheduleController {
