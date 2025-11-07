@@ -8,6 +8,7 @@ import java.util.List;
  * Représente un événement dans le calendrier.
  * Un événement a un début, une fin, un résumé et est associé à un utilisateur.
  * Il peut également contenir une liste de tâches.
+ * Inclut la localisation pour le calcul des trajets.
  */
 @Entity
 public class Event {
@@ -26,6 +27,12 @@ public class Event {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // Ajout de la relation avec Location
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "location_id")
+    private Location location;
+
+    // Liste des tâches associées à cet événement
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks;
 
@@ -81,6 +88,9 @@ public class Event {
 
     public List<Task> getTasks() { return tasks; }
     public void setTasks(List<Task> tasks) { this.tasks = tasks; }
+
+    public Location getLocation() { return location; }
+    public void setLocation(Location location) { this.location = location; }
 
     /**
      * Renvoie l'ID de l'utilisateur associé à cet événement.
