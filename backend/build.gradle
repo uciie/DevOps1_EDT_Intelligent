@@ -2,13 +2,17 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.5.6'
     id 'io.spring.dependency-management' version '1.1.6'
-	id 'jacoco'
+    id 'jacoco'
     id 'org.sonarqube' version '5.1.0.4882'
 }
 
 group = 'com.example'
 version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '21'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 configurations {
     developmentOnly
@@ -19,16 +23,16 @@ configurations {
 
 repositories {
 	mavenCentral()
-	maven { url "https://jitpack.io" }			  //pour biweekly
-	maven { url "https://repo1.maven.org/maven2" }//pour biweekly
+	maven { url = "https://jitpack.io" } //pour spring-dotenv			  
+	maven { url = "https://repo1.maven.org/maven2" } //pour biweekly
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-web'//Pour les appels REST vers Google Maps API
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
-	implementation 'com.github.mangstadt:biweekly:0.6.6' //parser
+	implementation 'com.github.mangstadt:biweekly:0.6.8' //parser
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.postgresql:postgresql'
 	runtimeOnly 'com.h2database:h2'//tests d'intégration avec H2
@@ -39,10 +43,11 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
 }
 
-test {
+tasks.named('test') {
     useJUnitPlatform()
-	finalizedBy jacocoTestReport
+    finalizedBy jacocoTestReport
 }
+
 tasks.withType(org.springframework.boot.gradle.tasks.bundling.BootJar) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
@@ -66,7 +71,7 @@ jacocoTestCoverageVerification {
     violationRules {
         rule {
             limit {
-                minimum = 0.80
+                minimum = 0.80 // 80% de couverture minimale
             }
         }
     }
