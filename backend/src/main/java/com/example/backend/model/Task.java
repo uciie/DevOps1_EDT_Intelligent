@@ -1,5 +1,6 @@
 package com.example.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 /**
@@ -15,41 +16,39 @@ public class Task {
     private Long id;
 
     private String title;
-    private int estimatedDuration;
-    private int priority;
+    private int estimatedDuration; // en minutes
+    private int priority; // 1 = haute, 2 = moyenne, 3 = basse
     private boolean done;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "event_id")
-    private Event event;
+    @OneToOne(mappedBy = "task")
+    @JsonBackReference
+    private Event event; // ✅ Une tâche peut être liée à un seul événement
 
-    /**
-     * Constructeur par défaut.
-     */
     public Task() {}
 
-    /**
-     * Construit une nouvelle tâche avec le titre, la durée estimée, la priorité, le statut, l'utilisateur et l'événement donnés.
-     *
-     * @param title le titre de la tâche.
-     * @param estimatedDuration la durée estimée de la tâche en minutes.
-     * @param priority la priorité de la tâche.
-     * @param done le statut de la tâche (terminé ou non).
-     * @param user l'utilisateur associé à la tâche.
-     * @param event l'événement associé à la tâche.
-     */
-    public Task(String title, int estimatedDuration, int priority, boolean done, User user, Event event) {
+    public Task(String title, int estimatedDuration, int priority, boolean done, User user) {
         this.title = title;
         this.estimatedDuration = estimatedDuration;
         this.priority = priority;
         this.done = done;
         this.user = user;
-        this.event = event;
     }
+
+    public Task(String title, int estimatedDuration, int priority, boolean done, User user, Event event) {
+    this.title = title;
+    this.estimatedDuration = estimatedDuration;
+    this.priority = priority;
+    this.done = done;
+    this.user = user;
+    this.event = event;
+}
+
+    
+
 
     public Long getId() {
         return id;
