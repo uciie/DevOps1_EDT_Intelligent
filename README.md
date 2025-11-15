@@ -20,7 +20,7 @@
   - [🧩 Installation et configuration](#-installation-et-configuration)
     - [1️⃣ Cloner le projet](#1️⃣-cloner-le-projet)
     - [2️⃣ Ajouter le fichier `.env` dans `DevOps1_EDT_Intelligent/backend`](#2️⃣-ajouter-le-fichier-env-dans-devops1_edt_intelligentbackend)
-  - [� Lancer le frontend](#-lancer-le-frontend)
+  - [💻 Lancer le frontend](#-lancer-le-frontend)
   - [🧠 API (extrait)](#-api-extrait)
   - [👥 Équipe](#-équipe)
 
@@ -87,7 +87,7 @@ cd DevOps1_EDT_Intelligent
 DB_URL=jdbc:postgresql://ep-autumn-wind-abwdkup1-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 DB_USER=neondb_owner
 DB_PASSWORD=npg_5Vx0NjUkQYun
-GOOGLE_MAPS_API_KEY=AIzaSyAH9bfad7gKjnDZILcEKnLaGtu6Sh5eX44
+GOOGLE_MAPS_API_KEY= # Merci de contacter @uciie pour l'obtention de la clé
 SPRING_PROFILES=external-api```
 ---
 

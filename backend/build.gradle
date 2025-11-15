@@ -35,7 +35,7 @@ dependencies {
 	implementation 'com.github.mangstadt:biweekly:0.6.8' //parser
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'org.postgresql:postgresql'
-	runtimeOnly 'com.h2database:h2'//tests d'intégration avec H2
+	testRuntimeOnly 'com.h2database:h2'  // H2 uniquement pour les tests
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.mockito:mockito-core:5.6.0' // Mockito
@@ -54,7 +54,8 @@ tasks.withType(org.springframework.boot.gradle.tasks.bundling.BootJar) {
 
 // Configuration de JaCoCo
 jacoco {
-    toolVersion = "0.8.12"
+    // Upgrade JaCoCo to support newer JDK class file versions (Java 21 / major version 68)
+    toolVersion = "0.8.13"
 }
 
 jacocoTestReport {
