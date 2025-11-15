@@ -56,7 +56,7 @@ public class DefaultScheduleOptimizerService implements ScheduleOptimizerService
         if (nextEvent != null && 
             cancelledEvent.getLocation() != null && 
             nextEvent.getLocation() != null &&
-            !locationsAreEqual(cancelledEvent.getLocation(), nextEvent.getLocation())) {
+            !cancelledEvent.getLocation().equals(nextEvent.getLocation())) {
             
             // On estime un temps de trajet (par défaut en voiture)
             travelTimeMinutes = estimateTravelTime(cancelledEvent, nextEvent, TransportMode.DRIVING);
@@ -142,21 +142,4 @@ public class DefaultScheduleOptimizerService implements ScheduleOptimizerService
         return duration;
     }
 
-    /**
-     * Vérifie si deux locations sont identiques.
-     *
-     * @param loc1 première localisation
-     * @param loc2 deuxième localisation
-     * @return true si les locations sont considérées identiques
-     */
-    private boolean locationsAreEqual(com.example.backend.model.Location loc1, 
-                                     com.example.backend.model.Location loc2) {
-        if (loc1.hasCoordinates() && loc2.hasCoordinates()) {
-            // Compare les coordonnées avec une tolérance de 0.001°
-            return Math.abs(loc1.getLatitude() - loc2.getLatitude()) < 0.001 &&
-                   Math.abs(loc1.getLongitude() - loc2.getLongitude()) < 0.001;
-        }
-        // Sinon compare les adresses
-        return loc1.getAddress().equalsIgnoreCase(loc2.getAddress());
-    }
 }
