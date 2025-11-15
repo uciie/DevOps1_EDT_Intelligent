@@ -13,9 +13,10 @@ class EventLocationIntegrationTest {
 
     @Test
     void testEvent_WithLocation() {
-        // Arrange
+        // Arrange - Adresse complète valide
         User user = new User("alice", "password");
-        Location location = new Location("Paris, France", 48.8566, 2.3522);
+        Location location = new Location(48.8566, 2.3522);
+        location.setAddress("Paris, France");
         
         Event event = new Event("Meeting", 
             LocalDateTime.of(2025, 1, 15, 10, 0),
@@ -48,9 +49,10 @@ class EventLocationIntegrationTest {
 
     @Test
     void testEvent_LocationWithName() {
-        // Arrange
+        // Arrange - Adresse complète avec nom
         User user = new User("charlie", "password");
-        Location location = new Location("123 Main St", 40.7128, -74.0060);
+        Location location = new Location(40.7128, -74.0060);
+        location.setAddress("123 Main Street, New York, USA");
         location.setName("Office HQ");
         
         Event event = new Event("Team Meeting", 
@@ -63,15 +65,17 @@ class EventLocationIntegrationTest {
 
         // Assert
         assertEquals("Office HQ", event.getLocation().getName());
-        assertEquals("123 Main St", event.getLocation().getAddress());
+        assertEquals("123 Main Street, New York, USA", event.getLocation().getAddress());
     }
 
     @Test
     void testEvent_ChangeLocation() {
-        // Arrange
+        // Arrange - Adresses complètes
         User user = new User("dave", "password");
-        Location location1 = new Location("Old Office", 48.8566, 2.3522);
-        Location location2 = new Location("New Office", 48.8700, 2.3400);
+        Location location1 = new Location(48.8566, 2.3522);
+        location1.setAddress("Old Office, Paris, France");
+        Location location2 = new Location(48.8700, 2.3400);
+        location2.setAddress("New Office, Lyon, France");
         
         Event event = new Event("Meeting", 
             LocalDateTime.now(),
@@ -86,14 +90,15 @@ class EventLocationIntegrationTest {
 
         // Assert
         assertEquals(location2, event.getLocation());
-        assertEquals("New Office", event.getLocation().getAddress());
+        assertEquals("New Office, Lyon, France", event.getLocation().getAddress());
     }
 
     @Test
     void testMultipleEvents_SameLocation() {
-        // Arrange
+        // Arrange - Adresse complète
         User user = new User("eve", "password");
-        Location sharedLocation = new Location("Conference Room", 48.8566, 2.3522);
+        Location sharedLocation = new Location(48.8566, 2.3522);
+        sharedLocation.setAddress("Conference Room, Paris, France");
         
         Event event1 = new Event("Morning Meeting", 
             LocalDateTime.of(2025, 1, 15, 9, 0),
@@ -113,5 +118,28 @@ class EventLocationIntegrationTest {
         assertSame(sharedLocation, event1.getLocation());
         assertSame(sharedLocation, event2.getLocation());
         assertEquals(event1.getLocation(), event2.getLocation());
+    }
+
+    @Test
+    void testEvent_LocationWithCompleteAddress() {
+        // Arrange - Test avec adresse très détaillée
+        User user = new User("frank", "password");
+        Location location = new Location(48.8584, 2.2945);
+        location.setAddress("5 Avenue Anatole France, 75007 Paris, France");
+        location.setName("Tour Eiffel");
+        
+        Event event = new Event("Site Visit", 
+            LocalDateTime.of(2025, 6, 15, 14, 0),
+            LocalDateTime.of(2025, 6, 15, 16, 0),
+            user);
+
+        // Act
+        event.setLocation(location);
+
+        // Assert
+        assertEquals("Tour Eiffel", event.getLocation().getName());
+        assertEquals("Tour Eiffel", event.getLocation().getDisplayName());
+        assertEquals("5 Avenue Anatole France, 75007 Paris, France", event.getLocation().getAddress());
+        assertTrue(event.getLocation().hasCoordinates());
     }
 }

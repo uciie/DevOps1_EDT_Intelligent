@@ -201,7 +201,8 @@ class EventTest {
     void testEventWithLocation() {
         // Arrange
         User user = new User("bob", "password");
-        Location location = new Location("Paris", 48.8566, 2.3522);
+        Location location = new Location(48.8566, 2.3522);
+        location.setAddress("Paris, France");
         
         Event event = new Event("Conference", 
             LocalDateTime.of(2025, 6, 15, 10, 0),
@@ -214,15 +215,15 @@ class EventTest {
         // Assert
         assertNotNull(event.getLocation());
         assertEquals(location, event.getLocation());
-        assertEquals("Paris", event.getLocation().getAddress());
+        assertEquals("Paris, France", event.getLocation().getAddress());
     }
 
     @Test
     void testEventLocation_GetterSetter() {
         // Arrange
         Event event = new Event();
-        Location location1 = new Location("Location 1");
-        Location location2 = new Location("Location 2");
+        Location location1 = new Location("Location 1, City, Country");
+        Location location2 = new Location("Location 2, City, Country");
 
         // Act
         event.setLocation(location1);
