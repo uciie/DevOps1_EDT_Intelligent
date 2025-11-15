@@ -69,7 +69,8 @@ public class TravelTime {
     // Getters et Setters
 
     public Long getId() { return id; }
-
+    public void setId(Long id) { this.id = id; }
+    
     public Event getFromEvent() { return fromEvent; }
     public void setFromEvent(Event fromEvent) { this.fromEvent = fromEvent; }
 
