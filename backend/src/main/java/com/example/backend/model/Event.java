@@ -70,6 +70,7 @@ public class Event {
     }
 
     public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getSummary() { return summary; }
     public void setSummary(String summary) { this.summary = summary; }
@@ -99,5 +100,20 @@ public class Event {
      */
     public Long getUserId() {
         return user != null ? user.getId() : null;
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        Event event = (Event) obj;
+
+        return id != null ? id.equals(event.id) : event.id == null;
     }
 }

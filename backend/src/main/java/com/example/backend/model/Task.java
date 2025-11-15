@@ -102,4 +102,33 @@ public class Task {
     public void setEvent(Event event) {
         this.event = event;
     }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (title != null ? title.hashCode() : 0);
+        result = 31 * result + estimatedDuration;
+        result = 31 * result + priority;
+        result = 31 * result + (done ? 1 : 0);
+        result = 31 * result + (user != null ? user.hashCode() : 0);
+        result = 31 * result + (event != null ? event.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        Task task = (Task) obj;
+
+        if (estimatedDuration != task.estimatedDuration) return false;
+        if (priority != task.priority) return false;
+        if (done != task.done) return false;
+        if (id != null ? !id.equals(task.id) : task.id != null) return false;
+        if (title != null ? !title.equals(task.title) : task.title != null) return false;
+        if (user != null ? !user.equals(task.user) : task.user != null) return false;
+        return event != null ? event.equals(task.event) : task.event == null;
+    }
+
 }
