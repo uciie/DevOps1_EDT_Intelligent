@@ -88,7 +88,8 @@ DB_URL=jdbc:postgresql://ep-autumn-wind-abwdkup1-pooler.eu-west-2.aws.neon.tech/
 DB_USER=neondb_owner
 DB_PASSWORD=npg_5Vx0NjUkQYun
 GOOGLE_MAPS_API_KEY= # Merci de contacter @uciie pour l'obtention de la clé
-SPRING_PROFILES=external-api```
+SPRING_PROFILES=external-api
+```
 ---
 
 ## 🚀 Lancer le backend
@@ -146,6 +147,7 @@ L’interface sera accessible sur [http://localhost:5173](http://localhost:5173)
 
 
 > Projet académique open-source — *Smart Scheduler* © 2025
+
 
 
 
