@@ -13,20 +13,20 @@ class TravelTimeTest {
     @Test
     void testTravelTimeConstructor() {
         User user = new User("alice", "password");
-        Location loc1 = new Location("Paris", 48.8566, 2.3522);
-        Location loc2 = new Location("Lyon", 45.7640, 4.8357);
+        Location paris = new Location("Paris, France");
+        Location lyon = new Location("Lyon, France");
         
         Event event1 = new Event("Meeting", 
             LocalDateTime.of(2025, 1, 15, 10, 0),
             LocalDateTime.of(2025, 1, 15, 11, 0),
             user);
-        event1.setLocation(loc1);
+        event1.setLocation(paris);
         
         Event event2 = new Event("Conference", 
             LocalDateTime.of(2025, 1, 15, 15, 0),
             LocalDateTime.of(2025, 1, 15, 16, 0),
             user);
-        event2.setLocation(loc2);
+        event2.setLocation(lyon);
         
         LocalDateTime startTime = LocalDateTime.of(2025, 1, 15, 11, 0);
         
