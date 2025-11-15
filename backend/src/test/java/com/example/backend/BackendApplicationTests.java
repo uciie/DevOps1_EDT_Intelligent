@@ -4,16 +4,21 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests pour l'application Backend.
  * Vérifie que le contexte Spring se charge correctement.
+ *
+ * Utilise une base H2 en mémoire pour les tests afin d'éviter les erreurs
+ * d'authentification vers la base de données externe pendant le chargement du contexte.
  */
 @SpringBootTest
-class BackendApplicationTests {
-	@Autowired
+@ActiveProfiles("test")
+class BackendApplicationTests{ 
+    @Autowired
     private ApplicationContext applicationContext;
 
     @Test
