@@ -15,12 +15,29 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
      * @return la location si trouvée
      */
     Optional<Location> findByAddress(String address);
+
+    /**
+     * Trouve une location par ses coordonnées géographiques.
+     * 
+     * @param latitude la latitude
+     * @param longitude la longitude
+     * @return la location si trouvée
+     */
+    Optional<Location> findByLatitudeAndLongitude(Double latitude, Double longitude);
     
     /**
      * Trouve une location par son nom.
      *
      * @param name le nom de la location
-     * @return la location si trouvée
+     * @return la location si trouvée (retourne le premier résultat si plusieurs)
      */
-    Optional<Location> findByName(String name);
+    Optional<Location> findFirstByName(String name);
+
+    /**
+     * Legacy-compatible method used by tests/code: delegates to `findFirstByName`
+     * to ensure we return a single Optional even when multiple rows match.
+     */
+    default Optional<Location> findByName(String name) {
+        return findFirstByName(name);
+    }
 }
