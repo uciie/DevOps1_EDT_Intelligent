@@ -80,7 +80,6 @@ public class Location {
     @Transient
     private boolean autoCompleted = false;
 
-    //private GeocodingService geocodingService = new GeocodingService();
 
     /**
      * Constructeur par défaut (requis par JPA).
@@ -90,15 +89,11 @@ public class Location {
     /**
      * Construit un lieu avec une adresse complète uniquement.
      * 
-     * 💡 ASTUCE : Utiliser GeocodingService.completeLocationInfo() 
-     * pour avoir les coordonnées GPS automatiquement, autocomplétées !
-     * 
      * @param address adresse complète du lieu (rue, code postal, ville, pays)
      */
     public Location(String address) {
         validateAddress(address);
         this.address = address;
-        //geocodingService.completeLocationInfo(this);
     }
 
     /**
@@ -120,9 +115,6 @@ public class Location {
     /**
      * Construit un lieu avec coordonnées GPS uniquement.
      * 
-     * 💡 ASTUCE : Utiliser GeocodingService.createLocationFromCoordinates() 
-     * pour avoir l'adresse automatiquement !
-     * 
      * @param latitude latitude GPS
      * @param longitude longitude GPS
      */
@@ -130,7 +122,6 @@ public class Location {
         validateCoordinates(latitude, longitude);
         this.latitude = latitude;
         this.longitude = longitude;
-        //geocodingService.completeLocationInfo(this);
     }
 
     /**
