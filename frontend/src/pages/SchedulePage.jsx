@@ -1,164 +1,269 @@
-import { useState, useEffect } from "react";
-import TodoList from "../components/TodoList";
-import Calendar from "../components/Calendar";
-import api from "../api/api";
-import "../styles/pages/SchedulePage.css";
+import React, { useState, useEffect } from 'react';
+import Calendar from '../components/Calendar';
+import TodoList from '../components/TodoList';
+import { getCurrentUser } from '../api/authApi';
+import { getUserTasks, createTask, updateTask, deleteTask } from '../api/taskApi';
+import '../styles/pages/SchedulePage.css';
 
-// Page principale de gestion de l'emploi du temps
 function SchedulePage() {
   const [tasks, setTasks] = useState([]);
   const [events, setEvents] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Récupérer l'utilisateur depuis localStorage
-    const storedUser = localStorage.getItem("currentUser");
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      setCurrentUser(user);
-      loadUserData(user.id);
-    } else {
-      setLoading(false);
-    }
+    const loadUserData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const user = getCurrentUser();
+        if (!user) {
+          setError("Utilisateur non connecté");
+          return;
+        }
+        
+        setCurrentUser(user);
+        const userTasks = await getUserTasks(user.id);
+        setTasks(userTasks || []);
+        setEvents([]);
+        
+      } catch (err) {
+        console.error("Erreur lors du chargement des données:", err);
+        setError("Impossible de charger vos données");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
   }, []);
-
-  const loadUserData = async (userId) => {
-    try {
-      // Charger les tâches
-      const tasksResponse = await api.get(`/tasks/user/${userId}`);
-      setTasks(tasksResponse.data || []);
-
-      // Charger les événements
-      const eventsResponse = await api.get(`/events/user/${userId}`);
-      setEvents(eventsResponse.data || []);
-    } catch (error) {
-      console.error("Erreur lors du chargement des données:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddTask = async (taskData) => {
     try {
-      const response = await api.post("/tasks", {
+      const newTask = {
         ...taskData,
-        user: { id: currentUser.id },
-        done: false,
-      });
-      setTasks([...tasks, response.data]);
-    } catch (error) {
-      console.error("Erreur lors de l'ajout de la tâche:", error);
-      alert("Erreur lors de l'ajout de la tâche");
-    }
-  };
-
-  const handleDeleteTask = async (taskId) => {
-    try {
-      await api.delete(`/tasks/${taskId}`);
-      setTasks(tasks.filter((task) => task.id !== taskId));
-    } catch (error) {
-      console.error("Erreur lors de la suppression:", error);
+        userId: currentUser.id,
+        completed: false,
+        scheduledTime: null
+      };
+      
+      const createdTask = await createTask(newTask);
+      setTasks([...tasks, createdTask]);
+      return createdTask;
+    } catch (err) {
+      console.error("Erreur lors de l'ajout de la tâche:", err);
+      setError("Impossible d'ajouter la tâche");
+      throw err;
     }
   };
 
   const handleToggleTask = async (taskId) => {
     try {
-      const task = tasks.find((t) => t.id === taskId);
-      const response = await api.put(`/tasks/${taskId}`, {
-        ...task,
-        done: !task.done,
-      });
-      setTasks(tasks.map((t) => (t.id === taskId ? response.data : t)));
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour:", error);
-    }
-  };
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
 
-  const handleDropTaskOnCalendar = async (task, timeSlot) => {
-    try {
-      // Créer un événement à partir de la tâche
-      const eventData = {
-        summary: task.title,
-        startTime: timeSlot.start,
-        endTime: timeSlot.end,
-        userId: currentUser.id,
+      const updatedTask = {
+        ...task,
+        completed: !task.completed
       };
 
-      const response = await api.post("/events", eventData);
-      setEvents([...events, response.data]);
-
-      // Optionnel : marquer la tâche comme planifiée ou la supprimer
-      // await handleDeleteTask(task.id);
-    } catch (error) {
-      console.error("Erreur lors de la création de l'événement:", error);
-      alert("Erreur lors de l'ajout à l'emploi du temps");
+      await updateTask(taskId, updatedTask);
+      setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
+    } catch (err) {
+      console.error("Erreur lors de la mise à jour de la tâche:", err);
+      setError("Impossible de mettre à jour la tâche");
     }
   };
 
-  const handleDeleteEvent = async (eventId) => {
+  const handleDeleteTask = async (taskId) => {
     try {
-      await api.delete(`/events/${eventId}`);
-      setEvents(events.filter((event) => event.id !== eventId));
-    } catch (error) {
-      console.error("Erreur lors de la suppression de l'événement:", error);
+      await deleteTask(taskId);
+      setTasks(tasks.filter(t => t.id !== taskId));
+      setEvents(events.filter(e => e.taskId !== taskId));
+    } catch (err) {
+      console.error("Erreur lors de la suppression de la tâche:", err);
+      setError("Impossible de supprimer la tâche");
     }
   };
 
-  const handleUpdateEvent = async (eventId, updatedData) => {
+  const handleDropTaskOnCalendar = async (taskId, day, hour) => {
     try {
-      const response = await api.put(`/events/${eventId}`, updatedData);
-      setEvents(events.map((e) => (e.id === eventId ? response.data : e)));
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour de l'événement:", error);
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const startTime = new Date(day);
+      startTime.setHours(hour, 0, 0, 0);
+      
+      const endTime = new Date(startTime);
+      endTime.setMinutes(endTime.getMinutes() + (task.durationMinutes || 60));
+
+      const newEvent = {
+        id: `event-${Date.now()}`,
+        taskId: task.id,
+        title: task.title,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        priority: task.priority,
+        day: day.toISOString().split('T')[0],
+        hour: hour
+      };
+
+      const updatedTask = {
+        ...task,
+        scheduledTime: startTime.toISOString()
+      };
+
+      await updateTask(taskId, updatedTask);
+      
+      setEvents([...events, newEvent]);
+      setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
+      
+    } catch (err) {
+      console.error("Erreur lors de la planification de la tâche:", err);
+      setError("Impossible de planifier la tâche");
+    }
+  };
+
+  const handleDeleteEvent = (eventId) => {
+    try {
+      const event = events.find(e => e.id === eventId);
+      if (!event) return;
+
+      if (event.taskId) {
+        const task = tasks.find(t => t.id === event.taskId);
+        if (task) {
+          const updatedTask = {
+            ...task,
+            scheduledTime: null
+          };
+          updateTask(event.taskId, updatedTask);
+          setTasks(tasks.map(t => t.id === event.taskId ? updatedTask : t));
+        }
+      }
+
+      setEvents(events.filter(e => e.id !== eventId));
+    } catch (err) {
+      console.error("Erreur lors de la suppression de l'événement:", err);
+      setError("Impossible de supprimer l'événement");
+    }
+  };
+
+  const handleMoveEvent = async (eventId, newDay, newHour) => {
+    try {
+      const event = events.find(e => e.id === eventId);
+      if (!event) return;
+
+      const task = tasks.find(t => t.id === event.taskId);
+      if (!task) return;
+
+      const startTime = new Date(newDay);
+      startTime.setHours(newHour, 0, 0, 0);
+      
+      const endTime = new Date(startTime);
+      endTime.setMinutes(endTime.getMinutes() + (task.durationMinutes || 60));
+
+      const updatedEvent = {
+        ...event,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        day: newDay.toISOString().split('T')[0],
+        hour: newHour
+      };
+
+      const updatedTask = {
+        ...task,
+        scheduledTime: startTime.toISOString()
+      };
+
+      await updateTask(event.taskId, updatedTask);
+      
+      setEvents(events.map(e => e.id === eventId ? updatedEvent : e));
+      setTasks(tasks.map(t => t.id === event.taskId ? updatedTask : t));
+      
+    } catch (err) {
+      console.error("Erreur lors du déplacement de l'événement:", err);
+      setError("Impossible de déplacer l'événement");
     }
   };
 
   if (loading) {
     return (
-      <div className="schedule-loading">
-        <p>Chargement...</p>
+      <div className="schedule-page">
+        <div className="loading-container">
+          <div className="spinner"></div>
+          <p>Chargement de votre emploi du temps...</p>
+        </div>
       </div>
     );
   }
 
-  if (!currentUser) {
+  if (error) {
     return (
-      <div className="schedule-no-user">
-        <h2>Veuillez vous connecter</h2>
-        <p>Vous devez créer un compte ou vous connecter pour accéder à votre emploi du temps.</p>
+      <div className="schedule-page">
+        <div className="error-container">
+          <div className="error-icon">⚠️</div>
+          <h2>Oups !</h2>
+          <p>{error}</p>
+          <button 
+            className="btn-retry"
+            onClick={() => window.location.reload()}
+          >
+            Réessayer
+          </button>
+        </div>
       </div>
     );
   }
+
+  const unscheduledTasks = tasks.filter(t => !t.scheduledTime && !t.completed);
+  const completedTasks = tasks.filter(t => t.completed);
 
   return (
     <div className="schedule-page">
-      <header className="schedule-header">
-        <h1>Gestion d'Emploi du Temps</h1>
-        <p className="user-info">
-          Bienvenue, <strong>{currentUser.username}</strong>
-        </p>
-      </header>
+      {currentUser && (
+        <div className="schedule-welcome">
+          <h1>Bonjour, {currentUser.username} 👋</h1>
+          <p className="welcome-subtitle">
+            Organisez votre emploi du temps de manière intelligente
+          </p>
+        </div>
+      )}
 
-      <div className="schedule-container">
-        <aside className="todo-sidebar">
+      <div className="schedule-content">
+        <aside className="schedule-sidebar">
           <TodoList
-            tasks={tasks}
+            tasks={unscheduledTasks}
+            completedTasks={completedTasks}
             onAddTask={handleAddTask}
-            onDeleteTask={handleDeleteTask}
             onToggleTask={handleToggleTask}
+            onDeleteTask={handleDeleteTask}
           />
         </aside>
 
-        <main className="calendar-main">
+        <main className="schedule-main">
           <Calendar
             events={events}
             onDropTask={handleDropTaskOnCalendar}
             onDeleteEvent={handleDeleteEvent}
-            onUpdateEvent={handleUpdateEvent}
+            onMoveEvent={handleMoveEvent}
           />
         </main>
       </div>
+
+      {error && (
+        <div className="notification notification-error">
+          <span className="notification-icon">⚠️</span>
+          <span className="notification-message">{error}</span>
+          <button 
+            className="notification-close"
+            onClick={() => setError(null)}
+          >
+            ×
+          </button>
+        </div>
+      )}
     </div>
   );
 }

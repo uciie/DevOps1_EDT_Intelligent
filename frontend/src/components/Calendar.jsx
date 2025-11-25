@@ -1,162 +1,171 @@
-import { useState } from "react";
-import "../styles/components/Calendar.css";
+import { useState } from 'react';
+import { useDrop } from 'react-dnd';
+import { ITEM_TYPES } from './TodoList';
+import '../styles/components/Calendar.css';
 
-function Calendar({ events, onDropTask, onDeleteEvent, onUpdateEvent }) {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [viewMode, setViewMode] = useState("week"); // week ou day
+// Composant pour une cellule de calendrier qui peut recevoir des tâches
+function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent }) {
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: ITEM_TYPES.TASK,
+    drop: (item) => {
+      onDropTask(item.task.id, day, hour);
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+    }),
+  }), [day, hour]);
 
-  // Générer les heures de 8h à 20h
+  // Filtrer les événements pour cette cellule
+  const cellEvents = events.filter(event => {
+    const eventDate = new Date(event.day);
+    return (
+      eventDate.toDateString() === day.toDateString() &&
+      event.hour === hour
+    );
+  });
+
+  return (
+    <div
+      ref={drop}
+      className={`calendar-cell ${isOver ? 'drop-target' : ''}`}
+    >
+      {cellEvents.map((event) => (
+        <div
+          key={event.id}
+          className={`calendar-event priority-${event.priority}`}
+        >
+          <div className="event-content">
+            <div className="event-title">{event.title}</div>
+            <div className="event-time">
+              {new Date(event.startTime).toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })} - {new Date(event.endTime).toLocaleTimeString('fr-FR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })}
+            </div>
+          </div>
+          <button
+            className="btn-delete-event"
+            onClick={() => onDeleteEvent(event.id)}
+            aria-label="Supprimer l'événement"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function Calendar({ events, onDropTask, onDeleteEvent, onMoveEvent }) {
+  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Lundi = début de semaine
+    return new Date(today.setDate(diff));
+  });
+
+  // Générer les 7 jours de la semaine
+  const getDaysOfWeek = () => {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(currentWeekStart);
+      day.setDate(currentWeekStart.getDate() + i);
+      days.push(day);
+    }
+    return days;
+  };
+
+  // Heures de 8h à 20h
   const hours = Array.from({ length: 13 }, (_, i) => i + 8);
 
-  // Obtenir les jours de la semaine
-  const getWeekDays = (date) => {
-    const startOfWeek = new Date(date);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
-    startOfWeek.setDate(diff);
+  const days = getDaysOfWeek();
 
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(startOfWeek);
-      d.setDate(startOfWeek.getDate() + i);
-      return d;
-    });
+  const goToPreviousWeek = () => {
+    const newDate = new Date(currentWeekStart);
+    newDate.setDate(currentWeekStart.getDate() - 7);
+    setCurrentWeekStart(newDate);
   };
 
-  const weekDays = getWeekDays(currentDate);
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString("fr-FR", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-    });
-  };
-
-  const handleDrop = (e, dayIndex, hour) => {
-    e.preventDefault();
-    const taskData = e.dataTransfer.getData("task");
-    if (!taskData) return;
-
-    const task = JSON.parse(taskData);
-    const day = weekDays[dayIndex];
-
-    // Créer les dates de début et fin
-    const start = new Date(day);
-    start.setHours(hour, 0, 0, 0);
-
-    const end = new Date(start);
-    end.setMinutes(start.getMinutes() + task.estimatedDuration);
-
-    onDropTask(task, {
-      start: start.toISOString(),
-      end: end.toISOString(),
-    });
-
-    // Retirer la classe de survol
-    e.currentTarget.classList.remove("drop-target");
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.currentTarget.classList.add("drop-target");
-  };
-
-  const handleDragLeave = (e) => {
-    e.currentTarget.classList.remove("drop-target");
-  };
-
-  const getEventsForSlot = (dayIndex, hour) => {
-    const day = weekDays[dayIndex];
-    return events.filter((event) => {
-      const eventStart = new Date(event.startTime);
-      const isSameDay =
-        eventStart.getDate() === day.getDate() &&
-        eventStart.getMonth() === day.getMonth() &&
-        eventStart.getFullYear() === day.getFullYear();
-      const eventHour = eventStart.getHours();
-      return isSameDay && eventHour === hour;
-    });
-  };
-
-  const formatEventTime = (event) => {
-    const start = new Date(event.startTime);
-    const end = new Date(event.endTime);
-    return `${start.getHours()}:${String(start.getMinutes()).padStart(2, "0")} - ${end.getHours()}:${String(end.getMinutes()).padStart(2, "0")}`;
-  };
-
-  const navigateWeek = (direction) => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(currentDate.getDate() + direction * 7);
-    setCurrentDate(newDate);
+  const goToNextWeek = () => {
+    const newDate = new Date(currentWeekStart);
+    newDate.setDate(currentWeekStart.getDate() + 7);
+    setCurrentWeekStart(newDate);
   };
 
   const goToToday = () => {
-    setCurrentDate(new Date());
+    const today = new Date();
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+    setCurrentWeekStart(new Date(today.setDate(diff)));
   };
 
+  const formatWeekRange = () => {
+    const start = days[0];
+    const end = days[6];
+    return `${start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} - ${end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+  };
+
+  const isToday = (date) => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
+  const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+
   return (
-    <div className="calendar">
+    <div className="calendar-container">
       <div className="calendar-header">
-        <div className="calendar-navigation">
-          <button onClick={() => navigateWeek(-1)} className="nav-btn">
-            ← Semaine précédente
+        <div className="calendar-nav">
+          <button className="btn-nav" onClick={goToPreviousWeek} aria-label="Semaine précédente">
+            ‹
           </button>
-          <button onClick={goToToday} className="today-btn">
+          <button className="btn-today" onClick={goToToday}>
             Aujourd'hui
           </button>
-          <button onClick={() => navigateWeek(1)} className="nav-btn">
-            Semaine suivante →
+          <button className="btn-nav" onClick={goToNextWeek} aria-label="Semaine suivante">
+            ›
           </button>
         </div>
-        <h2 className="calendar-title">Emploi du temps</h2>
+        <div className="current-week">{formatWeekRange()}</div>
       </div>
 
       <div className="calendar-grid">
-        {/* En-tête avec les jours */}
-        <div className="time-column header-cell">Heure</div>
-        {weekDays.map((day, index) => (
-          <div key={index} className="day-header">
-            <div className="day-name">{formatDate(day)}</div>
+        {/* Colonne vide pour l'en-tête des heures */}
+        <div className="day-header"></div>
+
+        {/* En-têtes des jours */}
+        {days.map((day, index) => (
+          <div key={index} className={`day-header ${isToday(day) ? 'today' : ''}`}>
+            <span className="day-name">{dayNames[index]}</span>
+            <span className="day-date">{day.getDate()}</span>
           </div>
         ))}
 
-        {/* Grille horaire */}
+        {/* Grille avec heures et cellules */}
         {hours.map((hour) => (
-          <div key={hour} className="time-row">
-            <div className="time-cell">{hour}:00</div>
-            {weekDays.map((_, dayIndex) => {
-              const slotEvents = getEventsForSlot(dayIndex, hour);
-              return (
-                <div
-                  key={dayIndex}
-                  className="calendar-slot"
-                  onDrop={(e) => handleDrop(e, dayIndex, hour)}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                >
-                  {slotEvents.map((event) => (
-                    <div key={event.id} className="calendar-event">
-                      <div className="event-content">
-                        <div className="event-title">{event.summary}</div>
-                        <div className="event-time">{formatEventTime(event)}</div>
-                      </div>
-                      <button
-                        className="event-delete"
-                        onClick={() => onDeleteEvent(event.id)}
-                        title="Supprimer"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
+          <div key={`hour-${hour}`} style={{ display: 'contents' }}>
+            {/* Label de l'heure */}
+            <div className="time-label">
+              {`${hour}:00`}
+            </div>
+
+            {/* Cellules pour chaque jour */}
+            {days.map((day, dayIndex) => (
+              <CalendarCell
+                key={`cell-${hour}-${dayIndex}`}
+                day={day}
+                hour={hour}
+                events={events}
+                onDropTask={onDropTask}
+                onDeleteEvent={onDeleteEvent}
+              />
+            ))}
           </div>
         ))}
       </div>
     </div>
   );
 }
-
-export default Calendar;
