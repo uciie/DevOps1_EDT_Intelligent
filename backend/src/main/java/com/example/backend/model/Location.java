@@ -1,5 +1,7 @@
 package com.example.backend.model;
 
+import java.util.Locale;
+
 import jakarta.persistence.*;
 
 /**
@@ -284,7 +286,7 @@ public class Location {
             return address;
         }
         if (hasCoordinates()) {
-            return String.format("GPS: %.4f, %.4f", latitude, longitude);
+            return String.format(Locale.US, "GPS: %.4f, %.4f", latitude, longitude);
         }
         return "Unknown Location";
     }

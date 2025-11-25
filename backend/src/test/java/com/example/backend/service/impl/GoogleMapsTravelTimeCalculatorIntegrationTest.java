@@ -59,7 +59,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("external-api")
 class GoogleMapsTravelTimeCalculatorIntegrationTest {
-    
+
     @Autowired
     private GoogleMapsTravelTimeCalculator calculator;
 
@@ -712,7 +712,7 @@ class GoogleMapsTravelTimeCalculatorIntegrationTest {
             Location loc = new Location(48.8584, 2.2945);
             
             String displayName = loc.getDisplayName();
-            assertTrue(displayName.contains("48,8584") || displayName.contains("2,2945"),
+            assertTrue(displayName.contains("48.8584") || displayName.contains("2.2945"),
                 "getDisplayName() devrait contenir les coordonnées pour GPS sans nom");
         }
 
