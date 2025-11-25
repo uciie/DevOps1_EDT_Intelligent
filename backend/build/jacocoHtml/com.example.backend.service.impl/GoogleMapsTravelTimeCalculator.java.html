@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GoogleMapsTravelTimeCalculator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.example.backend.service.impl</a> &gt; <span class="el_source">GoogleMapsTravelTimeCalculator.java</span></div><h1>GoogleMapsTravelTimeCalculator.java</h1><pre class="source lang-java linenums">package com.example.backend.service.impl;
+
+import com.example.backend.model.Location;
+import com.example.backend.model.TravelTime.TransportMode;
+import com.example.backend.service.TravelTimeCalculator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+@Component
+@Profile(&quot;external-api&quot;)
+<span class="fc" id="L18">public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {</span>
+
+    @Value(&quot;${google.maps.api.key:}&quot;)
+    private String apiKey;
+
+<span class="fc" id="L23">    private final RestTemplate restTemplate = new RestTemplate();</span>
+<span class="fc" id="L24">    private final SimpleTravelTimeCalculator fallbackCalculator = new SimpleTravelTimeCalculator();</span>
+<span class="fc" id="L25">    private final ObjectMapper mapper = new ObjectMapper();</span>
+
+    private static final String API_URL = &quot;https://maps.googleapis.com/maps/api/distancematrix/json&quot;;
+
+    @Override
+    public int calculateTravelTime(Location from, Location to, TransportMode mode) {
+
+<span class="pc bpc" id="L32" title="2 of 4 branches missed.">        if (apiKey == null || apiKey.isBlank()) {</span>
+<span class="nc" id="L33">            System.err.println(&quot;⚠️  No Google Maps API key — fallback calculator used.&quot;);</span>
+<span class="nc" id="L34">            return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
+        }
+
+        try {
+<span class="fc" id="L38">            String url = UriComponentsBuilder.fromHttpUrl(API_URL)</span>
+<span class="fc" id="L39">                    .queryParam(&quot;origins&quot;, formatLocation(from))</span>
+<span class="fc" id="L40">                    .queryParam(&quot;destinations&quot;, formatLocation(to))</span>
+<span class="fc" id="L41">                    .queryParam(&quot;mode&quot;, mapTransportMode(mode))</span>
+<span class="fc" id="L42">                    .queryParam(&quot;region&quot;, &quot;fr&quot;)</span>
+<span class="fc" id="L43">                    .queryParam(&quot;language&quot;, &quot;fr&quot;)</span>
+<span class="fc" id="L44">                    .queryParam(&quot;key&quot;, apiKey)</span>
+<span class="fc" id="L45">                    .encode()</span>
+<span class="fc" id="L46">                    .toUriString();</span>
+
+<span class="fc" id="L48">            System.err.println(&quot;🌐 Calling Google API:&quot;);</span>
+<span class="fc" id="L49">            System.err.println(&quot;   From: &quot; + formatLocation(from));</span>
+<span class="fc" id="L50">            System.err.println(&quot;   To:   &quot; + formatLocation(to));</span>
+<span class="fc" id="L51">            System.err.println(&quot;   Mode: &quot; + mapTransportMode(mode));</span>
+
+<span class="fc" id="L53">            String json = restTemplate.getForObject(url, String.class);</span>
+<span class="fc" id="L54">            JsonNode root = mapper.readTree(json);</span>
+
+            // Vérification statut global
+<span class="fc" id="L57">            String status = root.path(&quot;status&quot;).asText();</span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">            if (!&quot;OK&quot;.equals(status)) {</span>
+<span class="nc" id="L59">                logGlobalError(root);</span>
+<span class="nc" id="L60">                return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
+            }
+
+<span class="fc" id="L63">            JsonNode elementNode = root</span>
+<span class="fc" id="L64">                    .path(&quot;rows&quot;).path(0)</span>
+<span class="fc" id="L65">                    .path(&quot;elements&quot;).path(0);</span>
+
+<span class="fc" id="L67">            String elementStatus = elementNode.path(&quot;status&quot;).asText();</span>
+<span class="fc bfc" id="L68" title="All 2 branches covered.">            if (!&quot;OK&quot;.equals(elementStatus)) {</span>
+<span class="fc" id="L69">                logElementError(elementStatus, elementNode);</span>
+<span class="fc" id="L70">                return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
+            }
+
+            // Durée
+<span class="fc" id="L74">            int seconds = elementNode.path(&quot;duration&quot;).path(&quot;value&quot;).asInt(-1);</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">            if (seconds &lt;= 0) {</span>
+<span class="nc" id="L76">                System.err.println(&quot;❌ Invalid duration — fallback&quot;);</span>
+<span class="nc" id="L77">                return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
+            }
+
+<span class="fc" id="L80">            int minutes = (int) Math.ceil(seconds / 60.0);</span>
+<span class="fc" id="L81">            System.err.println(&quot;✅ Duration: &quot; + seconds + &quot;s ≈ &quot; + minutes + &quot; min&quot;);</span>
+
+<span class="fc" id="L83">            return minutes;</span>
+
+<span class="nc" id="L85">        } catch (RestClientException e) {</span>
+<span class="nc" id="L86">            System.err.println(&quot;💥 HTTP error: &quot; + e.getMessage());</span>
+<span class="nc" id="L87">        } catch (Exception e) {</span>
+<span class="nc" id="L88">            System.err.println(&quot;💥 Unexpected error: &quot; + e.getClass().getSimpleName());</span>
+<span class="nc" id="L89">            e.printStackTrace();</span>
+<span class="nc" id="L90">        }</span>
+
+<span class="nc" id="L92">        return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
+    }
+
+    private void logGlobalError(JsonNode root) {
+<span class="nc" id="L96">        String status = root.path(&quot;status&quot;).asText();</span>
+<span class="nc" id="L97">        System.err.println(&quot;❌ API error: &quot; + status);</span>
+
+<span class="nc bnc" id="L99" title="All 5 branches missed.">        switch (status) {</span>
+<span class="nc" id="L100">            case &quot;INVALID_REQUEST&quot; -&gt; System.err.println(&quot;   → Invalid parameters (origins/destinations).&quot;);</span>
+<span class="nc" id="L101">            case &quot;OVER_DAILY_LIMIT&quot;, &quot;OVER_QUERY_LIMIT&quot; -&gt; System.err.println(&quot;   → API quota exceeded.&quot;);</span>
+<span class="nc" id="L102">            case &quot;REQUEST_DENIED&quot; -&gt; System.err.println(&quot;   → API key invalid or API disabled.&quot;);</span>
+<span class="nc" id="L103">            case &quot;UNKNOWN_ERROR&quot; -&gt; System.err.println(&quot;   → Temporary server error.&quot;);</span>
+        }
+
+<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (root.has(&quot;error_message&quot;)) {</span>
+<span class="nc" id="L107">            System.err.println(&quot;   Google says: &quot; + root.get(&quot;error_message&quot;).asText());</span>
+        }
+<span class="nc" id="L109">    }</span>
+
+    private void logElementError(String status, JsonNode elementNode) {
+<span class="fc" id="L112">        System.err.println(&quot;❌ Element status: &quot; + status);</span>
+<span class="pc bpc" id="L113" title="3 of 4 branches missed.">        switch (status) {</span>
+<span class="nc" id="L114">            case &quot;NOT_FOUND&quot; -&gt; System.err.println(&quot;   → Address could not be geocoded.&quot;);</span>
+<span class="fc" id="L115">            case &quot;ZERO_RESULTS&quot; -&gt; System.err.println(&quot;   → No route found.&quot;);</span>
+<span class="nc" id="L116">            case &quot;MAX_ROUTE_LENGTH_EXCEEDED&quot; -&gt; System.err.println(&quot;   → Route too long.&quot;);</span>
+        }
+<span class="fc" id="L118">        System.err.println(&quot;   Details: &quot; + elementNode.toString());</span>
+<span class="fc" id="L119">    }</span>
+
+    private String formatLocation(Location location) {
+<span class="fc bfc" id="L122" title="All 2 branches covered.">        if (location.hasCoordinates()) {</span>
+<span class="fc" id="L123">            return location.getLatitude() + &quot;,&quot; + location.getLongitude();</span>
+        }
+<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (location.getAddress() == null) return &quot;&quot;;</span>
+
+<span class="fc" id="L127">        String address = location.getAddress()</span>
+<span class="fc" id="L128">                .replaceAll(&quot;[\\r\\n]+&quot;, &quot;, &quot;)</span>
+<span class="fc" id="L129">                .replaceAll(&quot;\\s{2,}&quot;, &quot; &quot;).trim()</span>
+<span class="fc" id="L130">                .replaceAll(&quot;\\s*,\\s*&quot;, &quot;, &quot;)</span>
+<span class="fc" id="L131">                .replaceAll(&quot;\\bPl\\.\\s&quot;, &quot;Place &quot;)</span>
+<span class="fc" id="L132">                .replaceAll(&quot;\\bAv\\.\\s&quot;, &quot;Avenue &quot;);</span>
+
+<span class="fc" id="L134">        return address;</span>
+    }
+
+    private String mapTransportMode(TransportMode mode) {
+<span class="fc bfc" id="L138" title="All 4 branches covered.">        return switch (mode) {</span>
+<span class="fc" id="L139">            case WALKING -&gt; &quot;walking&quot;;</span>
+<span class="fc" id="L140">            case CYCLING -&gt; &quot;bicycling&quot;;</span>
+<span class="fc" id="L141">            case DRIVING -&gt; &quot;driving&quot;;</span>
+<span class="fc" id="L142">            case TRANSIT -&gt; &quot;transit&quot;;</span>
+        };
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

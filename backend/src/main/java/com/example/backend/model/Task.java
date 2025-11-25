@@ -24,9 +24,11 @@ public class Task {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToOne(mappedBy = "task")
-    @JsonBackReference
-    private Event event; // ✅ Une tâche peut être liée à un seul événement
+    // On passe de @OneToOne à @ManyToOne car un Event a plusieurs Tasks
+    @ManyToOne 
+    @JoinColumn(name = "event_id") // La clé étrangère dans la table Task
+    @JsonBackReference // Empêche la boucle infinie (Côté enfant)
+    private Event event;
 
     public Task() {}
 
@@ -39,19 +41,20 @@ public class Task {
     }
 
     public Task(String title, int estimatedDuration, int priority, boolean done, User user, Event event) {
-    this.title = title;
-    this.estimatedDuration = estimatedDuration;
-    this.priority = priority;
-    this.done = done;
-    this.user = user;
-    this.event = event;
-}
-
-    
-
+        this.title = title;
+        this.estimatedDuration = estimatedDuration;
+        this.priority = priority;
+        this.done = done;
+        this.user = user;
+        this.event = event;
+    }
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getTitle() {
@@ -101,4 +104,33 @@ public class Task {
     public void setEvent(Event event) {
         this.event = event;
     }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (title != null ? title.hashCode() : 0);
+        result = 31 * result + estimatedDuration;
+        result = 31 * result + priority;
+        result = 31 * result + (done ? 1 : 0);
+        result = 31 * result + (user != null ? user.hashCode() : 0);
+        result = 31 * result + (event != null ? event.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        Task task = (Task) obj;
+
+        if (estimatedDuration != task.estimatedDuration) return false;
+        if (priority != task.priority) return false;
+        if (done != task.done) return false;
+        if (id != null ? !id.equals(task.id) : task.id != null) return false;
+        if (title != null ? !title.equals(task.title) : task.title != null) return false;
+        if (user != null ? !user.equals(task.user) : task.user != null) return false;
+        return event != null ? event.equals(task.event) : task.event == null;
+    }
+
 }

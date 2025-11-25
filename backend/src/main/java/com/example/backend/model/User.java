@@ -34,12 +34,34 @@ public class User {
     /**
      * Construit un nouvel utilisateur avec le nom d'utilisateur et le mot de passe donnés.
      *
-     * @param username le nom d'utilisateur.
-     * @param password le mot de passe.
+     * @param username le nom d'utilisateur (non-null, non-vide)
+     * @param password le mot de passe (non-null, peut être vide)
+     * @throws IllegalArgumentException si le nom d'utilisateur est nul ou vide, ou si le mot de passe est null.
      */
     public User(String username, String password) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("username ne doit pas être vide");
+        }
+        if (password == null) {
+            throw new IllegalArgumentException("password ne doit pas être null");
+        }
         this.username = username;
         this.password = password;
+    }
+
+    @Override
+    public int hashCode() {
+        return username.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        User user = (User) obj;
+
+        return username != null ? username.equals(user.username) : user.username == null;
     }
 
     public Long getId() { return id; }

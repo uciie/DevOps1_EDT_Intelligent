@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>SimpleTravelTimeCalculator.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.example.backend.service.impl</a> &gt; <span class="el_source">SimpleTravelTimeCalculator.java</span></div><h1>SimpleTravelTimeCalculator.java</h1><pre class="source lang-java linenums">package com.example.backend.service.impl;
+
+import com.example.backend.model.Location;
+import com.example.backend.model.TravelTime.TransportMode;
+import com.example.backend.service.TravelTimeCalculator;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+
+/**
+ * Implémentation simple du calcul de temps de trajet.
+ * Utilise des vitesses moyennes pour estimer le temps.
+ */
+@Component
+@Profile(&quot;!test &amp; !external-api&quot;) // Ne pas créer ce bean pendant les tests (utiliser TestConfig)
+<span class="fc" id="L15">public class SimpleTravelTimeCalculator implements TravelTimeCalculator {</span>
+
+    // Vitesses moyennes en km/h
+    private static final double WALKING_SPEED = 5.0;
+    private static final double CYCLING_SPEED = 15.0;
+    private static final double DRIVING_SPEED = 40.0; // En ville
+    private static final double TRANSIT_SPEED = 25.0;
+
+    @Override
+    public int calculateTravelTime(Location from, Location to, TransportMode mode) {
+<span class="pc bpc" id="L25" title="1 of 4 branches missed.">        if (!from.hasCoordinates() || !to.hasCoordinates()) {</span>
+            // Par défaut, on estime 15 minutes si pas de coordonnées
+<span class="fc" id="L27">            return 15;</span>
+        }
+
+        // Calcul de la distance avec la formule de Haversine
+<span class="fc" id="L31">        double distanceKm = calculateDistance(from, to);</span>
+
+        // Choix de la vitesse selon le mode
+<span class="pc bpc" id="L34" title="2 of 4 branches missed.">        double speed = switch (mode) {</span>
+<span class="fc" id="L35">            case WALKING -&gt; WALKING_SPEED;</span>
+<span class="nc" id="L36">            case CYCLING -&gt; CYCLING_SPEED;</span>
+<span class="fc" id="L37">            case DRIVING -&gt; DRIVING_SPEED;</span>
+<span class="nc" id="L38">            case TRANSIT -&gt; TRANSIT_SPEED;</span>
+        };
+
+        // Calcul du temps en minutes (distance / vitesse * 60)
+<span class="fc" id="L42">        int travelTimeMinutes = (int) Math.ceil((distanceKm / speed) * 60);</span>
+
+        // Ajout d'un buffer minimum de 5 minutes
+<span class="fc" id="L45">        return Math.max(travelTimeMinutes, 5);</span>
+    }
+
+    /**
+     * Calcule la distance entre deux lieux avec la formule de Haversine.
+     *
+     * @param from la localisation de départ
+     * @param to la localisation d'arrivée
+     * @return la distance en kilomètres
+     */
+    private double calculateDistance(Location from, Location to) {
+<span class="fc" id="L56">        final int EARTH_RADIUS = 6371;</span>
+
+<span class="fc" id="L58">        double latDistance = Math.toRadians(to.getLatitude() - from.getLatitude());</span>
+<span class="fc" id="L59">        double lonDistance = Math.toRadians(to.getLongitude() - from.getLongitude());</span>
+
+<span class="fc" id="L61">        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)</span>
+<span class="fc" id="L62">                + Math.cos(Math.toRadians(from.getLatitude())) </span>
+<span class="fc" id="L63">                * Math.cos(Math.toRadians(to.getLatitude()))</span>
+<span class="fc" id="L64">                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);</span>
+
+<span class="fc" id="L66">        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));</span>
+
+<span class="fc" id="L68">        return EARTH_RADIUS * c;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

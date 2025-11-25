@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Event.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.example.backend.model</a> &gt; <span class="el_source">Event.java</span></div><h1>Event.java</h1><pre class="source lang-java linenums">package com.example.backend.model;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+/**
+ * Représente un événement dans le calendrier.
+ */
+@Entity
+public class Event {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String summary;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+
+<span class="fc" id="L24">    private String status = &quot;PLANNED&quot;;</span>
+
+    @ManyToOne
+    @JoinColumn(name = &quot;user_id&quot;, nullable = false)
+    private User user;
+
+    // Ajout de la relation avec Location (Nouveau)
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = &quot;location_id&quot;)
+    private Location location;
+
+    // Liste des tâches (Correctement géré en liste)
+<span class="fc" id="L36">    @OneToMany(mappedBy = &quot;event&quot;, cascade = CascadeType.ALL, orphanRemoval = true)</span>
+    @JsonManagedReference // &lt;--- INDISPENSABLE : Côté Parent
+    private List&lt;Task&gt; tasks = new ArrayList&lt;&gt;();
+
+<span class="fc" id="L40">    public Event() {}</span>
+
+<span class="fc" id="L42">    public Event(String summary, LocalDateTime startTime, LocalDateTime endTime, User user) {</span>
+<span class="fc" id="L43">        this.summary = summary;</span>
+<span class="fc" id="L44">        this.startTime = startTime;</span>
+<span class="fc" id="L45">        this.endTime = endTime;</span>
+<span class="fc" id="L46">        this.user = user;</span>
+<span class="fc" id="L47">    }</span>
+
+    // --- Getters et Setters ---
+
+    public Long getId() {
+<span class="fc" id="L52">        return id;</span>
+    }
+
+    public void setId(Long id) {
+<span class="fc" id="L56">        this.id = id;</span>
+<span class="fc" id="L57">    }</span>
+
+    /**
+     * Helper pour récupérer l'ID utilisateur directement
+     */
+    public Long getUserId() {
+<span class="fc bfc" id="L63" title="All 2 branches covered.">        return user != null ? user.getId() : null;</span>
+    }
+
+    public String getSummary() {
+<span class="fc" id="L67">        return summary;</span>
+    }
+
+    public void setSummary(String summary) {
+<span class="fc" id="L71">        this.summary = summary;</span>
+<span class="fc" id="L72">    }</span>
+
+    public LocalDateTime getStartTime() {
+<span class="fc" id="L75">        return startTime;</span>
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+<span class="fc" id="L79">        this.startTime = startTime;</span>
+<span class="fc" id="L80">    }</span>
+
+    public LocalDateTime getEndTime() {
+<span class="fc" id="L83">        return endTime;</span>
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+<span class="fc" id="L87">        this.endTime = endTime;</span>
+<span class="fc" id="L88">    }</span>
+
+    public String getStatus() {
+<span class="fc" id="L91">        return status;</span>
+    }
+
+    public void setStatus(String status) {
+<span class="fc" id="L95">        this.status = status;</span>
+<span class="fc" id="L96">    }</span>
+
+    public User getUser() {
+<span class="fc" id="L99">        return user;</span>
+    }
+
+    public void setUser(User user) {
+<span class="fc" id="L103">        this.user = user;</span>
+<span class="fc" id="L104">    }</span>
+
+    // --- Gestion de la Location (Fusionné depuis la branche distante) ---
+
+    public Location getLocation() {
+<span class="fc" id="L109">        return location;</span>
+    }
+
+    public void setLocation(Location location) {
+<span class="fc" id="L113">        this.location = location;</span>
+<span class="fc" id="L114">    }</span>
+
+    // --- Gestion des Tâches (Logique corrigée : On garde la LISTE) ---
+
+    public List&lt;Task&gt; getTasks() {
+<span class="fc" id="L119">        return tasks;</span>
+    }
+
+    public void setTasks(List&lt;Task&gt; tasks) {
+<span class="fc" id="L123">        this.tasks = tasks;</span>
+<span class="fc" id="L124">    }</span>
+
+    // --- Méthodes standard ---
+
+    @Override
+    public int hashCode() {
+<span class="nc bnc" id="L130" title="All 2 branches missed.">        return id != null ? id.hashCode() : 0;</span>
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+<span class="pc bpc" id="L135" title="1 of 2 branches missed.">        if (this == obj) return true;</span>
+<span class="nc bnc" id="L136" title="All 4 branches missed.">        if (obj == null || getClass() != obj.getClass()) return false;</span>
+<span class="nc" id="L137">        Event event = (Event) obj;</span>
+<span class="nc bnc" id="L138" title="All 4 branches missed.">        return id != null ? id.equals(event.id) : event.id == null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

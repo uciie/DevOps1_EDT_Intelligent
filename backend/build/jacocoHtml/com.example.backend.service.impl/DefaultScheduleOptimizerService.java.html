@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DefaultScheduleOptimizerService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.example.backend.service.impl</a> &gt; <span class="el_source">DefaultScheduleOptimizerService.java</span></div><h1>DefaultScheduleOptimizerService.java</h1><pre class="source lang-java linenums">package com.example.backend.service.impl;
+
+import com.example.backend.service.ScheduleOptimizerService;
+import com.example.backend.service.strategy.TaskSelectionStrategy;
+import com.example.backend.service.TravelTimeService;
+import com.example.backend.model.Event;
+import com.example.backend.model.Task;
+import com.example.backend.model.TravelTime;
+import com.example.backend.model.TravelTime.TransportMode;
+import com.example.backend.repository.EventRepository;
+import com.example.backend.repository.TaskRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * Service d'optimisation de l'emploi du temps avec gestion des temps de trajet.
+ */
+@Service
+public class DefaultScheduleOptimizerService implements ScheduleOptimizerService {
+
+    private final EventRepository eventRepository;
+    private final TaskRepository taskRepository;
+    private final TaskSelectionStrategy taskSelectionStrategy;
+    private final TravelTimeService travelTimeService;
+    
+    public DefaultScheduleOptimizerService(EventRepository eventRepository,
+                                           TaskRepository taskRepository,
+                                           TaskSelectionStrategy taskSelectionStrategy,
+<span class="fc" id="L33">                                           TravelTimeService travelTimeService) {</span>
+<span class="fc" id="L34">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L35">        this.taskRepository = taskRepository;</span>
+<span class="fc" id="L36">        this.taskSelectionStrategy = taskSelectionStrategy;</span>
+<span class="fc" id="L37">        this.travelTimeService = travelTimeService;</span>
+<span class="fc" id="L38">    }</span>
+
+    @Override
+    @Transactional
+    public void reshuffle(Long eventId) {
+<span class="fc" id="L43">        Event cancelledEvent = eventRepository.findById(eventId)</span>
+<span class="fc" id="L44">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Event not found&quot;));</span>
+
+<span class="fc" id="L46">        LocalDateTime start = cancelledEvent.getStartTime();</span>
+<span class="fc" id="L47">        LocalDateTime end = cancelledEvent.getEndTime();</span>
+<span class="fc" id="L48">        long freeMinutes = Duration.between(start, end).toMinutes();</span>
+
+        // Trouve l'événement suivant pour calculer le temps de trajet si nécessaire
+<span class="fc" id="L51">        Event nextEvent = findNextEvent(cancelledEvent);</span>
+        
+        // Si l'événement suivant existe et a une localisation différente,
+        // on doit réserver du temps pour le trajet
+<span class="fc" id="L55">        int travelTimeMinutes = 0;</span>
+<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (nextEvent != null &amp;&amp; </span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            cancelledEvent.getLocation() != null &amp;&amp; </span>
+<span class="nc bnc" id="L58" title="All 2 branches missed.">            nextEvent.getLocation() != null &amp;&amp;</span>
+<span class="nc bnc" id="L59" title="All 2 branches missed.">            !cancelledEvent.getLocation().equals(nextEvent.getLocation())) {</span>
+            
+            // On estime un temps de trajet (par défaut en voiture)
+<span class="nc" id="L62">            travelTimeMinutes = estimateTravelTime(cancelledEvent, nextEvent, TransportMode.DRIVING);</span>
+        }
+
+        // Le temps disponible réel est le temps libre moins le temps de trajet
+<span class="fc" id="L66">        long availableMinutes = freeMinutes - travelTimeMinutes;</span>
+
+<span class="pc bpc" id="L68" title="1 of 2 branches missed.">        if (availableMinutes &gt; 0) {</span>
+            // Sélection de la meilleure tâche avec le temps disponible
+<span class="fc" id="L70">            Task bestTask = taskSelectionStrategy.selectTask(</span>
+<span class="fc" id="L71">                cancelledEvent.getUserId(), </span>
+                availableMinutes
+            );
+
+<span class="fc bfc" id="L75" title="All 2 branches covered.">            if (bestTask != null) {</span>
+                // Création du nouvel événement pour la tâche
+<span class="fc" id="L77">                Event newEvent = new Event(</span>
+<span class="fc" id="L78">                        bestTask.getTitle(),</span>
+                        start,
+<span class="fc" id="L80">                        start.plusMinutes(bestTask.getEstimatedDuration()),</span>
+<span class="fc" id="L81">                        cancelledEvent.getUser()</span>
+                );
+                
+                // Utilise la localisation de l'événement annulé si elle existe
+<span class="pc bpc" id="L85" title="1 of 2 branches missed.">                if (cancelledEvent.getLocation() != null) {</span>
+<span class="nc" id="L86">                    newEvent.setLocation(cancelledEvent.getLocation());</span>
+                }
+                
+<span class="fc" id="L89">                eventRepository.save(newEvent);</span>
+
+                // Si nécessaire, crée un événement de trajet vers l'événement suivant
+<span class="pc bpc" id="L92" title="3 of 4 branches missed.">                if (travelTimeMinutes &gt; 0 &amp;&amp; nextEvent != null) {</span>
+<span class="nc" id="L93">                    TravelTime travelTime = travelTimeService.createTravelTime(</span>
+                        newEvent, 
+                        nextEvent, 
+                        TransportMode.DRIVING
+                    );
+                    // Le temps de trajet est automatiquement sauvegardé
+                }
+            }
+        }
+
+        // Marque l'événement comme annulé
+<span class="fc" id="L104">        cancelledEvent.setStatus(&quot;CANCELLED&quot;);</span>
+<span class="fc" id="L105">        eventRepository.save(cancelledEvent);</span>
+<span class="fc" id="L106">    }</span>
+
+    /**
+     * Trouve le prochain événement chronologiquement après l'événement donné.
+     *
+     * @param event l'événement de référence
+     * @return le prochain événement ou null
+     */
+    private Event findNextEvent(Event event) {
+<span class="fc" id="L115">        List&lt;Event&gt; futureEvents = eventRepository.findAll().stream()</span>
+<span class="pc" id="L116">            .filter(e -&gt; e.getUser().equals(event.getUser()))</span>
+<span class="pc" id="L117">            .filter(e -&gt; e.getStartTime().isAfter(event.getEndTime()))</span>
+<span class="pc bnc" id="L118" title="All 2 branches missed.">            .filter(e -&gt; !&quot;CANCELLED&quot;.equals(e.getStatus()))</span>
+<span class="pc" id="L119">            .sorted((e1, e2) -&gt; e1.getStartTime().compareTo(e2.getStartTime()))</span>
+<span class="fc" id="L120">            .toList();</span>
+        
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        return futureEvents.isEmpty() ? null : futureEvents.get(0);</span>
+    }
+
+    /**
+     * Estime le temps de trajet entre deux événements.
+     *
+     * @param fromEvent l'événement de départ
+     * @param toEvent l'événement d'arrivée
+     * @param mode le mode de transport
+     * @return le temps estimé en minutes
+     */
+    private int estimateTravelTime(Event fromEvent, Event toEvent, TransportMode mode) {
+        // Pour l'estimation, on crée temporairement un TravelTime
+        // (on pourrait aussi appeler directement le TravelTimeCalculator)
+<span class="nc" id="L136">        TravelTime temp = travelTimeService.createTravelTime(fromEvent, toEvent, mode);</span>
+<span class="nc" id="L137">        int duration = temp.getDurationMinutes();</span>
+        
+        // On supprime le TravelTime temporaire si on ne veut pas le garder
+        // travelTimeService.deleteTravelTime(temp.getId());
+        
+<span class="nc" id="L142">        return duration;</span>
+    }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

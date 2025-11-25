@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Location.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.example.backend.model</a> &gt; <span class="el_source">Location.java</span></div><h1>Location.java</h1><pre class="source lang-java linenums">package com.example.backend.model;
+
+import jakarta.persistence.*;
+
+/**
+ * Représente un lieu géographique pour un événement ou une tâche.
+ * 
+ * NOUVELLES FONCTIONNALITÉS :
+ * - Auto-complétion : L'adresse OU les coordonnées suffisent
+ * - Si vous fournissez l'adresse → Les coordonnées GPS sont calculées automatiquement
+ * - Si vous fournissez les GPS → L'adresse est récupérée automatiquement
+ * 
+ * UTILISATION RECOMMANDÉE :
+ * 1. Avec GeocodingService (auto-complétion activée) :
+ *    Location loc = geocodingService.createLocationFromAddress(&quot;5 Avenue Anatole France, 75007 Paris, France&quot;);
+ *    // → Aura automatiquement les coordonnées GPS !
+ * 
+ * 2. Sans GeocodingService (mode simple) :
+ *    Location loc = new Location(&quot;5 Avenue Anatole France, 75007 Paris, France&quot;);
+ *    // → Fonctionne mais sans GPS automatique
+ */
+@Entity
+public class Location {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    /**
+     * Adresse COMPLÈTE du lieu : [numéro] [rue], [code postal] [ville], [pays]
+     * 
+     * Exemples valides :
+     * - &quot;5 Avenue Anatole France, 75007 Paris, France&quot;
+     * - &quot;8 Place de Fourvière, 69005 Lyon, France&quot;
+     * - &quot;Place Bellecour, 69002 Lyon, France&quot;
+     * 
+     * ⚠️  NE PAS inclure le nom du monument/lieu dans l'adresse.
+     * Utiliser le champ 'name' pour ça.
+     */
+    @Column(name = &quot;address&quot;, nullable = false)
+    private String address;
+
+    /**
+     * Latitude GPS (optionnelle mais FORTEMENT recommandée).
+     * Permet d'éviter toute ambiguïté d'adresse.
+     * 
+     * 💡 Si non fournie, peut être calculée automatiquement via GeocodingService
+     */
+    @Column(name = &quot;latitude&quot;)
+    private Double latitude;
+
+    /**
+     * Longitude GPS (optionnelle mais FORTEMENT recommandée).
+     * Permet d'éviter toute ambiguïté d'adresse.
+     * 
+     * 💡 Si non fournie, peut être calculée automatiquement via GeocodingService
+     */
+    @Column(name = &quot;longitude&quot;)
+    private Double longitude;
+
+    /**
+     * Nom optionnel du lieu pour affichage utilisateur.
+     * 
+     * Exemples :
+     * - &quot;Tour Eiffel&quot;
+     * - &quot;Basilique de Fourvière&quot;
+     * - &quot;Bureau&quot;
+     * - &quot;Domicile&quot;
+     * 
+     * Ce champ est UNIQUEMENT pour l'affichage.
+     * Il N'EST PAS utilisé pour le calcul de trajet.
+     */
+    @Column(length = 200)
+    private String name;
+
+    /**
+     * Indique si cette Location a été auto-complétée par géocodage.
+     * Utile pour le débogage et la traçabilité.
+     */
+<span class="fc" id="L80">    @Transient</span>
+    private boolean autoCompleted = false;
+
+
+    /**
+     * Constructeur par défaut (requis par JPA).
+     */
+<span class="fc" id="L87">    public Location() {}</span>
+
+    /**
+     * Construit un lieu avec une adresse complète uniquement.
+     * 
+     * @param address adresse complète du lieu (rue, code postal, ville, pays)
+     */
+<span class="fc" id="L94">    public Location(String address) {</span>
+<span class="fc" id="L95">        validateAddress(address);</span>
+<span class="fc" id="L96">        this.address = address;</span>
+<span class="fc" id="L97">    }</span>
+
+    /**
+     * Construit un lieu avec adresse ET coordonnées GPS.
+     * C'est le constructeur le plus complet et recommandé.
+     * 
+     * @param address adresse complète
+     * @param latitude latitude GPS
+     * @param longitude longitude GPS
+     */
+<span class="fc" id="L107">    public Location(String address, Double latitude, Double longitude) {</span>
+<span class="fc" id="L108">        validateAddress(address);</span>
+<span class="fc" id="L109">        validateCoordinates(latitude, longitude);</span>
+<span class="fc" id="L110">        this.address = address;</span>
+<span class="fc" id="L111">        this.latitude = latitude;</span>
+<span class="fc" id="L112">        this.longitude = longitude;</span>
+<span class="fc" id="L113">    }</span>
+
+    /**
+     * Construit un lieu avec coordonnées GPS uniquement.
+     * 
+     * @param latitude latitude GPS
+     * @param longitude longitude GPS
+     */
+<span class="fc" id="L121">    public Location(Double latitude, Double longitude) {</span>
+<span class="fc" id="L122">        validateCoordinates(latitude, longitude);</span>
+<span class="fc" id="L123">        this.latitude = latitude;</span>
+<span class="fc" id="L124">        this.longitude = longitude;</span>
+<span class="fc" id="L125">    }</span>
+
+    /**
+     * Valide que l'adresse est bien formatée.
+     * 
+     * @param address l'adresse à valider
+     * @throws IllegalArgumentException si l'adresse est invalide
+     */
+    private void validateAddress(String address) {
+<span class="fc bfc" id="L134" title="All 4 branches covered.">        if (address == null || address.trim().isEmpty()) {</span>
+<span class="fc" id="L135">            throw new IllegalArgumentException(&quot;L'adresse ne peut pas être vide&quot;);</span>
+        }
+
+<span class="fc" id="L138">        String trimmedAddress = address.trim();</span>
+
+        // Vérifier longueur minimale (au moins ville + pays)
+<span class="fc bfc" id="L141" title="All 2 branches covered.">        if (trimmedAddress.length() &lt; 10) {</span>
+<span class="fc" id="L142">            throw new IllegalArgumentException(</span>
+                &quot;L'adresse est trop courte. Format attendu : [rue], [code postal] [ville], [pays]&quot;
+            );
+        }
+
+        // Vérifier présence d'une virgule (séparateur minimum)
+<span class="fc bfc" id="L148" title="All 2 branches covered.">        if (!trimmedAddress.contains(&quot;,&quot;)) {</span>
+<span class="fc" id="L149">            throw new IllegalArgumentException(</span>
+                &quot;L'adresse doit contenir au moins une virgule pour séparer ville et pays. &quot; +
+                &quot;Format attendu : [rue], [ville], [pays]&quot;
+            );
+        }
+
+        // Avertissement si l'adresse semble contenir un nom de monument
+<span class="fc" id="L156">        String addressLower = trimmedAddress.toLowerCase();</span>
+<span class="pc bpc" id="L157" title="1 of 2 branches missed.">        if (addressLower.contains(&quot;tour eiffel&quot;) || </span>
+<span class="fc bfc" id="L158" title="All 2 branches covered.">            addressLower.contains(&quot;notre-dame&quot;) ||</span>
+<span class="pc bpc" id="L159" title="1 of 2 branches missed.">            addressLower.contains(&quot;arc de triomphe&quot;) ||</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">            addressLower.contains(&quot;basilique&quot;) ||</span>
+<span class="pc bpc" id="L161" title="1 of 2 branches missed.">            addressLower.contains(&quot;cathédrale&quot;)) {</span>
+            
+<span class="fc" id="L163">            System.err.println(&quot;⚠️  WARNING: L'adresse semble contenir un nom de monument.&quot;);</span>
+<span class="fc" id="L164">            System.err.println(&quot;   Adresse: &quot; + address);</span>
+<span class="fc" id="L165">            System.err.println(&quot;   Conseil: Mettre le nom du monument dans le champ 'name' et garder uniquement l'adresse postale.&quot;);</span>
+        }
+<span class="fc" id="L167">    }</span>
+
+    /**
+     * Valide les coordonnées GPS.
+     * 
+     * @param latitude la latitude
+     * @param longitude la longitude
+     * @throws IllegalArgumentException si les coordonnées sont invalides
+     */
+    private void validateCoordinates(Double latitude, Double longitude) {
+<span class="fc bfc" id="L177" title="All 4 branches covered.">        if (latitude == null || longitude == null) {</span>
+<span class="fc" id="L178">            return; // GPS optionnel</span>
+        }
+
+        // Valider latitude (-90 à 90)
+<span class="fc bfc" id="L182" title="All 4 branches covered.">        if (latitude &lt; -90.0 || latitude &gt; 90.0) {</span>
+<span class="fc" id="L183">            throw new IllegalArgumentException(</span>
+                &quot;Latitude invalide: &quot; + latitude + &quot;. Doit être entre -90 et 90&quot;
+            );
+        }
+
+        // Valider longitude (-180 à 180)
+<span class="fc bfc" id="L189" title="All 4 branches covered.">        if (longitude &lt; -180.0 || longitude &gt; 180.0) {</span>
+<span class="fc" id="L190">            throw new IllegalArgumentException(</span>
+                &quot;Longitude invalide: &quot; + longitude + &quot;. Doit être entre -180 et 180&quot;
+            );
+        }
+<span class="fc" id="L194">    }</span>
+
+    // ========================================================================
+    // Getters et Setters
+    // ========================================================================
+
+    public Long getId() {
+<span class="fc" id="L201">        return id;</span>
+    }
+
+    public void setId(Long id) {
+<span class="fc" id="L205">        this.id = id;</span>
+<span class="fc" id="L206">    }</span>
+
+    public String getAddress() {
+<span class="fc" id="L209">        return address;</span>
+    }
+
+    public void setAddress(String address) {
+<span class="fc" id="L213">        validateAddress(address);</span>
+<span class="fc" id="L214">        this.address = address;</span>
+<span class="fc" id="L215">    }</span>
+
+    public Double getLatitude() {
+<span class="fc" id="L218">        return latitude;</span>
+    }
+
+    public void setLatitude(Double latitude) {
+<span class="fc" id="L222">        validateCoordinates(latitude, this.longitude);</span>
+<span class="fc" id="L223">        this.latitude = latitude;</span>
+<span class="fc" id="L224">    }</span>
+
+    public Double getLongitude() {
+<span class="fc" id="L227">        return longitude;</span>
+    }
+
+    public void setLongitude(Double longitude) {
+<span class="fc" id="L231">        validateCoordinates(this.latitude, longitude);</span>
+<span class="fc" id="L232">        this.longitude = longitude;</span>
+<span class="fc" id="L233">    }</span>
+
+    public String getName() {
+<span class="fc" id="L236">        return name;</span>
+    }
+
+    public void setName(String name) {
+<span class="fc" id="L240">        this.name = name;</span>
+<span class="fc" id="L241">    }</span>
+
+    public boolean isAutoCompleted() {
+<span class="fc" id="L244">        return autoCompleted;</span>
+    }
+
+    public void setAutoCompleted(boolean autoCompleted) {
+<span class="nc" id="L248">        this.autoCompleted = autoCompleted;</span>
+<span class="nc" id="L249">    }</span>
+
+    /**
+     * Vérifie si le lieu possède des coordonnées GPS valides.
+     * 
+     * @return true si latitude et longitude sont définies et valides
+     */
+    public boolean hasCoordinates() {
+<span class="fc bfc" id="L257" title="All 4 branches covered.">        return latitude != null &amp;&amp; longitude != null;</span>
+    }
+
+    /**
+     * Vérifie si l'adresse est une adresse GPS générée automatiquement.
+     * 
+     * @return true si l'adresse commence par &quot;GPS:&quot;
+     */
+    public boolean hasGeneratedAddress() {
+<span class="pc bpc" id="L266" title="2 of 4 branches missed.">        return address != null &amp;&amp; address.startsWith(&quot;GPS:&quot;);</span>
+    }
+
+    /**
+     * Retourne une représentation lisible du lieu pour l'affichage.
+     * 
+     * @return nom si défini, sinon adresse
+     */
+    public String getDisplayName() {
+<span class="pc bpc" id="L275" title="1 of 4 branches missed.">        if (name != null &amp;&amp; !name.trim().isEmpty()) {</span>
+<span class="fc" id="L276">            return name;</span>
+        }
+        // Retourner une version courte de l'adresse (jusqu'à la première virgule)
+<span class="pc bpc" id="L279" title="1 of 4 branches missed.">        if (address != null &amp;&amp; !hasGeneratedAddress()) {</span>
+<span class="fc" id="L280">            int commaIndex = address.indexOf(',');</span>
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">            if (commaIndex &gt; 0) {</span>
+<span class="fc" id="L282">                return address.substring(0, commaIndex);</span>
+            }
+<span class="nc" id="L284">            return address;</span>
+        }
+<span class="pc bpc" id="L286" title="1 of 2 branches missed.">        if (hasCoordinates()) {</span>
+<span class="fc" id="L287">            return String.format(&quot;GPS: %.4f, %.4f&quot;, latitude, longitude);</span>
+        }
+<span class="nc" id="L289">        return &quot;Unknown Location&quot;;</span>
+    }
+
+    /**
+     * Retourne une description complète du lieu.
+     * 
+     * @return description avec nom, adresse et GPS si disponibles
+     */
+    public String getFullDescription() {
+<span class="fc" id="L298">        StringBuilder sb = new StringBuilder();</span>
+        
+<span class="pc bpc" id="L300" title="2 of 4 branches missed.">        if (name != null &amp;&amp; !name.trim().isEmpty()) {</span>
+<span class="fc" id="L301">            sb.append(name).append(&quot;\n&quot;);</span>
+        }
+        
+<span class="pc bpc" id="L304" title="1 of 4 branches missed.">        if (address != null &amp;&amp; !hasGeneratedAddress()) {</span>
+<span class="fc" id="L305">            sb.append(&quot;📍 &quot;).append(address);</span>
+        }
+        
+<span class="fc bfc" id="L308" title="All 2 branches covered.">        if (hasCoordinates()) {</span>
+<span class="pc bpc" id="L309" title="1 of 2 branches missed.">            if (sb.length() &gt; 0) sb.append(&quot;\n&quot;);</span>
+<span class="fc" id="L310">            sb.append(&quot;GPS: &quot;).append(latitude).append(&quot;, &quot;).append(longitude);</span>
+        }
+        
+<span class="pc bpc" id="L313" title="1 of 2 branches missed.">        if (autoCompleted) {</span>
+<span class="nc" id="L314">            sb.append(&quot; ✓&quot;);</span>
+        }
+        
+<span class="fc" id="L317">        return sb.toString();</span>
+    }
+
+    @Override
+    public String toString() {
+<span class="fc" id="L322">        return &quot;Location{&quot; +</span>
+                &quot;id=&quot; + id +
+                &quot;, name='&quot; + name + '\'' +
+                &quot;, address='&quot; + address + '\'' +
+                &quot;, latitude=&quot; + latitude +
+                &quot;, longitude=&quot; + longitude +
+                &quot;, autoCompleted=&quot; + autoCompleted +
+                '}';
+    }
+
+    @Override
+    public int hashCode() {
+<span class="nc bnc" id="L334" title="All 2 branches missed.">        int result = id != null ? id.hashCode() : 0;</span>
+<span class="nc bnc" id="L335" title="All 2 branches missed.">        result = 31 * result + (address != null ? address.hashCode() : 0);</span>
+<span class="nc bnc" id="L336" title="All 2 branches missed.">        result = 31 * result + (latitude != null ? latitude.hashCode() : 0);</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">        result = 31 * result + (longitude != null ? longitude.hashCode() : 0);</span>
+<span class="nc" id="L338">        return result;</span>
+    }
+
+    @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L343" title="1 of 2 branches missed.">        if (this == o) return true;</span>
+<span class="nc bnc" id="L344" title="All 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
+
+<span class="nc" id="L346">        Location location = (Location) o;</span>
+
+<span class="nc bnc" id="L348" title="All 6 branches missed.">        if (id != null ? !id.equals(location.id) : location.id != null) return false;</span>
+<span class="nc bnc" id="L349" title="All 6 branches missed.">        if (address != null ? !address.equals(location.address) : location.address != null) return false;</span>
+<span class="nc bnc" id="L350" title="All 6 branches missed.">        if (latitude != null ? !latitude.equals(location.latitude) : location.latitude != null) return false;</span>
+<span class="nc bnc" id="L351" title="All 4 branches missed.">        return longitude != null ? longitude.equals(location.longitude) : location.longitude == null;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

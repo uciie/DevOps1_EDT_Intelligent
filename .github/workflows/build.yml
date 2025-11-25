@@ -52,7 +52,7 @@ jobs:
         working-directory: ./backend
         run: |
           chmod +x gradlew
-          ./gradlew clean assemble -x test --no-daemon
+          ./gradlew clean assemble -x test --no-daemon --refresh-dependencies
 
       # ----------------------
       # 4. Setup Node (frontend)

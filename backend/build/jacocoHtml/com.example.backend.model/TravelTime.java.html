@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TravelTime.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.example.backend.model</a> &gt; <span class="el_source">TravelTime.java</span></div><h1>TravelTime.java</h1><pre class="source lang-java linenums">package com.example.backend.model;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+/**
+ * Représente un temps de déplacement entre deux événements.
+ * Cet événement spécial est automatiquement créé pour gérer les trajets.
+ */
+@Entity
+public class TravelTime {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    // Événement de départ, pour avoir le point de départ du trajet
+    @ManyToOne
+    @JoinColumn(name = &quot;from_event_id&quot;)
+    private Event fromEvent;
+
+    // Événement d'arrivée, pour avoir le point d'arrivée du trajet
+    @ManyToOne
+    @JoinColumn(name = &quot;to_event_id&quot;)
+    private Event toEvent;
+
+    // Utilisateur auquel ce temps de trajet appartient
+    @ManyToOne
+    @JoinColumn(name = &quot;user_id&quot;, nullable = false)
+    private User user;
+
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+
+    // Durée en minutes
+    private int durationMinutes;
+
+    // Distance en kilomètres
+    private Double distanceKm;
+
+    // Mode de transport (WALKING, DRIVING, TRANSIT, CYCLING)
+<span class="fc" id="L42">    @Enumerated(EnumType.STRING)</span>
+    private TransportMode mode = TransportMode.DRIVING;
+
+    /**
+     * Constructeur par défaut.
+     */
+<span class="fc" id="L48">    public TravelTime() {}</span>
+
+    /**
+     * Construit un nouveau temps de trajet.
+     *
+     * @param fromEvent l'événement de départ
+     * @param toEvent l'événement d'arrivée
+     * @param user l'utilisateur
+     * @param startTime l'heure de début du trajet
+     * @param durationMinutes la durée en minutes
+     */
+    public TravelTime(Event fromEvent, Event toEvent, User user, 
+<span class="fc" id="L60">                      LocalDateTime startTime, int durationMinutes) {</span>
+<span class="fc" id="L61">        this.fromEvent = fromEvent;</span>
+<span class="fc" id="L62">        this.toEvent = toEvent;</span>
+<span class="fc" id="L63">        this.user = user;</span>
+<span class="fc" id="L64">        this.startTime = startTime;</span>
+<span class="fc" id="L65">        this.durationMinutes = durationMinutes;</span>
+<span class="fc" id="L66">        this.endTime = startTime.plusMinutes(durationMinutes);</span>
+<span class="fc" id="L67">    }</span>
+
+    // Getters et Setters
+
+<span class="fc" id="L71">    public Long getId() { return id; }</span>
+<span class="fc" id="L72">    public void setId(Long id) { this.id = id; }</span>
+    
+<span class="fc" id="L74">    public Event getFromEvent() { return fromEvent; }</span>
+<span class="fc" id="L75">    public void setFromEvent(Event fromEvent) { this.fromEvent = fromEvent; }</span>
+
+<span class="fc" id="L77">    public Event getToEvent() { return toEvent; }</span>
+<span class="fc" id="L78">    public void setToEvent(Event toEvent) { this.toEvent = toEvent; }</span>
+
+<span class="fc" id="L80">    public User getUser() { return user; }</span>
+<span class="fc" id="L81">    public void setUser(User user) { this.user = user; }</span>
+
+<span class="fc" id="L83">    public LocalDateTime getStartTime() { return startTime; }</span>
+
+    /**
+     * Définit l'heure de début du trajet et met à jour l'heure de fin en fonction de la durée.
+     *
+     * @param startTime l'heure de début du trajet
+     */
+    public void setStartTime(LocalDateTime startTime) { 
+<span class="fc" id="L91">        this.startTime = startTime;</span>
+        // Met à jour l'heure de fin si la durée est déjà définie
+<span class="fc bfc" id="L93" title="All 2 branches covered.">        if (durationMinutes &gt; 0) {</span>
+<span class="fc" id="L94">            this.endTime = startTime.plusMinutes(durationMinutes);</span>
+        }
+<span class="fc" id="L96">    }</span>
+
+<span class="fc" id="L98">    public LocalDateTime getEndTime() { return endTime; }</span>
+<span class="fc" id="L99">    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }</span>
+
+<span class="fc" id="L101">    public int getDurationMinutes() { return durationMinutes; }</span>
+
+    /**
+     * Définit la durée du trajet en minutes et met à jour l'heure de fin en fonction de l'heure de début.
+     *
+     * @param durationMinutes la durée du trajet en minutes
+     */
+    public void setDurationMinutes(int durationMinutes) { 
+<span class="fc" id="L109">        this.durationMinutes = durationMinutes;</span>
+        // Met à jour l'heure de fin si l'heure de début est déjà définie
+<span class="fc bfc" id="L111" title="All 2 branches covered.">        if (startTime != null) {</span>
+<span class="fc" id="L112">            this.endTime = startTime.plusMinutes(durationMinutes);</span>
+        }
+<span class="fc" id="L114">    }</span>
+
+<span class="fc" id="L116">    public Double getDistanceKm() { return distanceKm; }</span>
+<span class="fc" id="L117">    public void setDistanceKm(Double distanceKm) { this.distanceKm = distanceKm; }</span>
+
+<span class="fc" id="L119">    public TransportMode getMode() { return mode; }</span>
+<span class="fc" id="L120">    public void setMode(TransportMode mode) { this.mode = mode; }</span>
+
+    /**
+     * Énumération des modes de transport disponibles.
+     */
+<span class="fc" id="L125">    public enum TransportMode {</span>
+<span class="fc" id="L126">        WALKING,// À pied</span>
+<span class="fc" id="L127">        DRIVING,// En voiture</span>
+<span class="fc" id="L128">        TRANSIT,// Transports en commun</span>
+<span class="fc" id="L129">        CYCLING// À vélo</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

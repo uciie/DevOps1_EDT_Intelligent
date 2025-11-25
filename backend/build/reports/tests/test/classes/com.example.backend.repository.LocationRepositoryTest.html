@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - LocationRepositoryTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>LocationRepositoryTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.example.backend.repository.html">com.example.backend.repository</a> &gt; LocationRepositoryTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">18</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">0.222s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a href="#">Tests</a>
+</li>
+<li>
+<a href="#">Standard output</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">testCount()</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testDeleteLocation()</td>
+<td class="success">0.011s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testExistsById()</td>
+<td class="success">0.011s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFindAll()</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFindByAddress()</td>
+<td class="success">0.010s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFindByAddress_CaseSensitive()</td>
+<td class="success">0.018s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFindByAddress_NotFound()</td>
+<td class="success">0.006s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFindByAddress_WithSpecialCharacters()</td>
+<td class="success">0.019s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFindById()</td>
+<td class="success">0.005s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFindById_NotFound()</td>
+<td class="success">0.006s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFindByName()</td>
+<td class="success">0.012s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFindByName_NotFound()</td>
+<td class="success">0.045s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testMultipleLocationsWithSameNameDifferentAddress()</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testSaveLocation()</td>
+<td class="success">0.010s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testSaveLocationWithCompleteAddress()</td>
+<td class="success">0.009s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testSaveLocationWithName()</td>
+<td class="success">0.007s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testSaveLocationWithoutCoordinates()</td>
+<td class="success">0.008s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testUpdateLocation()</td>
+<td class="success">0.006s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2025-11-25T12:30:25.738+01:00  INFO 24556 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.repository.LocationRepositoryTest]: LocationRepositoryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2025-11-25T12:30:25.748+01:00  INFO 24556 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.repository.LocationRepositoryTest
+Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0 where l1_0.name=? fetch first ? rows only
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: delete from location where id=?
+Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0 where l1_0.id=?
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0
+Hibernate: select count(*) from location l1_0
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: select count(*) from location l1_0
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0 where l1_0.name=? fetch first ? rows only
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0 where l1_0.address=?
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0 where l1_0.address=?
+Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0 where l1_0.address=?
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: select count(*) from location l1_0 where l1_0.id=?
+Hibernate: select count(*) from location l1_0 where l1_0.id=?
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0 where l1_0.address=?
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0 where l1_0.id=?
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0 where l1_0.name=? fetch first ? rows only
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0 where l1_0.address=?
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 12 h 30 min 33 s</p>
+</div>
+</div>
+</body>
+</html>
