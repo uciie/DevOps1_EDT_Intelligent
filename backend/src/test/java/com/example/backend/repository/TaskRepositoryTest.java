@@ -61,7 +61,7 @@ class TaskRepositoryTest {
         assertEquals(60, found.get().getEstimatedDuration());
         assertEquals(5, found.get().getPriority());
         assertFalse(found.get().isDone());
-        assertEquals(testUser.getId(), found.get().getUser().getId());
+        assertEquals(testUser.getId(), found.get().getUserId());
     }
 
     @Test
@@ -84,7 +84,7 @@ class TaskRepositoryTest {
         // Assert
         assertEquals(2, userTasks.size());
         assertEquals(1, anotherUserTasks.size());
-        assertTrue(userTasks.stream().allMatch(t -> t.getUser().getId().equals(testUser.getId())));
+        assertTrue(userTasks.stream().allMatch(t -> t.getUserId().equals(testUser.getId())));
     }
 
     @Test
@@ -125,8 +125,8 @@ class TaskRepositoryTest {
 
         // Assert
         Task found = taskRepository.findById(saved.getId()).orElseThrow();
-        assertNotNull(found.getEvent());
-        assertEquals("Réunion", found.getEvent().getSummary());
+        assertNotNull(found.getEventId());
+        assertEquals(event.getId(), found.getEventId());
     }
 
     @Test
@@ -142,7 +142,7 @@ class TaskRepositoryTest {
 
         // Assert
         Task found = taskRepository.findById(saved.getId()).orElseThrow();
-        assertNull(found.getEvent());
+        assertNull(found.getEventId());
     }
 
     @Test

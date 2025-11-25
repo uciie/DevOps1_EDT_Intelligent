@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -41,13 +40,14 @@ class TaskServiceImplTest {
     void setUp() {
         user = new User("testuser", "password");
         user.setId(1L);
+        // Constructeur: Task(String title, int estimatedDuration, int priority, boolean done, User user)
         task = new Task("Test Task", 60, 1, false, user);
         task.setId(100L);
     }
 
     @Test
     void testGetTasksByUserId() {
-        // Given: Une liste contenant des tâches de l'user 1 et de l'user 2
+        // Ajout d'une tâche appartenant à un autre utilisateur pour tester le filtrage
         User otherUser = new User("other", "pwd");
         otherUser.setId(2L);
         Task otherTask = new Task("Other Task", 30, 2, false, otherUser);
@@ -108,7 +108,7 @@ class TaskServiceImplTest {
         LocalDateTime end = start.plusHours(1);
         
         when(taskRepository.findById(100L)).thenReturn(Optional.of(task));
-        // Mock de la sauvegarde de l'événement (on retourne l'événement avec un ID généré)
+        
         when(eventRepository.save(any(Event.class))).thenAnswer(invocation -> {
             Event e = invocation.getArgument(0);
             e.setId(500L);
@@ -118,13 +118,12 @@ class TaskServiceImplTest {
 
         // When
         Task result = taskService.planifyTask(100L, start, end);
-
         // Then
-        assertNotNull(result.getEvent()); // La tâche doit être liée à un événement
-        assertEquals(500L, result.getEvent().getId());
-        assertEquals(user, result.getEvent().getUser());
+        assertNotNull(result.getEventId());   
+        assertEquals(500L, result.getEventId());
+        assertEquals(user.getId(), result.getUserId());
         
-        // Vérifie que la tâche a été ajoutée à la liste de l'événement
+        // Vérifie que la tâche a bien été ajoutée à la liste de l'événement en mémoire
         assertEquals(1, result.getEvent().getTasks().size());
         
         verify(eventRepository).save(any(Event.class));
