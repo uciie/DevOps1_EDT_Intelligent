@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.255s</div>
+<div class="counter">0.285s</div>
 <p>duration</p>
 </div>
 </td>
@@ -81,37 +81,37 @@
 <tr>
 <td class="success">Suppression d'une tâche</td>
 <td class="success">testDeleteTask()</td>
-<td class="success">0.012s</td>
+<td class="success">0.017s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Tâches terminées et non terminées pour le même utilisateur</td>
 <td class="success">testDoneAndUndoneTasks()</td>
-<td class="success">0.015s</td>
+<td class="success">0.021s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Récupération de toutes les tâches</td>
 <td class="success">testFindAll()</td>
-<td class="success">0.013s</td>
+<td class="success">0.015s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Recherche des tâches par utilisateur</td>
 <td class="success">testFindByUser_Id()</td>
-<td class="success">0.024s</td>
+<td class="success">0.021s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Recherche retourne liste vide pour utilisateur sans tâches</td>
 <td class="success">testFindByUser_Id_EmptyList()</td>
-<td class="success">0.010s</td>
+<td class="success">0.017s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Plusieurs tâches avec différentes priorités</td>
 <td class="success">testMultipleTasksWithDifferentPriorities()</td>
-<td class="success">0.017s</td>
+<td class="success">0.027s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -123,55 +123,55 @@
 <tr>
 <td class="success">Tâche avec événement associé</td>
 <td class="success">testTaskWithEvent()</td>
-<td class="success">0.014s</td>
+<td class="success">0.021s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Tâche avec titre très long</td>
 <td class="success">testTaskWithLongTitle()</td>
-<td class="success">0.008s</td>
+<td class="success">0.011s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Tâche avec priorité négative</td>
 <td class="success">testTaskWithNegativePriority()</td>
-<td class="success">0.009s</td>
+<td class="success">0.010s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Tâche avec durée estimée zéro</td>
 <td class="success">testTaskWithZeroDuration()</td>
-<td class="success">0.011s</td>
+<td class="success">0.013s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Tâche sans événement associé</td>
 <td class="success">testTaskWithoutEvent()</td>
-<td class="success">0.016s</td>
+<td class="success">0.011s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Modification de la durée estimée</td>
 <td class="success">testUpdateEstimatedDuration()</td>
-<td class="success">0.014s</td>
+<td class="success">0.010s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Mise à jour de la priorité</td>
 <td class="success">testUpdatePriority()</td>
-<td class="success">0.049s</td>
+<td class="success">0.055s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Mise à jour du statut d'une tâche</td>
 <td class="success">testUpdateTaskStatus()</td>
-<td class="success">0.015s</td>
+<td class="success">0.014s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Modification du titre</td>
 <td class="success">testUpdateTitle()</td>
-<td class="success">0.022s</td>
+<td class="success">0.016s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -179,8 +179,8 @@
 <div class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2025-11-25T14:57:53.276+01:00  INFO 25628 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.repository.TaskRepositoryTest]: TaskRepositoryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2025-11-25T14:57:53.282+01:00  INFO 25628 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.repository.TaskRepositoryTest
+<pre>2025-11-25T22:05:39.470+01:00  INFO 22000 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.repository.TaskRepositoryTest]: TaskRepositoryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2025-11-25T22:05:39.478+01:00  INFO 22000 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.repository.TaskRepositoryTest
 Hibernate: insert into users (password,username,id) values (?,?,default)
 Hibernate: insert into users (password,username,id) values (?,?,default)
 Hibernate: insert into task (done,estimated_duration,event_id,priority,title,user_id,id) values (?,?,?,?,?,?,default)
@@ -275,7 +275,7 @@ Hibernate: select t1_0.id,t1_0.done,t1_0.estimated_duration,e1_0.id,e1_0.end_tim
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 14 h 58 min 04 s</p>
+<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 22 h 05 min 47 s</p>
 </div>
 </div>
 </body>

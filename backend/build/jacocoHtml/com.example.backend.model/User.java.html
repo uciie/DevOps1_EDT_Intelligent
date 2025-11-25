@@ -3,6 +3,9 @@
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 /**
  * Représente un utilisateur de l'application.
  * Un utilisateur a un nom d'utilisateur unique, un mot de passe, et des listes d'événements et de tâches associés.
@@ -21,15 +24,17 @@ public class User {
     private String password;
 
     @OneToMany(mappedBy = &quot;user&quot;, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // &lt;--- pour empêcher l'affichage dans le JSON
     private List&lt;Event&gt; events;
 
     @OneToMany(mappedBy = &quot;user&quot;, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // &lt;--- pour empêcher l'affichage dans le JSON
     private List&lt;Task&gt; tasks;
 
     /**
      * Constructeur par défaut.
      */
-<span class="fc" id="L32">    public User() {}</span>
+<span class="fc" id="L37">    public User() {}</span>
 
     /**
      * Construit un nouvel utilisateur avec le nom d'utilisateur et le mot de passe donnés.
@@ -38,43 +43,43 @@ public class User {
      * @param password le mot de passe (non-null, peut être vide)
      * @throws IllegalArgumentException si le nom d'utilisateur est nul ou vide, ou si le mot de passe est null.
      */
-<span class="fc" id="L41">    public User(String username, String password) {</span>
-<span class="pc bpc" id="L42" title="1 of 4 branches missed.">        if (username == null || username.trim().isEmpty()) {</span>
-<span class="fc" id="L43">            throw new IllegalArgumentException(&quot;username ne doit pas être vide&quot;);</span>
+<span class="fc" id="L46">    public User(String username, String password) {</span>
+<span class="pc bpc" id="L47" title="1 of 4 branches missed.">        if (username == null || username.trim().isEmpty()) {</span>
+<span class="fc" id="L48">            throw new IllegalArgumentException(&quot;username ne doit pas être vide&quot;);</span>
         }
-<span class="pc bpc" id="L45" title="1 of 2 branches missed.">        if (password == null) {</span>
-<span class="nc" id="L46">            throw new IllegalArgumentException(&quot;password ne doit pas être null&quot;);</span>
+<span class="pc bpc" id="L50" title="1 of 2 branches missed.">        if (password == null) {</span>
+<span class="nc" id="L51">            throw new IllegalArgumentException(&quot;password ne doit pas être null&quot;);</span>
         }
-<span class="fc" id="L48">        this.username = username;</span>
-<span class="fc" id="L49">        this.password = password;</span>
-<span class="fc" id="L50">    }</span>
+<span class="fc" id="L53">        this.username = username;</span>
+<span class="fc" id="L54">        this.password = password;</span>
+<span class="fc" id="L55">    }</span>
 
     @Override
     public int hashCode() {
-<span class="nc" id="L54">        return username.hashCode();</span>
+<span class="nc" id="L59">        return username.hashCode();</span>
     }
 
     @Override
     public boolean equals(Object obj) {
-<span class="pc bpc" id="L59" title="1 of 2 branches missed.">        if (this == obj) return true;</span>
-<span class="nc bnc" id="L60" title="All 4 branches missed.">        if (obj == null || getClass() != obj.getClass()) return false;</span>
+<span class="pc bpc" id="L64" title="1 of 2 branches missed.">        if (this == obj) return true;</span>
+<span class="nc bnc" id="L65" title="All 4 branches missed.">        if (obj == null || getClass() != obj.getClass()) return false;</span>
 
-<span class="nc" id="L62">        User user = (User) obj;</span>
+<span class="nc" id="L67">        User user = (User) obj;</span>
 
-<span class="nc bnc" id="L64" title="All 4 branches missed.">        return username != null ? username.equals(user.username) : user.username == null;</span>
+<span class="nc bnc" id="L69" title="All 4 branches missed.">        return username != null ? username.equals(user.username) : user.username == null;</span>
     }
 
-<span class="fc" id="L67">    public Long getId() { return id; }</span>
-<span class="fc" id="L68">    public void setId(Long id) { this.id = id; }</span>
-<span class="fc" id="L69">    public String getUsername() { return username; }</span>
-<span class="fc" id="L70">    public void setUsername(String username) { this.username = username; }</span>
-<span class="fc" id="L71">    public String getPassword() { return password; }</span>
-<span class="fc" id="L72">    public void setPassword(String password) { this.password = password; }</span>
+<span class="fc" id="L72">    public Long getId() { return id; }</span>
+<span class="fc" id="L73">    public void setId(Long id) { this.id = id; }</span>
+<span class="fc" id="L74">    public String getUsername() { return username; }</span>
+<span class="fc" id="L75">    public void setUsername(String username) { this.username = username; }</span>
+<span class="fc" id="L76">    public String getPassword() { return password; }</span>
+<span class="fc" id="L77">    public void setPassword(String password) { this.password = password; }</span>
 
-<span class="fc" id="L74">    public List&lt;Event&gt; getEvents() { return events; }</span>
-<span class="fc" id="L75">    public void setEvents(List&lt;Event&gt; events) { this.events = events; }</span>
+<span class="fc" id="L79">    public List&lt;Event&gt; getEvents() { return events; }</span>
+<span class="fc" id="L80">    public void setEvents(List&lt;Event&gt; events) { this.events = events; }</span>
 
-<span class="fc" id="L77">    public List&lt;Task&gt; getTasks() { return tasks; }</span>
-<span class="fc" id="L78">    public void setTasks(List&lt;Task&gt; tasks) { this.tasks = tasks; }</span>
+<span class="fc" id="L82">    public List&lt;Task&gt; getTasks() { return tasks; }</span>
+<span class="fc" id="L83">    public void setTasks(List&lt;Task&gt; tasks) { this.tasks = tasks; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

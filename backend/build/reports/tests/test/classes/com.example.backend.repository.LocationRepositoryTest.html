@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.170s</div>
+<div class="counter">0.185s</div>
 <p>duration</p>
 </div>
 </td>
@@ -79,42 +79,42 @@
 </thead>
 <tr>
 <td class="success">testCount()</td>
-<td class="success">0.006s</td>
+<td class="success">0.010s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testDeleteLocation()</td>
-<td class="success">0.007s</td>
+<td class="success">0.010s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testExistsById()</td>
-<td class="success">0.011s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testFindAll()</td>
-<td class="success">0.009s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testFindByAddress()</td>
-<td class="success">0.008s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testFindByAddress_CaseSensitive()</td>
 <td class="success">0.012s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">testFindByAddress_NotFound()</td>
+<td class="success">testFindAll()</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFindByAddress()</td>
 <td class="success">0.007s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">testFindByAddress_CaseSensitive()</td>
+<td class="success">0.011s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testFindByAddress_NotFound()</td>
+<td class="success">0.005s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">testFindByAddress_WithSpecialCharacters()</td>
-<td class="success">0.008s</td>
+<td class="success">0.011s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -124,47 +124,47 @@
 </tr>
 <tr>
 <td class="success">testFindById_NotFound()</td>
-<td class="success">0.004s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testFindByName()</td>
-<td class="success">0.007s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testFindByName_NotFound()</td>
-<td class="success">0.049s</td>
-<td class="success">passed</td>
-</tr>
-<tr>
-<td class="success">testMultipleLocationsWithSameNameDifferentAddress()</td>
 <td class="success">0.010s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
+<td class="success">testFindByName_NotFound()</td>
+<td class="success">0.044s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testMultipleLocationsWithSameNameDifferentAddress()</td>
+<td class="success">0.008s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
 <td class="success">testSaveLocation()</td>
-<td class="success">0.006s</td>
+<td class="success">0.007s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testSaveLocationWithCompleteAddress()</td>
-<td class="success">0.006s</td>
+<td class="success">0.009s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testSaveLocationWithName()</td>
-<td class="success">0.003s</td>
+<td class="success">0.006s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testSaveLocationWithoutCoordinates()</td>
-<td class="success">0.004s</td>
+<td class="success">0.006s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testUpdateLocation()</td>
-<td class="success">0.007s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -172,8 +172,8 @@
 <div class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2025-11-25T14:57:53.074+01:00  INFO 25628 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.repository.LocationRepositoryTest]: LocationRepositoryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2025-11-25T14:57:53.083+01:00  INFO 25628 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.repository.LocationRepositoryTest
+<pre>2025-11-25T22:05:39.246+01:00  INFO 22000 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.repository.LocationRepositoryTest]: LocationRepositoryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2025-11-25T22:05:39.261+01:00  INFO 22000 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.repository.LocationRepositoryTest
 Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name from location l1_0 where l1_0.name=? fetch first ? rows only
 Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
 Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
@@ -218,7 +218,7 @@ Hibernate: select l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name fr
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 14 h 58 min 04 s</p>
+<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 22 h 05 min 47 s</p>
 </div>
 </div>
 </body>

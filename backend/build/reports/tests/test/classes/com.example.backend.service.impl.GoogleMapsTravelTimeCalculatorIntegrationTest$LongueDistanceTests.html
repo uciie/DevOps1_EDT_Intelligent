@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">2.574s</div>
+<div class="counter">1.271s</div>
 <p>duration</p>
 </div>
 </td>
@@ -84,49 +84,49 @@
 <tr>
 <td class="success">Adresse + CYCLING : Paris → Marseille à vélo</td>
 <td class="success">testLongueDistance_Adresse_Cycling()</td>
-<td class="success">0.280s</td>
+<td class="success">0.265s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Adresse + DRIVING : Paris → Marseille en voiture</td>
 <td class="success">testLongueDistance_Adresse_Driving()</td>
-<td class="success">0.320s</td>
+<td class="success">0.161s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Adresse + TRANSIT : Paris → Marseille en transport</td>
 <td class="success">testLongueDistance_Adresse_Transit()</td>
-<td class="success">0.164s</td>
+<td class="success">0.158s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Adresse + WALKING : Paris → Marseille à pied</td>
 <td class="success">testLongueDistance_Adresse_Walking()</td>
-<td class="success">0.510s</td>
+<td class="success">0.029s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">GPS + CYCLING : Paris → Marseille à vélo</td>
 <td class="success">testLongueDistance_GPS_Cycling()</td>
-<td class="success">0.272s</td>
+<td class="success">0.198s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">GPS + DRIVING : Paris → Marseille en voiture</td>
 <td class="success">testLongueDistance_GPS_Driving()</td>
-<td class="success">0.211s</td>
+<td class="success">0.215s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">GPS + TRANSIT : Paris → Marseille en transport</td>
 <td class="success">testLongueDistance_GPS_Transit()</td>
-<td class="success">0.250s</td>
+<td class="success">0.216s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">GPS + WALKING : Paris → Marseille à pied</td>
 <td class="success">testLongueDistance_GPS_Walking()</td>
-<td class="success">0.567s</td>
+<td class="success">0.029s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -134,20 +134,20 @@
 <div class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2025-11-25T14:57:59.954+01:00  INFO 25628 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.service.impl.GoogleMapsTravelTimeCalculatorIntegrationTest$LongueDistanceTests]: LongueDistanceTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2025-11-25T14:57:59.956+01:00  INFO 25628 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.service.impl.GoogleMapsTravelTimeCalculatorIntegrationTest$LongueDistanceTests
+<pre>2025-11-25T22:05:44.385+01:00  INFO 22000 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.service.impl.GoogleMapsTravelTimeCalculatorIntegrationTest$LongueDistanceTests]: LongueDistanceTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2025-11-25T22:05:44.388+01:00  INFO 22000 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.service.impl.GoogleMapsTravelTimeCalculatorIntegrationTest$LongueDistanceTests
 &#x1f697; Paris Centre → Marseille Centre (Adresse, voiture)
-   Temps: 459 min (7h39min)
+   Temps: 450 min (7h30min)
 &#x1f687; Paris Centre → Marseille Centre (GPS, transport)
-   Temps: 236 min (3h56min)
+   Temps: 511 min (8h31min)
 &#x1f687; Paris Centre → Marseille Centre (Adresse, transport)
-   Temps: 236 min (3h56min)
+   Temps: 510 min (8h30min)
 &#x1f6b6; Paris Centre → Marseille Centre (GPS, à pied)
    Temps: 10294 min (171h34min)
 &#x1f6b4; Paris Centre → Marseille Centre (GPS, vélo)
    Temps: 2750 min (45h50min)
 &#x1f697; Paris Centre → Marseille Centre (GPS, voiture)
-   Temps: 454 min (7h34min)
+   Temps: 446 min (7h26min)
 &#x1f6b6; Paris Centre → Marseille Centre (Adresse, à pied)
    Temps: 10278 min (171h18min)
 &#x1f6b4; Paris Centre → Marseille Centre (Adresse, vélo)
@@ -162,17 +162,17 @@
    From: Place de la Concorde, 75008 Paris, France
    To:   Vieux-Port, 13001 Marseille, France
    Mode: driving
-✅ Duration: 27486s ≈ 459 min
+✅ Duration: 26966s ≈ 450 min
 &#x1f310; Calling Google API:
    From: 48.8566,2.3522
    To:   43.2965,5.3698
    Mode: transit
-✅ Duration: 14136s ≈ 236 min
+✅ Duration: 30648s ≈ 511 min
 &#x1f310; Calling Google API:
    From: Place de la Concorde, 75008 Paris, France
    To:   Vieux-Port, 13001 Marseille, France
    Mode: transit
-✅ Duration: 14134s ≈ 236 min
+✅ Duration: 30593s ≈ 510 min
 &#x1f310; Calling Google API:
    From: 48.8566,2.3522
    To:   43.2965,5.3698
@@ -187,7 +187,7 @@
    From: 48.8566,2.3522
    To:   43.2965,5.3698
    Mode: driving
-✅ Duration: 27193s ≈ 454 min
+✅ Duration: 26744s ≈ 446 min
 &#x1f310; Calling Google API:
    From: Place de la Concorde, 75008 Paris, France
    To:   Vieux-Port, 13001 Marseille, France
@@ -209,7 +209,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 14 h 58 min 04 s</p>
+<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 22 h 05 min 47 s</p>
 </div>
 </div>
 </body>
