@@ -4,11 +4,13 @@ import com.example.backend.model.Event;
 import com.example.backend.model.Location;
 import com.example.backend.model.TravelTime;
 import com.example.backend.model.TravelTime.TransportMode;
+import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.TravelTimeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Service pour calculer et gérer les temps de trajet entre événements
@@ -18,11 +20,54 @@ public class TravelTimeService {
 
     private final TravelTimeRepository travelTimeRepository;
     private final TravelTimeCalculator travelTimeCalculator;
+    private final EventRepository eventRepository;
 
     public TravelTimeService(TravelTimeRepository travelTimeRepository,
-                            TravelTimeCalculator travelTimeCalculator) {
+                            TravelTimeCalculator travelTimeCalculator,
+                            EventRepository eventRepository) {
         this.travelTimeRepository = travelTimeRepository;
         this.travelTimeCalculator = travelTimeCalculator;
+        this.eventRepository = eventRepository;
+    }
+
+    /**
+     * Récupère tous les temps de trajet d'un utilisateur.
+     *
+     * @param userId l'ID de l'utilisateur
+     * @return liste des temps de trajet
+     */
+    public List<TravelTime> getTravelTimesByUserId(Long userId) {
+        return travelTimeRepository.findByUser_Id(userId);
+    }
+
+    /**
+     * Récupère les temps de trajet d'un utilisateur dans une période donnée.
+     *
+     * @param userId l'ID de l'utilisateur
+     * @param start date de début
+     * @param end date de fin
+     * @return liste des temps de trajet
+     */
+    public List<TravelTime> getTravelTimesByUserIdAndDateRange(Long userId, LocalDateTime start, LocalDateTime end) {
+        return travelTimeRepository.findByUser_IdAndStartTimeBetween(userId, start, end);
+    }
+
+    /**
+     * Calcule et crée un temps de trajet entre deux événements à partir de leurs IDs.
+     *
+     * @param fromEventId l'ID de l'événement de départ
+     * @param toEventId l'ID de l'événement d'arrivée
+     * @param mode le mode de transport
+     * @return le temps de trajet créé
+     */
+    @Transactional
+    public TravelTime calculateAndCreateTravelTime(Long fromEventId, Long toEventId, TransportMode mode) {
+        Event fromEvent = eventRepository.findById(fromEventId)
+                .orElseThrow(() -> new IllegalArgumentException("FromEvent not found"));
+        Event toEvent = eventRepository.findById(toEventId)
+                .orElseThrow(() -> new IllegalArgumentException("ToEvent not found"));
+        
+        return createTravelTime(fromEvent, toEvent, mode);
     }
 
     /**

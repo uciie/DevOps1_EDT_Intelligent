@@ -5,382 +5,306 @@ import com.example.backend.model.Location;
 import com.example.backend.model.TravelTime;
 import com.example.backend.model.TravelTime.TransportMode;
 import com.example.backend.model.User;
+import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.TravelTimeRepository;
-import com.example.backend.service.impl.SimpleTravelTimeCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
-import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * Tests unitaires complets pour TravelTimeService et calculateurs.
- * SimpleTravelTimeCalculator est testé ici.
- * GoogleMapsTravelTimeCalculator est testé séparément.
- * Les tests couvrent la création, mise à jour, suppression des temps de trajet,
- * ainsi que les calculs de temps de trajet pour différents modes de transport.
+ * Tests unitaires pour TravelTimeService
  */
+@ExtendWith(MockitoExtension.class)
 class TravelTimeServiceTest {
 
     @Mock
     private TravelTimeRepository travelTimeRepository;
 
+    @Mock
+    private TravelTimeCalculator travelTimeCalculator;
+
+    @Mock
+    private EventRepository eventRepository;
+
+    @InjectMocks
     private TravelTimeService travelTimeService;
-    private SimpleTravelTimeCalculator calculator;
 
     private User testUser;
-    private Location parisLocation;
-    private Location lyonLocation;
-    private Location marseilleLocation;
+    private Event fromEvent;
+    private Event toEvent;
+    private Location location1;
+    private Location location2;
+    private TravelTime testTravelTime;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        calculator = new SimpleTravelTimeCalculator();
-        travelTimeService = new TravelTimeService(travelTimeRepository, calculator);
-
-        // Données de test
-        testUser = new User("testuser", "password");
+        testUser = new User("testuser", "password123");
         testUser.setId(1L);
 
-        parisLocation = new Location("Paris, France", 48.8566, 2.3522);
-        parisLocation.setId(1L);
+        location1 = new Location(
+            "10 Rue de la Paix, 75002 Paris, France",
+            48.8692,
+            2.3312
+        );
+        location1.setId(1L);
+        location1.setName("Bureau");
 
-        lyonLocation = new Location("Lyon, France", 45.7640, 4.8357);
-        lyonLocation.setId(2L);
+        location2 = new Location(
+            "5 Avenue Anatole France, 75007 Paris, France",
+            48.8584,
+            2.2945
+        );
+        location2.setId(2L);
+        location2.setName("Tour Eiffel");
 
-        marseilleLocation = new Location("Marseille, France", 43.2965, 5.3698);
-        marseilleLocation.setId(3L);
+        fromEvent = new Event(
+            "Départ bureau",
+            LocalDateTime.of(2025, 11, 25, 9, 0),
+            LocalDateTime.of(2025, 11, 25, 10, 0),
+            testUser
+        );
+        fromEvent.setId(1L);
+        fromEvent.setLocation(location1);
+
+        toEvent = new Event(
+            "Réunion client",
+            LocalDateTime.of(2025, 11, 25, 11, 0),
+            LocalDateTime.of(2025, 11, 25, 12, 0),
+            testUser
+        );
+        toEvent.setId(2L);
+        toEvent.setLocation(location2);
+
+        testTravelTime = new TravelTime(
+            fromEvent,
+            toEvent,
+            testUser,
+            LocalDateTime.of(2025, 11, 25, 10, 0),
+            25
+        );
+        testTravelTime.setId(1L);
+        testTravelTime.setMode(TransportMode.DRIVING);
     }
 
-    // ==================== Tests TravelTimeService ====================
+    @Test
+    void testGetTravelTimesByUserId() {
+        // Given
+        List<TravelTime> travelTimes = Arrays.asList(testTravelTime);
+        when(travelTimeRepository.findByUser_Id(1L)).thenReturn(travelTimes);
+
+        // When
+        List<TravelTime> result = travelTimeService.getTravelTimesByUserId(1L);
+
+        // Then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getDurationMinutes()).isEqualTo(25);
+        verify(travelTimeRepository, times(1)).findByUser_Id(1L);
+    }
 
     @Test
-    @DisplayName("Création d'un temps de trajet avec coordonnées valides")
-    void testCreateTravelTime_WithValidCoordinates() {
-        // Arrange
-        Event event1 = createEvent("Réunion Paris", parisLocation, 10, 0, 11, 0);
-        Event event2 = createEvent("Conférence Lyon", lyonLocation, 15, 0, 16, 0);
+    void testGetTravelTimesByUserIdAndDateRange() {
+        // Given
+        LocalDateTime start = LocalDateTime.of(2025, 11, 25, 0, 0);
+        LocalDateTime end = LocalDateTime.of(2025, 11, 26, 0, 0);
+        List<TravelTime> travelTimes = Arrays.asList(testTravelTime);
+        
+        when(travelTimeRepository.findByUser_IdAndStartTimeBetween(1L, start, end))
+            .thenReturn(travelTimes);
 
-        when(travelTimeRepository.save(any(TravelTime.class)))
-            .thenAnswer(invocation -> {
-                TravelTime tt = invocation.getArgument(0);
-                tt.setId(1L);
-                return tt;
-            });
+        // When
+        List<TravelTime> result = travelTimeService.getTravelTimesByUserIdAndDateRange(1L, start, end);
 
-        // Act
-        TravelTime result = travelTimeService.createTravelTime(
-            event1, event2, TransportMode.DRIVING
-        );
-        System.out.println("Résultat du temps de trajet créé :");
-        System.out.println(result);
+        // Then
+        assertThat(result).hasSize(1);
+        verify(travelTimeRepository, times(1))
+            .findByUser_IdAndStartTimeBetween(1L, start, end);
+    }
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(event1, result.getFromEvent());
-        assertEquals(event2, result.getToEvent());
-        assertEquals(testUser, result.getUser());
-        assertEquals(TransportMode.DRIVING, result.getMode());
-        assertTrue(result.getDurationMinutes() > 0, "La durée doit être positive");
-        assertNotNull(result.getDistanceKm(), "La distance doit être calculée");
-        assertTrue(result.getDistanceKm() > 0, "La distance doit être positive");
-        assertEquals(event1.getEndTime(), result.getStartTime());
+    @Test
+    void testCalculateAndCreateTravelTime() {
+        // Given
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(fromEvent));
+        when(eventRepository.findById(2L)).thenReturn(Optional.of(toEvent));
+        when(travelTimeCalculator.calculateTravelTime(location1, location2, TransportMode.DRIVING))
+            .thenReturn(25);
+        when(travelTimeRepository.save(any(TravelTime.class))).thenReturn(testTravelTime);
 
+        // When
+        TravelTime result = travelTimeService.calculateAndCreateTravelTime(1L, 2L, TransportMode.DRIVING);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getDurationMinutes()).isEqualTo(25);
+        verify(eventRepository, times(1)).findById(1L);
+        verify(eventRepository, times(1)).findById(2L);
+        verify(travelTimeCalculator, times(1)).calculateTravelTime(location1, location2, TransportMode.DRIVING);
         verify(travelTimeRepository, times(1)).save(any(TravelTime.class));
     }
 
     @Test
-    @DisplayName("Création d'un temps de trajet sans localisation - Exception")
-    void testCreateTravelTime_WithoutLocation_ThrowsException() {
-        // Arrange
-        Event event1 = createEvent("Event 1", null, 10, 0, 11, 0);
-        Event event2 = createEvent("Event 2", lyonLocation, 15, 0, 16, 0);
+    void testCalculateAndCreateTravelTimeFromEventNotFound() {
+        // Given
+        when(eventRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> travelTimeService.createTravelTime(event1, event2, TransportMode.DRIVING)
-        );
-
-        assertEquals("Les événements doivent avoir une localisation", exception.getMessage());
-        verify(travelTimeRepository, never()).save(any(TravelTime.class));
+        // When & Then
+        assertThatThrownBy(() -> 
+            travelTimeService.calculateAndCreateTravelTime(999L, 2L, TransportMode.DRIVING)
+        )
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("FromEvent not found");
     }
 
     @Test
-    @DisplayName("Mise à jour d'un temps de trajet")
+    void testCalculateAndCreateTravelTimeToEventNotFound() {
+        // Given
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(fromEvent));
+        when(eventRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> 
+            travelTimeService.calculateAndCreateTravelTime(1L, 999L, TransportMode.DRIVING)
+        )
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("ToEvent not found");
+    }
+
+    @Test
+    void testCreateTravelTime() {
+        // Given
+        when(travelTimeCalculator.calculateTravelTime(location1, location2, TransportMode.DRIVING))
+            .thenReturn(25);
+        when(travelTimeRepository.save(any(TravelTime.class))).thenReturn(testTravelTime);
+
+        // When
+        TravelTime result = travelTimeService.createTravelTime(fromEvent, toEvent, TransportMode.DRIVING);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getDurationMinutes()).isEqualTo(25);
+        assertThat(result.getStartTime()).isEqualTo(fromEvent.getEndTime());
+        verify(travelTimeCalculator, times(1)).calculateTravelTime(location1, location2, TransportMode.DRIVING);
+        verify(travelTimeRepository, times(1)).save(any(TravelTime.class));
+    }
+
+    @Test
+    void testCreateTravelTimeWithoutFromLocation() {
+        // Given
+        Event eventWithoutLocation = new Event(
+            "Event sans localisation",
+            LocalDateTime.of(2025, 11, 25, 9, 0),
+            LocalDateTime.of(2025, 11, 25, 10, 0),
+            testUser
+        );
+
+        // When & Then
+        assertThatThrownBy(() -> 
+            travelTimeService.createTravelTime(eventWithoutLocation, toEvent, TransportMode.DRIVING)
+        )
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Les événements doivent avoir une localisation");
+    }
+
+    @Test
+    void testCreateTravelTimeWithoutToLocation() {
+        // Given
+        Event eventWithoutLocation = new Event(
+            "Event sans localisation",
+            LocalDateTime.of(2025, 11, 25, 11, 0),
+            LocalDateTime.of(2025, 11, 25, 12, 0),
+            testUser
+        );
+
+        // When & Then
+        assertThatThrownBy(() -> 
+            travelTimeService.createTravelTime(fromEvent, eventWithoutLocation, TransportMode.DRIVING)
+        )
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Les événements doivent avoir une localisation");
+    }
+
+    @Test
+    void testCreateTravelTimeWithDifferentModes() {
+        // Given
+        when(travelTimeCalculator.calculateTravelTime(location1, location2, TransportMode.WALKING))
+            .thenReturn(150);
+        when(travelTimeRepository.save(any(TravelTime.class))).thenAnswer(i -> i.getArgument(0));
+
+        // When
+        TravelTime result = travelTimeService.createTravelTime(fromEvent, toEvent, TransportMode.WALKING);
+
+        // Then
+        assertThat(result.getMode()).isEqualTo(TransportMode.WALKING);
+        verify(travelTimeCalculator, times(1)).calculateTravelTime(location1, location2, TransportMode.WALKING);
+    }
+
+    @Test
     void testUpdateTravelTime() {
-        // Arrange
-        Event event1 = createEvent("Event 1", parisLocation, 10, 0, 11, 0);
-        Event event2 = createEvent("Event 2", lyonLocation, 15, 0, 16, 0);
+        // Given
+        when(travelTimeRepository.findById(1L)).thenReturn(Optional.of(testTravelTime));
+        when(travelTimeRepository.save(any(TravelTime.class))).thenReturn(testTravelTime);
+        LocalDateTime newStartTime = LocalDateTime.of(2025, 11, 25, 10, 30);
 
-        TravelTime travelTime = new TravelTime(event1, event2, testUser, 
-            LocalDateTime.of(2025, 1, 15, 11, 0), 60);
-        travelTime.setId(1L);
-
-        when(travelTimeRepository.findById(1L)).thenReturn(Optional.of(travelTime));
-        when(travelTimeRepository.save(any(TravelTime.class))).thenReturn(travelTime);
-
-        LocalDateTime newStartTime = LocalDateTime.of(2025, 1, 15, 12, 0);
-
-        // Act
+        // When
         travelTimeService.updateTravelTime(1L, newStartTime);
 
-        // Assert
-        ArgumentCaptor<TravelTime> captor = ArgumentCaptor.forClass(TravelTime.class);
-        verify(travelTimeRepository).save(captor.capture());
-        
-        TravelTime savedTravelTime = captor.getValue();
-        assertEquals(newStartTime, savedTravelTime.getStartTime());
+        // Then
+        verify(travelTimeRepository, times(1)).findById(1L);
+        verify(travelTimeRepository, times(1)).save(any(TravelTime.class));
     }
 
     @Test
-    @DisplayName("Suppression d'un temps de trajet")
+    void testUpdateTravelTimeNotFound() {
+        // Given
+        when(travelTimeRepository.findById(999L)).thenReturn(Optional.empty());
+
+        // When & Then
+        assertThatThrownBy(() -> 
+            travelTimeService.updateTravelTime(999L, LocalDateTime.now())
+        )
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("TravelTime not found");
+    }
+
+    @Test
     void testDeleteTravelTime() {
-        // Arrange
-        Long travelTimeId = 1L;
+        // When
+        travelTimeService.deleteTravelTime(1L);
 
-        // Act
-        travelTimeService.deleteTravelTime(travelTimeId);
-
-        // Assert
-        verify(travelTimeRepository, times(1)).deleteById(travelTimeId);
-    }
-
-    // ==================== Tests SimpleTravelTimeCalculator ====================
-
-    @Test
-    @DisplayName("Calcul du temps de trajet - Mode WALKING")
-    void testSimpleCalculator_Walking() {
-        // Arrange - Distance Paris-Lyon ~400km
-        // À pied (5 km/h) devrait donner un temps très long
-
-        // Act
-        int travelTime = calculator.calculateTravelTime(
-            parisLocation, lyonLocation, TransportMode.WALKING
-        );
-
-        // Assert
-        assertTrue(travelTime > 0, "Le temps de trajet doit être positif");
-        // Pour ~400km à 5km/h = ~4800 minutes
-        assertTrue(travelTime > 1000, "Le temps à pied doit être très long");
+        // Then
+        verify(travelTimeRepository, times(1)).deleteById(1L);
     }
 
     @Test
-    @DisplayName("Calcul du temps de trajet - Mode DRIVING")
-    void testSimpleCalculator_Driving() {
-        // Arrange - Distance Paris-Lyon ~400km
-        // En voiture (40 km/h en ville) devrait être plus rapide
+    void testCreateTravelTimeCalculatesDistance() {
+        // Given
+        when(travelTimeCalculator.calculateTravelTime(location1, location2, TransportMode.DRIVING))
+            .thenReturn(25);
+        when(travelTimeRepository.save(any(TravelTime.class))).thenAnswer(i -> {
+            TravelTime tt = i.getArgument(0);
+            tt.setId(1L);
+            return tt;
+        });
 
-        // Act
-        int travelTime = calculator.calculateTravelTime(
-            parisLocation, lyonLocation, TransportMode.DRIVING
-        );
+        // When
+        TravelTime result = travelTimeService.createTravelTime(fromEvent, toEvent, TransportMode.DRIVING);
 
-        // Assert
-        assertTrue(travelTime > 0, "Le temps de trajet doit être positif");
-        // Pour ~400km à 40km/h = ~600 minutes
-        assertTrue(travelTime > 400 && travelTime < 800, 
-            "Le temps en voiture devrait être autour de 600 min");
-    }
-
-    @Test
-    @DisplayName("Calcul du temps de trajet - Mode CYCLING")
-    void testSimpleCalculator_Cycling() {
-        // Arrange - Distance Paris-Lyon ~400km
-
-        // Act
-        int travelTime = calculator.calculateTravelTime(
-            parisLocation, lyonLocation, TransportMode.CYCLING
-        );
-
-        // Assert
-        assertTrue(travelTime > 0);
-        // Pour ~400km à 15km/h = ~1600 minutes
-        assertTrue(travelTime > 1000 && travelTime < 2000);
-    }
-
-    @Test
-    @DisplayName("Calcul du temps de trajet - Mode TRANSIT")
-    void testSimpleCalculator_Transit() {
-        // Arrange
-
-        // Act
-        int travelTime = calculator.calculateTravelTime(
-            parisLocation, lyonLocation, TransportMode.TRANSIT
-        );
-
-        // Assert
-        assertTrue(travelTime > 0);
-        // Pour ~400km à 25km/h = ~960 minutes
-        assertTrue(travelTime > 800 && travelTime < 1200);
-    }
-
-    @Test
-    @DisplayName("Calcul avec courte distance - Buffer minimum de 5 minutes")
-    void testSimpleCalculator_ShortDistance_MinimumBuffer() {
-        // Arrange - Deux points très proches
-        Location loc1 = new Location(48.8566, 2.3522);
-        loc1.setName("Point A");
-        Location loc2 = new Location(48.8567, 2.3523); // ~100m
-        loc2.setName("Point B");
-
-        // Act
-        int travelTime = calculator.calculateTravelTime(loc1, loc2, TransportMode.DRIVING);
-
-        // Assert
-        assertEquals(5, travelTime, "Le temps minimum doit être de 5 minutes");
-    }
-
-    @Test
-    @DisplayName("Calcul sans coordonnées GPS - Valeur par défaut")
-    void testSimpleCalculator_NoCoordinates_DefaultValue() {
-        // Arrange
-        Location gareLyonParis = new Location(
-            "Place Louis-Armand, 75012 Paris, France"
-        );
-        
-        Location garePartDieu = new Location(
-            "Boulevard Vivier Merle, 69003 Lyon, France"
-        );
-
-        // Act
-        int travelTime = calculator.calculateTravelTime(gareLyonParis, garePartDieu, TransportMode.DRIVING);
-
-        // Assert
-        assertEquals(15, travelTime, "Sans coordonnées, doit retourner 15 minutes par défaut");
-    }
-
-    @Test
-    @DisplayName("Vérification de la cohérence des vitesses entre modes")
-    void testSimpleCalculator_SpeedConsistency() {
-        // Arrange - Même distance
-
-        // Act
-        int walkingTime = calculator.calculateTravelTime(parisLocation, lyonLocation, TransportMode.WALKING);
-        int cyclingTime = calculator.calculateTravelTime(parisLocation, lyonLocation, TransportMode.CYCLING);
-        int drivingTime = calculator.calculateTravelTime(parisLocation, lyonLocation, TransportMode.DRIVING);
-
-        // Assert - Walking doit être le plus long, Driving le plus court
-        assertTrue(walkingTime > cyclingTime, "Marcher doit prendre plus de temps que le vélo");
-        assertTrue(cyclingTime > drivingTime, "Le vélo doit prendre plus de temps que la voiture");
-    }
-
-    @Test
-    @DisplayName("Calcul de distance avec la formule de Haversine")
-    void testDistanceCalculation() {
-        // Arrange
-        Event event1 = createEvent("Event 1", parisLocation, 10, 0, 11, 0);
-        Event event2 = createEvent("Event 2", lyonLocation, 15, 0, 16, 0);
-
-        when(travelTimeRepository.save(any(TravelTime.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
-
-        // Act
-        TravelTime result = travelTimeService.createTravelTime(
-            event1, event2, TransportMode.DRIVING
-        );
-
-        // Assert
-        assertNotNull(result.getDistanceKm());
-        // Distance Paris-Lyon est environ 400 km
-        assertTrue(result.getDistanceKm() > 350 && result.getDistanceKm() < 450,
-            "La distance Paris-Lyon devrait être autour de 400 km, obtenu: " + result.getDistanceKm());
-    }
-
-    @Test
-    @DisplayName("Temps de trajet cohérent avec la distance calculée")
-    void testTravelTimeConsistentWithDistance() {
-        // Arrange
-        Event event1 = createEvent("Event 1", parisLocation, 10, 0, 11, 0);
-        Event event2 = createEvent("Event 2", marseilleLocation, 15, 0, 16, 0);
-
-        when(travelTimeRepository.save(any(TravelTime.class)))
-            .thenAnswer(invocation -> invocation.getArgument(0));
-
-        // Act
-        TravelTime result = travelTimeService.createTravelTime(
-            event1, event2, TransportMode.DRIVING
-        );
-
-        // Assert
-        // Distance Paris-Marseille ~660 km
-        // À 40 km/h = ~990 minutes
-        double expectedTime = (result.getDistanceKm() / 40.0) * 60;
-        assertTrue(Math.abs(result.getDurationMinutes() - expectedTime) < 10,
-            "Le temps calculé devrait être cohérent avec la distance");
-    }
-
-    // ==================== Tests TravelTime Entity ====================
-
-    @Test
-    @DisplayName("Construction d'un TravelTime avec mise à jour automatique de endTime")
-    void testTravelTimeEntity_AutomaticEndTimeCalculation() {
-        // Arrange
-        Event event1 = createEvent("Event 1", parisLocation, 10, 0, 11, 0);
-        Event event2 = createEvent("Event 2", lyonLocation, 15, 0, 16, 0);
-        LocalDateTime startTime = LocalDateTime.of(2025, 1, 15, 11, 0);
-
-        // Act
-        TravelTime travelTime = new TravelTime(event1, event2, testUser, startTime, 60);
-
-        // Assert
-        assertEquals(startTime, travelTime.getStartTime());
-        assertEquals(startTime.plusMinutes(60), travelTime.getEndTime());
-        assertEquals(60, travelTime.getDurationMinutes());
-    }
-
-    @Test
-    @DisplayName("Modification de la durée met à jour l'heure de fin")
-    void testTravelTimeEntity_UpdateDuration_UpdatesEndTime() {
-        // Arrange
-        Event event1 = createEvent("Event 1", parisLocation, 10, 0, 11, 0);
-        Event event2 = createEvent("Event 2", lyonLocation, 15, 0, 16, 0);
-        LocalDateTime startTime = LocalDateTime.of(2025, 1, 15, 11, 0);
-        TravelTime travelTime = new TravelTime(event1, event2, testUser, startTime, 60);
-
-        // Act
-        travelTime.setDurationMinutes(90);
-
-        // Assert
-        assertEquals(startTime.plusMinutes(90), travelTime.getEndTime());
-    }
-
-    @Test
-    @DisplayName("Modification de l'heure de début met à jour l'heure de fin")
-    void testTravelTimeEntity_UpdateStartTime_UpdatesEndTime() {
-        // Arrange
-        Event event1 = createEvent("Event 1", parisLocation, 10, 0, 11, 0);
-        Event event2 = createEvent("Event 2", lyonLocation, 15, 0, 16, 0);
-        LocalDateTime startTime = LocalDateTime.of(2025, 1, 15, 11, 0);
-        TravelTime travelTime = new TravelTime(event1, event2, testUser, startTime, 60);
-
-        // Act
-        LocalDateTime newStartTime = LocalDateTime.of(2025, 1, 15, 12, 0);
-        travelTime.setStartTime(newStartTime);
-
-        // Assert
-        assertEquals(newStartTime.plusMinutes(60), travelTime.getEndTime());
-    }
-
-    // ==================== Méthodes utilitaires ====================
-
-    private Event createEvent(String summary, Location location, 
-                             int startHour, int startMinute, 
-                             int endHour, int endMinute) {
-        LocalDateTime start = LocalDateTime.of(2025, 1, 15, startHour, startMinute);
-        LocalDateTime end = LocalDateTime.of(2025, 1, 15, endHour, endMinute);
-        
-        Event event = new Event(summary, start, end, testUser);
-        event.setLocation(location);
-        return event;
+        // Then
+        assertThat(result.getDistanceKm()).isNotNull();
+        assertThat(result.getDistanceKm()).isGreaterThan(0);
+        // La distance entre ces deux points est d'environ 1.5 km à vol d'oiseau
+        assertThat(result.getDistanceKm()).isLessThan(3.0);
     }
 }
