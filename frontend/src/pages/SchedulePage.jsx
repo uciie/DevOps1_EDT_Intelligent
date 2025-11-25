@@ -59,6 +59,46 @@ function SchedulePage() {
     }
   };
 
+  const handleEditTask = async (taskId, editData) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const updatedTask = {
+        ...task,
+        title: editData.title,
+        durationMinutes: editData.durationMinutes,
+        priority: editData.priority
+      };
+
+      await updateTask(taskId, updatedTask);
+      setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
+
+      // Mettre à jour l'événement associé si la tâche est planifiée
+      if (task.scheduledTime) {
+        const relatedEvent = events.find(e => e.taskId === taskId);
+        if (relatedEvent) {
+          const startTime = new Date(task.scheduledTime);
+          const endTime = new Date(startTime);
+          endTime.setMinutes(endTime.getMinutes() + editData.durationMinutes);
+
+          const updatedEvent = {
+            ...relatedEvent,
+            title: editData.title,
+            endTime: endTime.toISOString(),
+            priority: editData.priority
+          };
+
+          setEvents(events.map(e => e.id === relatedEvent.id ? updatedEvent : e));
+        }
+      }
+    } catch (err) {
+      console.error("Erreur lors de la modification de la tâche:", err);
+      setError("Impossible de modifier la tâche");
+      throw err;
+    }
+  };
+
   const handleToggleTask = async (taskId) => {
     try {
       const task = tasks.find(t => t.id === taskId);
@@ -237,6 +277,7 @@ function SchedulePage() {
             tasks={unscheduledTasks}
             completedTasks={completedTasks}
             onAddTask={handleAddTask}
+            onEditTask={handleEditTask}
             onToggleTask={handleToggleTask}
             onDeleteTask={handleDeleteTask}
           />

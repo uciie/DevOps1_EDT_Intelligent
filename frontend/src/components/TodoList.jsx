@@ -7,7 +7,13 @@ const ITEM_TYPES = {
 };
 
 // Composant pour une tâche draggable
-function DraggableTask({ task, onToggle, onDelete }) {
+function DraggableTask({ task, onToggle, onDelete, onEdit, isEditing, onStartEdit, onCancelEdit }) {
+  const [editData, setEditData] = useState({
+    title: task.title,
+    durationMinutes: task.durationMinutes || task.duration || 30,
+    priority: task.priority || 2
+  });
+
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ITEM_TYPES.TASK,
     item: { task },
@@ -16,6 +22,71 @@ function DraggableTask({ task, onToggle, onDelete }) {
     }),
   }), [task]);
 
+  const handleEditSubmit = (e) => {
+    e.preventDefault();
+    onEdit(task.id, editData);
+  };
+
+  const handleCancel = () => {
+    setEditData({
+      title: task.title,
+      durationMinutes: task.durationMinutes || task.duration || 30,
+      priority: task.priority || 2
+    });
+    onCancelEdit();
+  };
+
+  // Si la tâche est en mode édition, afficher le formulaire
+  if (isEditing) {
+    return (
+      <li className="task-item task-editing">
+        <form className="task-edit-form" onSubmit={handleEditSubmit}>
+          <input
+            type="text"
+            value={editData.title}
+            onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+            placeholder="Titre de la tâche"
+            autoFocus
+            required
+          />
+          <div className="edit-form-row">
+            <label>
+              Durée (min)
+              <input
+                type="number"
+                min="5"
+                max="480"
+                step="5"
+                value={editData.durationMinutes}
+                onChange={(e) => setEditData({ ...editData, durationMinutes: parseInt(e.target.value) })}
+              />
+            </label>
+            <label>
+              Priorité
+              <select
+                value={editData.priority}
+                onChange={(e) => setEditData({ ...editData, priority: parseInt(e.target.value) })}
+              >
+                <option value="1">🟢 Basse</option>
+                <option value="2">🟡 Moyenne</option>
+                <option value="3">🔴 Haute</option>
+              </select>
+            </label>
+          </div>
+          <div className="edit-form-actions">
+            <button type="submit" className="btn-save">
+              ✓ Sauvegarder
+            </button>
+            <button type="button" className="btn-cancel-edit" onClick={handleCancel}>
+              Annuler
+            </button>
+          </div>
+        </form>
+      </li>
+    );
+  }
+
+  // Affichage normal de la tâche
   return (
     <li
       ref={drag}
@@ -32,20 +103,32 @@ function DraggableTask({ task, onToggle, onDelete }) {
           <span className="task-title">{task.title}</span>
           <span className="task-duration">{task.durationMinutes || task.duration} min</span>
         </div>
-        <button
-          className="btn-delete"
-          onClick={() => onDelete(task.id)}
-          aria-label="Supprimer la tâche"
-        >
-          ×
-        </button>
+        <div className="task-actions">
+          <button
+            className="btn-edit"
+            onClick={() => onStartEdit(task.id)}
+            aria-label="Modifier la tâche"
+            title="Modifier"
+          >
+            ✏️
+          </button>
+          <button
+            className="btn-delete"
+            onClick={() => onDelete(task.id)}
+            aria-label="Supprimer la tâche"
+            title="Supprimer"
+          >
+            ×
+          </button>
+        </div>
       </div>
     </li>
   );
 }
 
-export default function TodoList({ tasks = [], completedTasks = [], onAddTask, onToggleTask, onDeleteTask }) {
+export default function TodoList({ tasks = [], completedTasks = [], onAddTask, onToggleTask, onDeleteTask, onEditTask }) {
   const [showForm, setShowForm] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState(null);
   const [newTask, setNewTask] = useState({
     title: '',
     durationMinutes: 30,
@@ -74,6 +157,24 @@ export default function TodoList({ tasks = [], completedTasks = [], onAddTask, o
     setShowForm(false);
   };
 
+  const handleStartEdit = (taskId) => {
+    setEditingTaskId(taskId);
+    setShowForm(false); // Fermer le formulaire d'ajout si ouvert
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTaskId(null);
+  };
+
+  const handleEdit = async (taskId, editData) => {
+    try {
+      await onEditTask(taskId, editData);
+      setEditingTaskId(null);
+    } catch (error) {
+      console.error('Erreur lors de la modification de la tâche:', error);
+    }
+  };
+
   const activeTasks = tasks;
 
   return (
@@ -82,7 +183,10 @@ export default function TodoList({ tasks = [], completedTasks = [], onAddTask, o
         <h2>📋 Mes Tâches</h2>
         <button
           className="btn-add-task"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setShowForm(!showForm);
+            setEditingTaskId(null); // Fermer l'édition si ouverte
+          }}
           aria-label="Ajouter une tâche"
         >
           +
@@ -135,7 +239,7 @@ export default function TodoList({ tasks = [], completedTasks = [], onAddTask, o
       )}
 
       <div className="tasks-section">
-        {!showForm && activeTasks.length > 0 && (
+        {!showForm && activeTasks.length > 0 && !editingTaskId && (
           <div className="section-hint">
             💡 Glissez les tâches vers le calendrier pour les planifier
           </div>
@@ -156,6 +260,10 @@ export default function TodoList({ tasks = [], completedTasks = [], onAddTask, o
                 task={task}
                 onToggle={onToggleTask}
                 onDelete={onDeleteTask}
+                onEdit={handleEdit}
+                isEditing={editingTaskId === task.id}
+                onStartEdit={handleStartEdit}
+                onCancelEdit={handleCancelEdit}
               />
             ))}
           </ul>
@@ -173,6 +281,10 @@ export default function TodoList({ tasks = [], completedTasks = [], onAddTask, o
                   task={task}
                   onToggle={onToggleTask}
                   onDelete={onDeleteTask}
+                  onEdit={handleEdit}
+                  isEditing={editingTaskId === task.id}
+                  onStartEdit={handleStartEdit}
+                  onCancelEdit={handleCancelEdit}
                 />
               ))}
             </ul>
