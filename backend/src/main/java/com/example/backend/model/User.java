@@ -3,6 +3,8 @@ package com.example.backend.model;
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Représente un utilisateur de l'application.
  * Un utilisateur a un nom d'utilisateur unique, un mot de passe, et des listes d'événements et de tâches associés.
@@ -21,9 +23,11 @@ public class User {
     private String password;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // <--- pour empêcher l'affichage dans le JSON
     private List<Event> events;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore // <--- pour empêcher l'affichage dans le JSON
     private List<Task> tasks;
 
     /**

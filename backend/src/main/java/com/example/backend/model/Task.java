@@ -1,6 +1,7 @@
 package com.example.backend.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 /**
@@ -22,12 +23,13 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore // Pour éviter la sérialisation infinie
     private User user;
 
     // On passe de @OneToOne à @ManyToOne car un Event a plusieurs Tasks
     @ManyToOne 
     @JoinColumn(name = "event_id") // La clé étrangère dans la table Task
-    @JsonBackReference // Empêche la boucle infinie (Côté enfant)
+    @JsonIgnore // Pour éviter la sérialisation infinie
     private Event event;
 
     public Task() {}
@@ -93,12 +95,20 @@ public class Task {
         return user;
     }
 
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
+
     public void setUser(User user) {
         this.user = user;
     }
 
     public Event getEvent() {
         return event;
+    }
+
+    public Long getEventId() {
+        return event != null ? event.getId() : null;
     }
 
     public void setEvent(Event event) {
