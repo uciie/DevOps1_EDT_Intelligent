@@ -6,7 +6,9 @@ import com.example.backend.service.TravelTimeCalculator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.beans.factory.annotation.Autowired; // &lt;--- Import nécessaire
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -15,131 +17,146 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @Profile(&quot;external-api&quot;)
-<span class="fc" id="L18">public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {</span>
+public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
 
     @Value(&quot;${google.maps.api.key:}&quot;)
     private String apiKey;
 
-<span class="fc" id="L23">    private final RestTemplate restTemplate = new RestTemplate();</span>
-<span class="fc" id="L24">    private final SimpleTravelTimeCalculator fallbackCalculator = new SimpleTravelTimeCalculator();</span>
-<span class="fc" id="L25">    private final ObjectMapper mapper = new ObjectMapper();</span>
+    private final RestTemplate restTemplate;
+    private final SimpleTravelTimeCalculator fallbackCalculator;
+    private final ObjectMapper mapper;
 
     private static final String API_URL = &quot;https://maps.googleapis.com/maps/api/distancematrix/json&quot;;
 
+    // ✅ AJOUTEZ @Autowired ICI pour dire à Spring : &quot;Utilise ce constructeur !&quot;
+    @Autowired
+<span class="fc" id="L33">    public GoogleMapsTravelTimeCalculator(RestTemplateBuilder restTemplateBuilder) {</span>
+<span class="fc" id="L34">        this.restTemplate = restTemplateBuilder.build();</span>
+<span class="fc" id="L35">        this.fallbackCalculator = new SimpleTravelTimeCalculator();</span>
+<span class="fc" id="L36">        this.mapper = new ObjectMapper();</span>
+<span class="fc" id="L37">    }</span>
+
+    // Constructeur secondaire pour les tests unitaires (Spring l'ignorera grâce à l'annotation au-dessus)
+<span class="fc" id="L40">    public GoogleMapsTravelTimeCalculator(RestTemplate restTemplate, SimpleTravelTimeCalculator fallbackCalculator, ObjectMapper mapper) {</span>
+<span class="fc" id="L41">        this.restTemplate = restTemplate;</span>
+<span class="fc" id="L42">        this.fallbackCalculator = fallbackCalculator;</span>
+<span class="fc" id="L43">        this.mapper = mapper;</span>
+<span class="fc" id="L44">    }</span>
+    
     @Override
     public int calculateTravelTime(Location from, Location to, TransportMode mode) {
 
-<span class="pc bpc" id="L32" title="2 of 4 branches missed.">        if (apiKey == null || apiKey.isBlank()) {</span>
-<span class="nc" id="L33">            System.err.println(&quot;⚠️  No Google Maps API key — fallback calculator used.&quot;);</span>
-<span class="nc" id="L34">            return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
+<span class="pc bpc" id="L49" title="1 of 4 branches missed.">        if (apiKey == null || apiKey.isBlank()) {</span>
+<span class="fc" id="L50">            System.err.println(&quot;⚠️  No Google Maps API key — fallback calculator used.&quot;);</span>
+<span class="fc" id="L51">            return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
         }
 
         try {
-<span class="fc" id="L38">            String url = UriComponentsBuilder.fromHttpUrl(API_URL)</span>
-<span class="fc" id="L39">                    .queryParam(&quot;origins&quot;, formatLocation(from))</span>
-<span class="fc" id="L40">                    .queryParam(&quot;destinations&quot;, formatLocation(to))</span>
-<span class="fc" id="L41">                    .queryParam(&quot;mode&quot;, mapTransportMode(mode))</span>
-<span class="fc" id="L42">                    .queryParam(&quot;region&quot;, &quot;fr&quot;)</span>
-<span class="fc" id="L43">                    .queryParam(&quot;language&quot;, &quot;fr&quot;)</span>
-<span class="fc" id="L44">                    .queryParam(&quot;key&quot;, apiKey)</span>
-<span class="fc" id="L45">                    .encode()</span>
-<span class="fc" id="L46">                    .toUriString();</span>
+<span class="fc" id="L55">            String url = UriComponentsBuilder.fromHttpUrl(API_URL)</span>
+<span class="fc" id="L56">                    .queryParam(&quot;origins&quot;, formatLocation(from))</span>
+<span class="fc" id="L57">                    .queryParam(&quot;destinations&quot;, formatLocation(to))</span>
+<span class="fc" id="L58">                    .queryParam(&quot;mode&quot;, mapTransportMode(mode))</span>
+<span class="fc" id="L59">                    .queryParam(&quot;region&quot;, &quot;fr&quot;)</span>
+<span class="fc" id="L60">                    .queryParam(&quot;language&quot;, &quot;fr&quot;)</span>
+<span class="fc" id="L61">                    .queryParam(&quot;key&quot;, apiKey)</span>
+<span class="fc" id="L62">                    .encode()</span>
+<span class="fc" id="L63">                    .toUriString();</span>
 
-<span class="fc" id="L48">            System.err.println(&quot;🌐 Calling Google API:&quot;);</span>
-<span class="fc" id="L49">            System.err.println(&quot;   From: &quot; + formatLocation(from));</span>
-<span class="fc" id="L50">            System.err.println(&quot;   To:   &quot; + formatLocation(to));</span>
-<span class="fc" id="L51">            System.err.println(&quot;   Mode: &quot; + mapTransportMode(mode));</span>
+<span class="fc" id="L65">            System.err.println(&quot;🌐 Calling Google API:&quot;);</span>
+<span class="fc" id="L66">            System.err.println(&quot;   From: &quot; + formatLocation(from));</span>
+<span class="fc" id="L67">            System.err.println(&quot;   To:   &quot; + formatLocation(to));</span>
+<span class="fc" id="L68">            System.err.println(&quot;   Mode: &quot; + mapTransportMode(mode));</span>
 
-<span class="fc" id="L53">            String json = restTemplate.getForObject(url, String.class);</span>
-<span class="fc" id="L54">            JsonNode root = mapper.readTree(json);</span>
+<span class="fc" id="L70">            String json = restTemplate.getForObject(url, String.class);</span>
+<span class="fc" id="L71">            JsonNode root = mapper.readTree(json);</span>
 
             // Vérification statut global
-<span class="fc" id="L57">            String status = root.path(&quot;status&quot;).asText();</span>
-<span class="pc bpc" id="L58" title="1 of 2 branches missed.">            if (!&quot;OK&quot;.equals(status)) {</span>
-<span class="nc" id="L59">                logGlobalError(root);</span>
-<span class="nc" id="L60">                return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
+<span class="fc" id="L74">            String status = root.path(&quot;status&quot;).asText();</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">            if (!&quot;OK&quot;.equals(status)) {</span>
+<span class="fc" id="L76">                logGlobalError(root);</span>
+<span class="fc" id="L77">                return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
             }
 
-<span class="fc" id="L63">            JsonNode elementNode = root</span>
-<span class="fc" id="L64">                    .path(&quot;rows&quot;).path(0)</span>
-<span class="fc" id="L65">                    .path(&quot;elements&quot;).path(0);</span>
+<span class="fc" id="L80">            JsonNode elementNode = root</span>
+<span class="fc" id="L81">                    .path(&quot;rows&quot;).path(0)</span>
+<span class="fc" id="L82">                    .path(&quot;elements&quot;).path(0);</span>
 
-<span class="fc" id="L67">            String elementStatus = elementNode.path(&quot;status&quot;).asText();</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">            if (!&quot;OK&quot;.equals(elementStatus)) {</span>
-<span class="fc" id="L69">                logElementError(elementStatus, elementNode);</span>
-<span class="fc" id="L70">                return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
+<span class="fc" id="L84">            String elementStatus = elementNode.path(&quot;status&quot;).asText();</span>
+<span class="fc bfc" id="L85" title="All 2 branches covered.">            if (!&quot;OK&quot;.equals(elementStatus)) {</span>
+<span class="fc" id="L86">                logElementError(elementStatus, elementNode);</span>
+<span class="fc" id="L87">                return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
             }
 
             // Durée
-<span class="fc" id="L74">            int seconds = elementNode.path(&quot;duration&quot;).path(&quot;value&quot;).asInt(-1);</span>
-<span class="pc bpc" id="L75" title="1 of 2 branches missed.">            if (seconds &lt;= 0) {</span>
-<span class="nc" id="L76">                System.err.println(&quot;❌ Invalid duration — fallback&quot;);</span>
-<span class="nc" id="L77">                return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
+<span class="fc" id="L91">            int seconds = elementNode.path(&quot;duration&quot;).path(&quot;value&quot;).asInt(-1);</span>
+<span class="pc bpc" id="L92" title="1 of 2 branches missed.">            if (seconds &lt;= 0) {</span>
+<span class="nc" id="L93">                System.err.println(&quot;❌ Invalid duration — fallback&quot;);</span>
+<span class="nc" id="L94">                return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
             }
 
-<span class="fc" id="L80">            int minutes = (int) Math.ceil(seconds / 60.0);</span>
-<span class="fc" id="L81">            System.err.println(&quot;✅ Duration: &quot; + seconds + &quot;s ≈ &quot; + minutes + &quot; min&quot;);</span>
+<span class="fc" id="L97">            int minutes = (int) Math.ceil(seconds / 60.0);</span>
+<span class="fc" id="L98">            System.err.println(&quot;✅ Duration: &quot; + seconds + &quot;s ≈ &quot; + minutes + &quot; min&quot;);</span>
 
-<span class="fc" id="L83">            return minutes;</span>
+<span class="fc" id="L100">            return minutes;</span>
 
-<span class="nc" id="L85">        } catch (RestClientException e) {</span>
-<span class="nc" id="L86">            System.err.println(&quot;💥 HTTP error: &quot; + e.getMessage());</span>
-<span class="nc" id="L87">        } catch (Exception e) {</span>
-<span class="nc" id="L88">            System.err.println(&quot;💥 Unexpected error: &quot; + e.getClass().getSimpleName());</span>
-<span class="nc" id="L89">            e.printStackTrace();</span>
-<span class="nc" id="L90">        }</span>
+<span class="fc" id="L102">        } catch (RestClientException e) {</span>
+<span class="fc" id="L103">            System.err.println(&quot;💥 HTTP error: &quot; + e.getMessage());</span>
+<span class="nc" id="L104">        } catch (Exception e) {</span>
+<span class="nc" id="L105">            System.err.println(&quot;💥 Unexpected error: &quot; + e.getClass().getSimpleName());</span>
+<span class="nc" id="L106">            e.printStackTrace();</span>
+<span class="fc" id="L107">        }</span>
 
-<span class="nc" id="L92">        return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
+<span class="fc" id="L109">        return fallbackCalculator.calculateTravelTime(from, to, mode);</span>
     }
 
     private void logGlobalError(JsonNode root) {
-<span class="nc" id="L96">        String status = root.path(&quot;status&quot;).asText();</span>
-<span class="nc" id="L97">        System.err.println(&quot;❌ API error: &quot; + status);</span>
+<span class="fc" id="L113">        String status = root.path(&quot;status&quot;).asText();</span>
+<span class="fc" id="L114">        System.err.println(&quot;❌ API error: &quot; + status);</span>
 
-<span class="nc bnc" id="L99" title="All 5 branches missed.">        switch (status) {</span>
-<span class="nc" id="L100">            case &quot;INVALID_REQUEST&quot; -&gt; System.err.println(&quot;   → Invalid parameters (origins/destinations).&quot;);</span>
-<span class="nc" id="L101">            case &quot;OVER_DAILY_LIMIT&quot;, &quot;OVER_QUERY_LIMIT&quot; -&gt; System.err.println(&quot;   → API quota exceeded.&quot;);</span>
-<span class="nc" id="L102">            case &quot;REQUEST_DENIED&quot; -&gt; System.err.println(&quot;   → API key invalid or API disabled.&quot;);</span>
-<span class="nc" id="L103">            case &quot;UNKNOWN_ERROR&quot; -&gt; System.err.println(&quot;   → Temporary server error.&quot;);</span>
+<span class="pc bpc" id="L116" title="4 of 5 branches missed.">        switch (status) {</span>
+<span class="nc" id="L117">            case &quot;INVALID_REQUEST&quot; -&gt; System.err.println(&quot;   → Invalid parameters (origins/destinations).&quot;);</span>
+<span class="fc" id="L118">            case &quot;OVER_DAILY_LIMIT&quot;, &quot;OVER_QUERY_LIMIT&quot; -&gt; System.err.println(&quot;   → API quota exceeded.&quot;);</span>
+<span class="nc" id="L119">            case &quot;REQUEST_DENIED&quot; -&gt; System.err.println(&quot;   → API key invalid or API disabled.&quot;);</span>
+<span class="nc" id="L120">            case &quot;UNKNOWN_ERROR&quot; -&gt; System.err.println(&quot;   → Temporary server error.&quot;);</span>
         }
 
-<span class="nc bnc" id="L106" title="All 2 branches missed.">        if (root.has(&quot;error_message&quot;)) {</span>
-<span class="nc" id="L107">            System.err.println(&quot;   Google says: &quot; + root.get(&quot;error_message&quot;).asText());</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">        if (root.has(&quot;error_message&quot;)) {</span>
+<span class="nc" id="L124">            System.err.println(&quot;   Google says: &quot; + root.get(&quot;error_message&quot;).asText());</span>
         }
-<span class="nc" id="L109">    }</span>
+<span class="fc" id="L126">    }</span>
 
     private void logElementError(String status, JsonNode elementNode) {
-<span class="fc" id="L112">        System.err.println(&quot;❌ Element status: &quot; + status);</span>
-<span class="pc bpc" id="L113" title="3 of 4 branches missed.">        switch (status) {</span>
-<span class="nc" id="L114">            case &quot;NOT_FOUND&quot; -&gt; System.err.println(&quot;   → Address could not be geocoded.&quot;);</span>
-<span class="fc" id="L115">            case &quot;ZERO_RESULTS&quot; -&gt; System.err.println(&quot;   → No route found.&quot;);</span>
-<span class="nc" id="L116">            case &quot;MAX_ROUTE_LENGTH_EXCEEDED&quot; -&gt; System.err.println(&quot;   → Route too long.&quot;);</span>
+<span class="fc" id="L129">        System.err.println(&quot;❌ Element status: &quot; + status);</span>
+<span class="pc bpc" id="L130" title="3 of 4 branches missed.">        switch (status) {</span>
+<span class="nc" id="L131">            case &quot;NOT_FOUND&quot; -&gt; System.err.println(&quot;   → Address could not be geocoded.&quot;);</span>
+<span class="fc" id="L132">            case &quot;ZERO_RESULTS&quot; -&gt; System.err.println(&quot;   → No route found.&quot;);</span>
+<span class="nc" id="L133">            case &quot;MAX_ROUTE_LENGTH_EXCEEDED&quot; -&gt; System.err.println(&quot;   → Route too long.&quot;);</span>
         }
-<span class="fc" id="L118">        System.err.println(&quot;   Details: &quot; + elementNode.toString());</span>
-<span class="fc" id="L119">    }</span>
+<span class="fc" id="L135">        System.err.println(&quot;   Details: &quot; + elementNode.toString());</span>
+<span class="fc" id="L136">    }</span>
 
     private String formatLocation(Location location) {
-<span class="fc bfc" id="L122" title="All 2 branches covered.">        if (location.hasCoordinates()) {</span>
-<span class="fc" id="L123">            return location.getLatitude() + &quot;,&quot; + location.getLongitude();</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">        if (location.hasCoordinates()) {</span>
+<span class="fc" id="L140">            return location.getLatitude() + &quot;,&quot; + location.getLongitude();</span>
         }
-<span class="pc bpc" id="L125" title="1 of 2 branches missed.">        if (location.getAddress() == null) return &quot;&quot;;</span>
+<span class="pc bpc" id="L142" title="1 of 2 branches missed.">        if (location.getAddress() == null) return &quot;&quot;;</span>
 
-<span class="fc" id="L127">        String address = location.getAddress()</span>
-<span class="fc" id="L128">                .replaceAll(&quot;[\\r\\n]+&quot;, &quot;, &quot;)</span>
-<span class="fc" id="L129">                .replaceAll(&quot;\\s{2,}&quot;, &quot; &quot;).trim()</span>
-<span class="fc" id="L130">                .replaceAll(&quot;\\s*,\\s*&quot;, &quot;, &quot;)</span>
-<span class="fc" id="L131">                .replaceAll(&quot;\\bPl\\.\\s&quot;, &quot;Place &quot;)</span>
-<span class="fc" id="L132">                .replaceAll(&quot;\\bAv\\.\\s&quot;, &quot;Avenue &quot;);</span>
+<span class="fc" id="L144">        String address = location.getAddress()</span>
+<span class="fc" id="L145">                .replaceAll(&quot;[\\r\\n]+&quot;, &quot;, &quot;)</span>
+<span class="fc" id="L146">                .replaceAll(&quot;\\s{2,}&quot;, &quot; &quot;).trim()</span>
+<span class="fc" id="L147">                .replaceAll(&quot;\\s*,\\s*&quot;, &quot;, &quot;)</span>
+<span class="fc" id="L148">                .replaceAll(&quot;\\bPl\\.\\s&quot;, &quot;Place &quot;)</span>
+<span class="fc" id="L149">                .replaceAll(&quot;\\bAv\\.\\s&quot;, &quot;Avenue &quot;);</span>
 
-<span class="fc" id="L134">        return address;</span>
+<span class="fc" id="L151">        return address;</span>
     }
 
     private String mapTransportMode(TransportMode mode) {
-<span class="fc bfc" id="L138" title="All 4 branches covered.">        return switch (mode) {</span>
-<span class="fc" id="L139">            case WALKING -&gt; &quot;walking&quot;;</span>
-<span class="fc" id="L140">            case CYCLING -&gt; &quot;bicycling&quot;;</span>
-<span class="fc" id="L141">            case DRIVING -&gt; &quot;driving&quot;;</span>
-<span class="fc" id="L142">            case TRANSIT -&gt; &quot;transit&quot;;</span>
+<span class="fc bfc" id="L155" title="All 4 branches covered.">        return switch (mode) {</span>
+<span class="fc" id="L156">            case WALKING -&gt; &quot;walking&quot;;</span>
+<span class="fc" id="L157">            case CYCLING -&gt; &quot;bicycling&quot;;</span>
+<span class="fc" id="L158">            case DRIVING -&gt; &quot;driving&quot;;</span>
+<span class="fc" id="L159">            case TRANSIT -&gt; &quot;transit&quot;;</span>
         };
     }
 }

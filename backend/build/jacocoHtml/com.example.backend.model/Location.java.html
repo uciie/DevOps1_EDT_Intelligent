@@ -340,13 +340,13 @@ public class Location {
 
     @Override
     public boolean equals(Object o) {
-<span class="pc bpc" id="L343" title="1 of 2 branches missed.">        if (this == o) return true;</span>
-<span class="nc bnc" id="L344" title="All 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
+<span class="fc bfc" id="L343" title="All 2 branches covered.">        if (this == o) return true;</span>
+<span class="pc bpc" id="L344" title="2 of 4 branches missed.">        if (o == null || getClass() != o.getClass()) return false;</span>
 
-<span class="nc" id="L346">        Location location = (Location) o;</span>
+<span class="fc" id="L346">        Location location = (Location) o;</span>
 
-<span class="nc bnc" id="L348" title="All 6 branches missed.">        if (id != null ? !id.equals(location.id) : location.id != null) return false;</span>
-<span class="nc bnc" id="L349" title="All 6 branches missed.">        if (address != null ? !address.equals(location.address) : location.address != null) return false;</span>
+<span class="pc bpc" id="L348" title="4 of 6 branches missed.">        if (id != null ? !id.equals(location.id) : location.id != null) return false;</span>
+<span class="pc bpc" id="L349" title="4 of 6 branches missed.">        if (address != null ? !address.equals(location.address) : location.address != null) return false;</span>
 <span class="nc bnc" id="L350" title="All 6 branches missed.">        if (latitude != null ? !latitude.equals(location.latitude) : location.latitude != null) return false;</span>
 <span class="nc bnc" id="L351" title="All 4 branches missed.">        return longitude != null ? longitude.equals(location.longitude) : location.longitude == null;</span>
     }

@@ -53,13 +53,13 @@ public class DefaultScheduleOptimizerService implements ScheduleOptimizerService
         // Si l'événement suivant existe et a une localisation différente,
         // on doit réserver du temps pour le trajet
 <span class="fc" id="L55">        int travelTimeMinutes = 0;</span>
-<span class="pc bpc" id="L56" title="1 of 2 branches missed.">        if (nextEvent != null &amp;&amp; </span>
-<span class="nc bnc" id="L57" title="All 2 branches missed.">            cancelledEvent.getLocation() != null &amp;&amp; </span>
-<span class="nc bnc" id="L58" title="All 2 branches missed.">            nextEvent.getLocation() != null &amp;&amp;</span>
-<span class="nc bnc" id="L59" title="All 2 branches missed.">            !cancelledEvent.getLocation().equals(nextEvent.getLocation())) {</span>
+<span class="fc bfc" id="L56" title="All 2 branches covered.">        if (nextEvent != null &amp;&amp; </span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">            cancelledEvent.getLocation() != null &amp;&amp; </span>
+<span class="pc bpc" id="L58" title="1 of 2 branches missed.">            nextEvent.getLocation() != null &amp;&amp;</span>
+<span class="pc bpc" id="L59" title="1 of 2 branches missed.">            !cancelledEvent.getLocation().equals(nextEvent.getLocation())) {</span>
             
             // On estime un temps de trajet (par défaut en voiture)
-<span class="nc" id="L62">            travelTimeMinutes = estimateTravelTime(cancelledEvent, nextEvent, TransportMode.DRIVING);</span>
+<span class="fc" id="L62">            travelTimeMinutes = estimateTravelTime(cancelledEvent, nextEvent, TransportMode.DRIVING);</span>
         }
 
         // Le temps disponible réel est le temps libre moins le temps de trajet
@@ -83,14 +83,14 @@ public class DefaultScheduleOptimizerService implements ScheduleOptimizerService
                 
                 // Utilise la localisation de l'événement annulé si elle existe
 <span class="pc bpc" id="L85" title="1 of 2 branches missed.">                if (cancelledEvent.getLocation() != null) {</span>
-<span class="nc" id="L86">                    newEvent.setLocation(cancelledEvent.getLocation());</span>
+<span class="fc" id="L86">                    newEvent.setLocation(cancelledEvent.getLocation());</span>
                 }
                 
 <span class="fc" id="L89">                eventRepository.save(newEvent);</span>
 
                 // Si nécessaire, crée un événement de trajet vers l'événement suivant
-<span class="pc bpc" id="L92" title="3 of 4 branches missed.">                if (travelTimeMinutes &gt; 0 &amp;&amp; nextEvent != null) {</span>
-<span class="nc" id="L93">                    TravelTime travelTime = travelTimeService.createTravelTime(</span>
+<span class="pc bpc" id="L92" title="1 of 4 branches missed.">                if (travelTimeMinutes &gt; 0 &amp;&amp; nextEvent != null) {</span>
+<span class="fc" id="L93">                    TravelTime travelTime = travelTimeService.createTravelTime(</span>
                         newEvent, 
                         nextEvent, 
                         TransportMode.DRIVING
@@ -113,13 +113,13 @@ public class DefaultScheduleOptimizerService implements ScheduleOptimizerService
      */
     private Event findNextEvent(Event event) {
 <span class="fc" id="L115">        List&lt;Event&gt; futureEvents = eventRepository.findAll().stream()</span>
-<span class="pc" id="L116">            .filter(e -&gt; e.getUser().equals(event.getUser()))</span>
-<span class="pc" id="L117">            .filter(e -&gt; e.getStartTime().isAfter(event.getEndTime()))</span>
-<span class="pc bnc" id="L118" title="All 2 branches missed.">            .filter(e -&gt; !&quot;CANCELLED&quot;.equals(e.getStatus()))</span>
+<span class="fc" id="L116">            .filter(e -&gt; e.getUser().equals(event.getUser()))</span>
+<span class="fc" id="L117">            .filter(e -&gt; e.getStartTime().isAfter(event.getEndTime()))</span>
+<span class="pc bpc" id="L118" title="1 of 2 branches missed.">            .filter(e -&gt; !&quot;CANCELLED&quot;.equals(e.getStatus()))</span>
 <span class="pc" id="L119">            .sorted((e1, e2) -&gt; e1.getStartTime().compareTo(e2.getStartTime()))</span>
 <span class="fc" id="L120">            .toList();</span>
         
-<span class="pc bpc" id="L122" title="1 of 2 branches missed.">        return futureEvents.isEmpty() ? null : futureEvents.get(0);</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">        return futureEvents.isEmpty() ? null : futureEvents.get(0);</span>
     }
 
     /**
@@ -133,13 +133,13 @@ public class DefaultScheduleOptimizerService implements ScheduleOptimizerService
     private int estimateTravelTime(Event fromEvent, Event toEvent, TransportMode mode) {
         // Pour l'estimation, on crée temporairement un TravelTime
         // (on pourrait aussi appeler directement le TravelTimeCalculator)
-<span class="nc" id="L136">        TravelTime temp = travelTimeService.createTravelTime(fromEvent, toEvent, mode);</span>
-<span class="nc" id="L137">        int duration = temp.getDurationMinutes();</span>
+<span class="fc" id="L136">        TravelTime temp = travelTimeService.createTravelTime(fromEvent, toEvent, mode);</span>
+<span class="fc" id="L137">        int duration = temp.getDurationMinutes();</span>
         
         // On supprime le TravelTime temporaire si on ne veut pas le garder
         // travelTimeService.deleteTravelTime(temp.getId());
         
-<span class="nc" id="L142">        return duration;</span>
+<span class="fc" id="L142">        return duration;</span>
     }
 
 }

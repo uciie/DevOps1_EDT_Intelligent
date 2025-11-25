@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.440s</div>
+<div class="counter">0.439s</div>
 <p>duration</p>
 </div>
 </td>
@@ -82,17 +82,17 @@
 </thead>
 <tr>
 <td class="success">contextLoads()</td>
-<td class="success">0.005s</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testApplicationContextHasControllers()</td>
-<td class="success">0.003s</td>
+<td class="success">0.005s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">testApplicationContextHasRepositories()</td>
-<td class="success">0.003s</td>
+<td class="success">0.002s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
@@ -105,21 +105,21 @@
 <div class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>12:30:13.778 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.example.backend.BackendApplicationTests]: BackendApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-12:30:13.971 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.BackendApplicationTests
-2025-11-25T12:30:14.682+01:00  INFO 24556 --- [    Test worker] c.e.backend.BackendApplicationTests      : Starting BackendApplicationTests using Java 24.0.2 with PID 24556 (started by panlu in C:\Users\panlu\Documents\DevOps1_EDT_Intelligent\backend)
-2025-11-25T12:30:14.684+01:00  INFO 24556 --- [    Test worker] c.e.backend.BackendApplicationTests      : The following 1 profile is active: &quot;test&quot;
-2025-11-25T12:30:15.639+01:00  INFO 24556 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-11-25T12:30:15.739+01:00  INFO 24556 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 89 ms. Found 5 JPA repository interfaces.
-2025-11-25T12:30:16.304+01:00  INFO 24556 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-11-25T12:30:16.389+01:00  INFO 24556 --- [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.29.Final
-2025-11-25T12:30:16.439+01:00  INFO 24556 --- [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2025-11-25T12:30:16.866+01:00  INFO 24556 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-11-25T12:30:16.912+01:00  INFO 24556 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2025-11-25T12:30:17.243+01:00  INFO 24556 --- [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:testdb user=SA
-2025-11-25T12:30:17.245+01:00  INFO 24556 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2025-11-25T12:30:17.290+01:00  WARN 24556 --- [    Test worker] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-11-25T12:30:17.324+01:00  INFO 24556 --- [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+<pre>14:57:41.193 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.example.backend.BackendApplicationTests]: BackendApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:57:41.381 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.BackendApplicationTests
+2025-11-25T14:57:42.063+01:00  INFO 25628 --- [    Test worker] c.e.backend.BackendApplicationTests      : Starting BackendApplicationTests using Java 24.0.2 with PID 25628 (started by panlu in C:\Users\panlu\Documents\DevOps1_EDT_Intelligent\backend)
+2025-11-25T14:57:42.065+01:00  INFO 25628 --- [    Test worker] c.e.backend.BackendApplicationTests      : The following 1 profile is active: &quot;test&quot;
+2025-11-25T14:57:42.956+01:00  INFO 25628 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-11-25T14:57:43.051+01:00  INFO 25628 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 82 ms. Found 5 JPA repository interfaces.
+2025-11-25T14:57:43.706+01:00  INFO 25628 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-11-25T14:57:43.779+01:00  INFO 25628 --- [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.29.Final
+2025-11-25T14:57:43.828+01:00  INFO 25628 --- [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-11-25T14:57:44.262+01:00  INFO 25628 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-11-25T14:57:44.304+01:00  INFO 25628 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-11-25T14:57:44.640+01:00  INFO 25628 --- [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:testdb user=SA
+2025-11-25T14:57:44.647+01:00  INFO 25628 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-11-25T14:57:44.679+01:00  WARN 25628 --- [    Test worker] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-11-25T14:57:44.710+01:00  INFO 25628 --- [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
 	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
 	Database driver: undefined/unknown
 	Database version: 2.3.232
@@ -127,10 +127,10 @@
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2025-11-25T12:30:18.807+01:00  INFO 24556 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-11-25T12:30:18.884+01:00  INFO 24556 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-11-25T12:30:19.727+01:00  WARN 24556 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2025-11-25T12:30:20.298+01:00  INFO 24556 --- [    Test worker] c.e.backend.BackendApplicationTests      : Started BackendApplicationTests in 6.05 seconds (process running for 8.094)
+2025-11-25T14:57:46.200+01:00  INFO 25628 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-11-25T14:57:46.284+01:00  INFO 25628 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-11-25T14:57:47.060+01:00  WARN 25628 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-11-25T14:57:47.592+01:00  INFO 25628 --- [    Test worker] c.e.backend.BackendApplicationTests      : Started BackendApplicationTests in 5.975 seconds (process running for 8.029)
 </pre>
 </span>
 </div>
@@ -152,7 +152,7 @@ WARNING: Dynamic loading of agents will be disallowed by default in a future rel
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 12 h 30 min 33 s</p>
+<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 14 h 58 min 04 s</p>
 </div>
 </div>
 </body>

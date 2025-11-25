@@ -3,17 +3,17 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="x-ua-compatible" content="IE=edge"/>
-<title>Test results - ScheduleOptimizerServiceTest</title>
+<title>Test results - GoogleMapsTravelTimeCalculatorTest</title>
 <link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
 <link href="../css/style.css" rel="stylesheet" type="text/css"/>
 <script src="../js/report.js" type="text/javascript"></script>
 </head>
 <body>
 <div id="content">
-<h1>ScheduleOptimizerServiceTest</h1>
+<h1>GoogleMapsTravelTimeCalculatorTest</h1>
 <div class="breadcrumbs">
 <a href="../index.html">all</a> &gt; 
-<a href="../packages/com.example.backend.service.html">com.example.backend.service</a> &gt; ScheduleOptimizerServiceTest</div>
+<a href="../packages/com.example.backend.service.impl.html">com.example.backend.service.impl</a> &gt; GoogleMapsTravelTimeCalculatorTest</div>
 <div id="summary">
 <table>
 <tr>
@@ -23,7 +23,7 @@
 <tr>
 <td>
 <div class="infoBox" id="tests">
-<div class="counter">4</div>
+<div class="counter">5</div>
 <p>tests</p>
 </div>
 </td>
@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.004s</div>
+<div class="counter">0.281s</div>
 <p>duration</p>
 </div>
 </td>
@@ -63,6 +63,9 @@
 <li>
 <a href="#">Tests</a>
 </li>
+<li>
+<a href="#">Standard error</a>
+</li>
 </ul>
 <div class="tab">
 <h2>Tests</h2>
@@ -75,26 +78,61 @@
 </tr>
 </thead>
 <tr>
-<td class="success">testReshuffleMethodExists()</td>
-<td class="success">0s</td>
+<td class="success">testCalculate_GoogleApiGlobalError()</td>
+<td class="success">0.006s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">testReshuffleMultipleTimes()</td>
-<td class="success">0.001s</td>
+<td class="success">testCalculate_GoogleApiSuccess()</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">testReshuffleNeverCalled()</td>
-<td class="success">0.001s</td>
+<td class="success">testCalculate_NetworkException()</td>
+<td class="success">0.264s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
-<td class="success">testReshuffleWithDifferentEventIds()</td>
-<td class="success">0.002s</td>
+<td class="success">testCalculate_NoApiKey_ShouldUseFallback()</td>
+<td class="success">0.005s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">testCalculate_RouteNotFound()</td>
+<td class="success">0.003s</td>
 <td class="success">passed</td>
 </tr>
 </table>
+</div>
+<div class="tab">
+<h2>Standard error</h2>
+<span class="code">
+<pre>&#x1f310; Calling Google API:
+   From: 48.85,2.35
+   To:   45.75,4.85
+   Mode: driving
+&#x1f4a5; HTTP error: Connection refused
+⚠️  No Google Maps API key — fallback calculator used.
+&#x1f310; Calling Google API:
+   From: 48.85,2.35
+   To:   45.75,4.85
+   Mode: driving
+❌ API error: OVER_DAILY_LIMIT
+   → API quota exceeded.
+&#x1f310; Calling Google API:
+   From: 48.85,2.35
+   To:   45.75,4.85
+   Mode: driving
+❌ Element status: ZERO_RESULTS
+   → No route found.
+   Details: {&quot;status&quot;:&quot;ZERO_RESULTS&quot;}
+&#x1f310; Calling Google API:
+   From: 48.85,2.35
+   To:   45.75,4.85
+   Mode: driving
+✅ Duration: 3600s ≈ 60 min
+</pre>
+</span>
 </div>
 </div>
 <div id="footer">

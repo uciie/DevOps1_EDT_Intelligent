@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">1.042s</div>
+<div class="counter">1.137s</div>
 <p>duration</p>
 </div>
 </td>
@@ -84,13 +84,13 @@
 <tr>
 <td class="success">Robustesse : Caractères spéciaux dans adresse</td>
 <td class="success">testCaracteresSpeciaux()</td>
-<td class="success">0.734s</td>
+<td class="success">0.710s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">Robustesse : Multiples appels successifs</td>
 <td class="success">testMultiplesAppels()</td>
-<td class="success">0.308s</td>
+<td class="success">0.427s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -98,21 +98,21 @@
 <div class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2025-11-25T12:30:27.727+01:00  INFO 24556 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.service.impl.GoogleMapsTravelTimeCalculatorIntegrationTest$RobustesseTests]: RobustesseTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2025-11-25T12:30:27.731+01:00  INFO 24556 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.service.impl.GoogleMapsTravelTimeCalculatorIntegrationTest$RobustesseTests
-2025-11-25T12:30:27.739+01:00  INFO 24556 --- [    Test worker] m.p.springdotenv.DotenvPropertySource    : Initialized Dotenv with DotenvConfig{directory=null, filename=null, ignoreIfMalformed=false, ignoreIfMissing=true, systemProperties=false, prefix=null}
-2025-11-25T12:30:27.765+01:00  INFO 24556 --- [    Test worker] eMapsTravelTimeCalculatorIntegrationTest : Starting GoogleMapsTravelTimeCalculatorIntegrationTest using Java 24.0.2 with PID 24556 (started by panlu in C:\Users\panlu\Documents\DevOps1_EDT_Intelligent\backend)
-2025-11-25T12:30:27.765+01:00  INFO 24556 --- [    Test worker] eMapsTravelTimeCalculatorIntegrationTest : The following 1 profile is active: &quot;external-api&quot;
-2025-11-25T12:30:28.048+01:00  INFO 24556 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2025-11-25T12:30:28.072+01:00  INFO 24556 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 22 ms. Found 5 JPA repository interfaces.
-2025-11-25T12:30:28.166+01:00  INFO 24556 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2025-11-25T12:30:28.170+01:00  INFO 24556 --- [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2025-11-25T12:30:28.184+01:00  INFO 24556 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2025-11-25T12:30:28.186+01:00  INFO 24556 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
-2025-11-25T12:30:28.187+01:00  INFO 24556 --- [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection conn89: url=jdbc:h2:mem:testdb user=SA
-2025-11-25T12:30:28.188+01:00  INFO 24556 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
-2025-11-25T12:30:28.189+01:00  WARN 24556 --- [    Test worker] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2025-11-25T12:30:28.190+01:00  INFO 24556 --- [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+<pre>2025-11-25T14:57:54.705+01:00  INFO 25628 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.service.impl.GoogleMapsTravelTimeCalculatorIntegrationTest$RobustesseTests]: RobustesseTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2025-11-25T14:57:54.707+01:00  INFO 25628 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.service.impl.GoogleMapsTravelTimeCalculatorIntegrationTest$RobustesseTests
+2025-11-25T14:57:54.712+01:00  INFO 25628 --- [    Test worker] m.p.springdotenv.DotenvPropertySource    : Initialized Dotenv with DotenvConfig{directory=null, filename=null, ignoreIfMalformed=false, ignoreIfMissing=true, systemProperties=false, prefix=null}
+2025-11-25T14:57:54.735+01:00  INFO 25628 --- [    Test worker] eMapsTravelTimeCalculatorIntegrationTest : Starting GoogleMapsTravelTimeCalculatorIntegrationTest using Java 24.0.2 with PID 25628 (started by panlu in C:\Users\panlu\Documents\DevOps1_EDT_Intelligent\backend)
+2025-11-25T14:57:54.735+01:00  INFO 25628 --- [    Test worker] eMapsTravelTimeCalculatorIntegrationTest : The following 1 profile is active: &quot;external-api&quot;
+2025-11-25T14:57:54.946+01:00  INFO 25628 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-11-25T14:57:54.965+01:00  INFO 25628 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 17 ms. Found 5 JPA repository interfaces.
+2025-11-25T14:57:55.061+01:00  INFO 25628 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-11-25T14:57:55.064+01:00  INFO 25628 --- [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-11-25T14:57:55.080+01:00  INFO 25628 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-11-25T14:57:55.081+01:00  INFO 25628 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
+2025-11-25T14:57:55.083+01:00  INFO 25628 --- [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-2 - Added connection conn89: url=jdbc:h2:mem:testdb user=SA
+2025-11-25T14:57:55.083+01:00  INFO 25628 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
+2025-11-25T14:57:55.084+01:00  WARN 25628 --- [    Test worker] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-11-25T14:57:55.084+01:00  INFO 25628 --- [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
 	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-2)']
 	Database driver: undefined/unknown
 	Database version: 2.3.232
@@ -120,10 +120,10 @@
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2025-11-25T12:30:28.295+01:00  INFO 24556 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2025-11-25T12:30:28.315+01:00  INFO 24556 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2025-11-25T12:30:28.505+01:00  WARN 24556 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2025-11-25T12:30:28.660+01:00  INFO 24556 --- [    Test worker] eMapsTravelTimeCalculatorIntegrationTest : Started GoogleMapsTravelTimeCalculatorIntegrationTest in 0.926 seconds (process running for 16.455)
+2025-11-25T14:57:55.160+01:00  INFO 25628 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-11-25T14:57:55.182+01:00  INFO 25628 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-11-25T14:57:55.523+01:00  WARN 25628 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-11-25T14:57:55.648+01:00  INFO 25628 --- [    Test worker] eMapsTravelTimeCalculatorIntegrationTest : Started GoogleMapsTravelTimeCalculatorIntegrationTest in 0.938 seconds (process running for 16.085)
 &#x1f524; Test caractères spéciaux: Louvre → Basilique de Fourvière
    Temps: 278 min
 &#x1f504; Appels successifs Paris → Lyon:
@@ -167,7 +167,7 @@
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 12 h 30 min 33 s</p>
+<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 14 h 58 min 04 s</p>
 </div>
 </div>
 </body>
