@@ -8,6 +8,7 @@ import SchedulePage from "./pages/SchedulePage";
 import PrivateRoute from "./components/PrivateRoute";
 import "./styles/App.css";
 
+// Composant principal de l'application gérant la navigation et l'interface globale
 function AppContent() {
   const navigate = useNavigate();
   const currentUser = getCurrentUser();
