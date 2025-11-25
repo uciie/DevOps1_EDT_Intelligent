@@ -43,7 +43,7 @@ function SchedulePage() {
     try {
       const response = await api.post("/tasks", {
         ...taskData,
-        userId: currentUser.id,
+        user: { id: currentUser.id },
         done: false,
       });
       setTasks([...tasks, response.data]);
