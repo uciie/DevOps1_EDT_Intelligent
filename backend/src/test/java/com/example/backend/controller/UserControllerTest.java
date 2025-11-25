@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -38,13 +39,20 @@ class UserControllerTest {
         when(userService.registerUser("john_doe", "password123")).thenReturn(savedUser);
 
         // Act
-        ResponseEntity<User> response = userController.register(inputUser);
+        // Le contrôleur retourne maintenant ResponseEntity<?> car le corps est une Map
+        ResponseEntity<?> response = userController.register(inputUser);
 
         // Assert
-        assertEquals(200, response.getStatusCode().value());
+        assertEquals(201, response.getStatusCode().value()); // Expecting CREATED (201)
         assertNotNull(response.getBody());
-        assertEquals("john_doe", response.getBody().getUsername());
-        assertNull(response.getBody().getPassword(), "Le mot de passe ne doit pas être renvoyé au client");
+        
+        // Vérification du contenu de la Map
+        assertTrue(response.getBody() instanceof Map);
+        Map<?, ?> body = (Map<?, ?>) response.getBody();
+        
+        assertEquals("john_doe", body.get("username"));
+        assertEquals(1L, body.get("id"));
+        assertFalse(body.containsKey("password"), "Le mot de passe ne doit pas être présent dans la réponse");
 
         verify(userService, times(1)).registerUser("john_doe", "password123");
     }
@@ -58,11 +66,16 @@ class UserControllerTest {
                 .thenThrow(new RuntimeException("User already exists"));
 
         // Act
-        ResponseEntity<User> response = userController.register(inputUser);
+        ResponseEntity<?> response = userController.register(inputUser);
 
         // Assert
         assertEquals(400, response.getStatusCode().value());
-        assertNull(response.getBody(), "En cas d'erreur, le corps de la réponse doit être null");
+        assertNotNull(response.getBody());
+        
+        assertTrue(response.getBody() instanceof Map);
+        Map<?, ?> body = (Map<?, ?>) response.getBody();
+        assertTrue(body.containsKey("error"));
+        assertEquals("User already exists", body.get("error"));
 
         verify(userService, times(1)).registerUser("john_doe", "password123");
     }
@@ -70,20 +83,39 @@ class UserControllerTest {
     @Test
     void testGetAllUsers() {
         // Arrange
-        List<User> users = Arrays.asList(
-                new User("alice", "pass1"),
-                new User("bob", "pass2")
-        );
+        User u1 = new User("alice", "pass1");
+        u1.setId(1L); // On simule des IDs pour être précis
+        User u2 = new User("bob", "pass2");
+        u2.setId(2L);
+
+        List<User> users = Arrays.asList(u1, u2);
 
         when(userService.getAllUsers()).thenReturn(users);
 
         // Act
-        List<User> result = userController.getAll();
+        // On capture la réponse. 
+        // Note : Assurez-vous que votre Controller retourne bien ResponseEntity<List<Map<String, Object>>>
+        ResponseEntity<List<Map<String, Object>>> response = userController.getAll();
 
         // Assert
+        assertEquals(200, response.getStatusCode().value());
+        
+        List<Map<String, Object>> result = response.getBody();
+        assertNotNull(result);
         assertEquals(2, result.size());
-        assertEquals("alice", result.get(0).getUsername());
-        assertEquals("bob", result.get(1).getUsername());
+        
+        // Vérification du premier utilisateur (Alice)
+        assertEquals("alice", result.get(0).get("username"));
+        assertEquals(1L, result.get(0).get("id"));
+        
+        // VÉRIFICATIONS CRITIQUES :
+        // 1. Le mot de passe ne doit pas être là
+        assertFalse(result.get(0).containsKey("password"), "Le mot de passe ne doit pas être exposé");
+        
+        // 2. Les listes 'events' et 'tasks' ne doivent pas être là (pour résoudre votre problème JSON précédent)
+        assertFalse(result.get(0).containsKey("events"), "Les événements ne doivent pas être chargés");
+        assertFalse(result.get(0).containsKey("tasks"), "Les tâches ne doivent pas être chargées");
+
         verify(userService, times(1)).getAllUsers();
     }
 }
