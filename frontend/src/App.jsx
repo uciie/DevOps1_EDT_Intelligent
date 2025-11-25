@@ -22,10 +22,14 @@ function App() {
   const handleLogout = () => {
     logoutUser();
     setCurrentUser(null);
+    // Redirection optionnelle vers l'accueil après déconnexion
+    window.location.href = '/'; 
   };
 
   return (
+    // pour le drag-and-drop
     <DndProvider backend={HTML5Backend}>
+      {/* BrowserRouter pour le routage */}
       <BrowserRouter>
         <div className="app">
           <nav className="app-nav">
@@ -43,21 +47,19 @@ function App() {
 
             <div className="nav-actions">
               {currentUser ? (
-                <>
-                  <span className="user-badge">
-                    👤 {currentUser.username}
-                  </span>
-                  <button onClick={handleLogout} className="btn-logout">
-                    Déconnexion
-                  </button>
-                </>
+                // CAS 1 : Utilisateur connecté
+                // On affiche UNIQUEMENT le bouton de déconnexion (pas de badge pseudo)
+                <button onClick={handleLogout} className="btn-logout">
+                  Se déconnecter
+                </button>
               ) : (
+                // CAS 2 : Utilisateur non connecté
                 <>
                   <Link to="/login" className="btn-nav-login">
                     Se connecter
                   </Link>
                   <Link to="/register" className="btn-nav-register">
-                    S"inscrire
+                    S'inscrire
                   </Link>
                 </>
               )}
@@ -67,7 +69,8 @@ function App() {
           <main className="app-main">
             <Routes>
               <Route path="/" element={<Home />} />
-              <Route path="/login" element={<LoginPage />} />
+              {/* On passe setCurrentUser à LoginPage pour mettre à jour l'état après connexion */}
+              <Route path="/login" element={<LoginPage onLogin={(user) => setCurrentUser(user)} />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/about" element={<About />} />
               <Route
