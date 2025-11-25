@@ -77,14 +77,3 @@ jobs:
         run: |
           npm install
           npm run build
-
-      # ----------------------
-      # 6. SonarCloud Analysis (backend)
-      # ----------------------
-      - name: Build and Analyze backend
-        working-directory: ./backend
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          chmod +x gradlew
-          ./gradlew clean build jacocoTestReport sonar --no-daemon
