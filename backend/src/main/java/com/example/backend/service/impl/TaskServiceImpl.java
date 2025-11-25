@@ -4,8 +4,11 @@ import com.example.backend.model.Event;
 import com.example.backend.model.Task;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.TaskRepository;
+import com.example.backend.repository.UserRepository;
 import com.example.backend.service.TaskService;
 import org.springframework.stereotype.Service;
+import com.example.backend.model.User; 
+import com.example.backend.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,10 +18,12 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
     private final EventRepository eventRepository;
+    private final UserRepository userRepository;
 
-    public TaskServiceImpl(TaskRepository taskRepository, EventRepository eventRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, EventRepository eventRepository,UserRepository userRepository) {
         this.taskRepository = taskRepository;
         this.eventRepository = eventRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -30,8 +35,20 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Task createTask(Task task) {
+    public Task createTask(Task task, Long userId) { // <-- Implemente la nouvelle signature
+        // 1. Chercher l'utilisateur complet en BDD en utilisant l'ID
+        // userRepository.findById(userId) renvoie un Optional<User>
+        User user = userRepository.findById(userId)
+            // Si l'utilisateur n'est pas trouvé, on lance une exception HTTP 400 ou 500
+            .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé avec l'ID: " + userId)); 
+
+        // 2. Lier l'objet User trouvé à l'objet Task reçu du client
+        task.setUser(user);
+
+        // 3. Logique métier
         task.setDone(false);
+
+        // 4. Sauvegarder la tâche (maintenant la colonne user_id n'est plus NULL)
         return taskRepository.save(task);
     }
 

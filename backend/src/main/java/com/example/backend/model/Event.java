@@ -1,5 +1,5 @@
 package com.example.backend.model;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -24,11 +24,12 @@ public class Event {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference("userEvents")
     private User user;
 
     @OneToOne
     @JoinColumn(name = "task_id", nullable = true)
-    @JsonManagedReference
+    @JsonManagedReference("taskEvent")
     private Task task; // ✅ une tâche associée (facultative)
 
     public Event(String summary, LocalDateTime startTime, LocalDateTime endTime) {

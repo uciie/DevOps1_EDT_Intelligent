@@ -1,6 +1,10 @@
 package com.example.backend.model;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
+
+
 import jakarta.persistence.*;
 
 /**
@@ -14,6 +18,10 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private LocalDateTime deadline;
+    // Dans votre classe Task
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean late = false; 
 
     private String title;
     private int estimatedDuration; // en minutes
@@ -22,20 +30,24 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference("userTasks")
     private User user;
 
     @OneToOne(mappedBy = "task")
-    @JsonBackReference
+    @JsonBackReference("taskEvent")
     private Event event; // ✅ Une tâche peut être liée à un seul événement
 
-    public Task() {}
+    public Task() {
 
-    public Task(String title, int estimatedDuration, int priority, boolean done, User user) {
+    }
+
+    public Task(String title, int estimatedDuration, int priority, boolean done, User user, LocalDateTime deadline ) {
         this.title = title;
         this.estimatedDuration = estimatedDuration;
         this.priority = priority;
         this.done = done;
         this.user = user;
+        this.deadline = deadline;
     }
 
     public Task(String title, int estimatedDuration, int priority, boolean done, User user, Event event) {
@@ -101,4 +113,28 @@ public class Task {
     public void setEvent(Event event) {
         this.event = event;
     }
+
+    
+
+    public boolean isLate() {
+        return late;
+    }
+
+    public void setLate(boolean late) {
+        this.late = late;
+    }
+
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDateTime deadline) {
+        this.deadline = deadline;
+    }
+
+    // alias pour l'algo
+    public int getDuration() {
+        return estimatedDuration;
+    }
+
 }

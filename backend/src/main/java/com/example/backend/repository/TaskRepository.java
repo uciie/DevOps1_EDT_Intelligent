@@ -8,7 +8,7 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    // Si les tâches sont liées à un utilisateur via un Event
+
     List<Task> findByUser_Id(Long userId);
 
 }

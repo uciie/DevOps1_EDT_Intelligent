@@ -23,9 +23,13 @@ public class TaskController {
         return ResponseEntity.ok(taskService.getTasksByUserId(userId));
     }
 
-    @PostMapping
-    public ResponseEntity<Task> createTask(@RequestBody Task task) {
-        return ResponseEntity.ok(taskService.createTask(task));
+    @PostMapping("/user/{userId}")
+    public ResponseEntity<Task> createTaskForUser(
+            @PathVariable Long userId, // Capture l'ID depuis l'URL
+            @RequestBody Task task     // Récupère la tâche sans l'objet User complet
+    ) {
+        // Appelle la méthode du service avec l'ID utilisateur
+        return ResponseEntity.ok(taskService.createTask(task, userId));
     }
 
     @PutMapping("/{id}")

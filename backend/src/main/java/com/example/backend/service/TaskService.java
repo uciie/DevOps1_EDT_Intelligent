@@ -10,7 +10,7 @@ public interface TaskService {
     List<Task> getTasksByUserId(Long userId);
 
     // Créer une nouvelle tâche (non planifiée)
-    Task createTask(Task task);
+    Task createTask(Task task, Long userId);
 
     // Mettre à jour une tâche existante
     Task updateTask(Long id, Task task);
