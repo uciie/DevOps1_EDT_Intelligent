@@ -29,6 +29,13 @@ jobs:
       VITE_API_URL: http://localhost:8080/api
       BACKEND_URL: http://localhost:8080
 
+      # Token SonarCloud
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_USER_HOME: ~/.sonar
+
+      # Google Maps API Key
+      GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+
     steps:
       # ----------------------
       # 1. Checkout du code
@@ -70,3 +77,14 @@ jobs:
         run: |
           npm install
           npm run build
+
+      # ----------------------
+      # 6. SonarCloud Analysis (backend)
+      # ----------------------
+      - name: Build and Analyze backend
+        working-directory: ./backend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          chmod +x gradlew
+          ./gradlew clean build jacocoTestReport sonar --no-daemon

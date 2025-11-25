@@ -6,7 +6,9 @@ import com.example.backend.service.TravelTimeCalculator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.beans.factory.annotation.Autowired; // <--- Import nécessaire
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -20,12 +22,27 @@ public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
     @Value("${google.maps.api.key:}")
     private String apiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final SimpleTravelTimeCalculator fallbackCalculator = new SimpleTravelTimeCalculator();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final RestTemplate restTemplate;
+    private final SimpleTravelTimeCalculator fallbackCalculator;
+    private final ObjectMapper mapper;
 
     private static final String API_URL = "https://maps.googleapis.com/maps/api/distancematrix/json";
 
+    // ✅ AJOUTEZ @Autowired ICI pour dire à Spring : "Utilise ce constructeur !"
+    @Autowired
+    public GoogleMapsTravelTimeCalculator(RestTemplateBuilder restTemplateBuilder) {
+        this.restTemplate = restTemplateBuilder.build();
+        this.fallbackCalculator = new SimpleTravelTimeCalculator();
+        this.mapper = new ObjectMapper();
+    }
+
+    // Constructeur secondaire pour les tests unitaires (Spring l'ignorera grâce à l'annotation au-dessus)
+    public GoogleMapsTravelTimeCalculator(RestTemplate restTemplate, SimpleTravelTimeCalculator fallbackCalculator, ObjectMapper mapper) {
+        this.restTemplate = restTemplate;
+        this.fallbackCalculator = fallbackCalculator;
+        this.mapper = mapper;
+    }
+    
     @Override
     public int calculateTravelTime(Location from, Location to, TransportMode mode) {
 

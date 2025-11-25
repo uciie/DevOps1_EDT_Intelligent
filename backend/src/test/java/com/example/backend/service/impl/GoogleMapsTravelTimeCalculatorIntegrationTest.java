@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -57,7 +59,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("external-api")
 class GoogleMapsTravelTimeCalculatorIntegrationTest {
-
+    
+    @Autowired
     private GoogleMapsTravelTimeCalculator calculator;
 
     @Value("${google.maps.api.key:}")
@@ -65,7 +68,6 @@ class GoogleMapsTravelTimeCalculatorIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        calculator = new GoogleMapsTravelTimeCalculator();
         
         String key = System.getenv("GOOGLE_MAPS_API_KEY");
 
@@ -74,6 +76,7 @@ class GoogleMapsTravelTimeCalculatorIntegrationTest {
         }
 
         if (key == null || key.isEmpty()) {
+            // logique de recherche de .env
             String[] candidates = new String[] { ".env", "backend/.env", "../backend/.env", "../.env" };
             for (String cand : candidates) {
                 Path p = Paths.get(cand);
@@ -100,7 +103,7 @@ class GoogleMapsTravelTimeCalculatorIntegrationTest {
                 if (key != null && !key.isEmpty()) break;
             }
         }
-
+        // Configuration de la clé sur le bean injecté
         if (key != null && !key.isEmpty()) {
             ReflectionTestUtils.setField(calculator, "apiKey", key);
         } else {

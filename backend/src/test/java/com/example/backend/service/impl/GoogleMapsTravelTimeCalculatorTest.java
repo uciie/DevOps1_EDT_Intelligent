@@ -2,6 +2,8 @@ package com.example.backend.service.impl;
 
 import com.example.backend.model.Location;
 import com.example.backend.model.TravelTime.TransportMode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,10 +35,10 @@ class GoogleMapsTravelTimeCalculatorTest {
 
     @BeforeEach
     void setUp() {
-        // Injection manuelle des mocks car ils sont instanciés avec 'new' dans la classe cible
-        ReflectionTestUtils.setField(googleCalculator, "restTemplate", restTemplate);
-        ReflectionTestUtils.setField(googleCalculator, "fallbackCalculator", fallbackCalculator);
-        // On définit une clé API pour ne pas déclencher le fallback immédiat
+        // Injection propre via le constructeur
+        googleCalculator = new GoogleMapsTravelTimeCalculator(restTemplate, fallbackCalculator, new ObjectMapper());
+        
+        // Pour la clé API, comme c'est un champ @Value privé, ReflectionTestUtils reste utile ici (ou utilisez un setter package-private)
         ReflectionTestUtils.setField(googleCalculator, "apiKey", "FAKE_API_KEY");
 
         from = new Location(48.85, 2.35); // Paris
