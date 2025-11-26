@@ -45,10 +45,12 @@ public class TaskController {
 
     @PostMapping("/{taskId}/planify")
     public ResponseEntity<Task> planifyTask(
-            @PathVariable Long taskId,
-            @RequestParam LocalDateTime start,
-            @RequestParam LocalDateTime end
+        @PathVariable Long taskId,
+        // MARQUEZ LES PARAMÈTRES COMME OPTIONNELS
+        @RequestParam(required = false) LocalDateTime start, 
+        @RequestParam(required = false) LocalDateTime end
     ) {
-        return ResponseEntity.ok(taskService.planifyTask(taskId, start, end));
+        Task plannedTask = taskService.planifyTask(taskId, start, end);
+        return ResponseEntity.ok(plannedTask);
     }
 }
