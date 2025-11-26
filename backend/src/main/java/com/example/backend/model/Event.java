@@ -46,10 +46,7 @@ public class Event {
     this.endTime = endTime;
     }
 
-    // Liste des tâches (Correctement géré en liste)
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference // <--- INDISPENSABLE : Côté Parent
-    private List<Task> tasks = new ArrayList<>();
+
 
     public Event() {}
 
@@ -127,15 +124,6 @@ public class Event {
         this.location = location;
     }
 
-    // --- Gestion des Tâches (Logique corrigée : On garde la LISTE) ---
-
-    public List<Task> getTasks() {
-        return tasks;
-    }
-
-    public void setTasks(List<Task> tasks) {
-        this.tasks = tasks;
-    }
 
     // --- Méthodes standard ---
 
