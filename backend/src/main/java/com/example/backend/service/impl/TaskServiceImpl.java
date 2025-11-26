@@ -69,31 +69,68 @@ public class TaskServiceImpl implements TaskService {
         taskRepository.deleteById(id);
     }
 
-    @Override
-    public Task planifyTask(Long taskId, LocalDateTime start, LocalDateTime end) {
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new IllegalArgumentException("Tâche non trouvée"));
+// Dans TaskServiceImpl.java
 
-        if (task.getUser() == null) {
-            throw new IllegalStateException("Impossible de planifier une tâche sans utilisateur associé");
+@Override
+public Task planifyTask(Long taskId, LocalDateTime start, LocalDateTime end) {
+    Task task = taskRepository.findById(taskId)
+            .orElseThrow(() -> new IllegalArgumentException("Tâche non trouvée"));
+
+    User user = task.getUser(); // On sait déjà que l'utilisateur est présent grâce à la vérification
+    if (user == null) {
+        throw new IllegalStateException("Impossible de planifier une tâche sans utilisateur associé");
+    }
+
+    // --- NOUVELLE LOGIQUE : ALLOCATION SIMPLE AU PREMIER TROU ---
+    if (start == null || end == null) {
+        // 1. Définir la durée requise pour la tâche
+        long durationMinutes = task.getEstimatedDuration(); 
+        
+        // 2. Récupérer et trier les événements existants par heure de début
+        // Vous devez implémenter cette méthode de récupération par utilisateur dans EventRepository ou EventService
+        List<Event> userEvents = eventRepository.findByUser_IdOrderByStartTime(user.getId());
+        
+        // --- Algorithme "First-Fit" (Premier Trou) ---
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime currentCheckTime = now.plusMinutes(10); // Commence à vérifier dans 10 minutes (ou dès maintenant)
+
+        // Itérer sur les événements existants
+        for (Event existingEvent : userEvents) {
+            
+            // Si le temps entre la fin du créneau actuel et le début du prochain événement 
+            // est suffisant pour notre tâche.
+            if (currentCheckTime.plusMinutes(durationMinutes).isBefore(existingEvent.getStartTime())) {
+                start = currentCheckTime;
+                end = currentCheckTime.plusMinutes(durationMinutes);
+                break; // Créneau trouvé, sortir de la boucle
+            }
+            
+            // Sinon, avancer le point de vérification après la fin de l'événement existant
+            currentCheckTime = existingEvent.getEndTime();
         }
 
-        // Crée un nouvel événement à partir de la tâche
-        Event event = new Event(
-                task.getTitle(),
-                start,
-                end,
-                task.getUser()
-        );
-
-
-        
-        // Save the event first so it has an ID
-        event = eventRepository.save(event);
-
-        // Lier l’événement à la tâche (update the task side of the relationship)
-        task.setEvent(event);
-        
-        return taskRepository.save(task);
+        // Si aucun trou n'a été trouvé (c'est-à-dire que le créneau est à la suite du dernier événement)
+        if (start == null) {
+            start = currentCheckTime; // Placer la tâche immédiatement après le dernier événement
+            end = currentCheckTime.plusMinutes(durationMinutes);
+        }
     }
+    // -------------------------------------------------------------
+
+    // Crée un nouvel événement à partir de la tâche (utilise les 'start' et 'end' trouvés ou fournis)
+    Event event = new Event(
+            task.getTitle(),
+            start,
+            end,
+            user // Utilisez l'objet User déjà récupéré
+    );
+
+    // Save the event first so it has an ID
+    event = eventRepository.save(event);
+
+    // Lier l’événement à la tâche
+    task.setEvent(event);
+    
+    return taskRepository.save(task);
+}
 }

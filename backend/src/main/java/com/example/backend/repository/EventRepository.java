@@ -27,4 +27,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
      * @return liste des événements
      */
     List<Event> findByUser_IdAndStartTimeBetween(Long userId, LocalDateTime start, LocalDateTime end);
+
+
 }
