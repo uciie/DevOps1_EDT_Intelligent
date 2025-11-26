@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Calendar from '../components/Calendar';
 import TodoList from '../components/TodoList';
+import { Event } from '../components/Event';
 import { getCurrentUser } from '../api/authApi';
 import { getUserTasks, createTask, updateTask, deleteTask } from '../api/taskApi';
 import '../styles/pages/SchedulePage.css';
@@ -264,10 +265,18 @@ function SchedulePage() {
     <div className="schedule-page">
       {currentUser && (
         <div className="schedule-welcome">
-          <h1>Bonjour, {currentUser.username} 👋</h1>
-          <p className="welcome-subtitle">
-            Organisez votre emploi du temps de manière intelligente
-          </p>
+          {/* Conteneur pour le texte à gauche */}
+          <div className="welcome-text">
+            <h1>Bonjour, {currentUser.username} 👋</h1>
+            <p className="welcome-subtitle">
+              Organisez votre emploi du temps de manière intelligente
+            </p>
+          </div>
+
+          {/* Composant Event aligné à droite */}
+          <div className="welcome-event-action">
+            <Event />
+          </div>
         </div>
       )}
 
