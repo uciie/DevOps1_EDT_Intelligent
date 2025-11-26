@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - TravelTimeRepositoryTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>TravelTimeRepositoryTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.example.backend.repository.html">com.example.backend.repository</a> &gt; TravelTimeRepositoryTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">10</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">0.177s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a href="#">Tests</a>
+</li>
+<li>
+<a href="#">Standard output</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Method name</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">Vérification de la cascade lors de la suppression d'un événement</td>
+<td class="success">testCascadeOnEventDeletion()</td>
+<td class="success">0.010s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Suppression d'un temps de trajet</td>
+<td class="success">testDeleteTravelTime()</td>
+<td class="success">0.018s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Recherche d'un temps de trajet par événement de destination</td>
+<td class="success">testFindByToEvent_Id()</td>
+<td class="success">0.017s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Recherche par événement de destination inexistant retourne null</td>
+<td class="success">testFindByToEvent_Id_NotFound()</td>
+<td class="success">0.014s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Recherche des temps de trajet par utilisateur</td>
+<td class="success">testFindByUser_Id()</td>
+<td class="success">0.023s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Recherche des temps de trajet entre deux dates</td>
+<td class="success">testFindByUser_IdAndStartTimeBetween()</td>
+<td class="success">0.025s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Recherche retourne une liste vide pour un utilisateur sans trajets</td>
+<td class="success">testFindByUser_Id_EmptyResult()</td>
+<td class="success">0.016s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Plusieurs trajets peuvent pointer vers le même événement de départ</td>
+<td class="success">testMultipleTravelTimesFromSameEvent()</td>
+<td class="success">0.017s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Sauvegarde et récupération d'un TravelTime</td>
+<td class="success">testSaveAndFindTravelTime()</td>
+<td class="success">0.018s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Mise à jour d'un temps de trajet</td>
+<td class="success">testUpdateTravelTime()</td>
+<td class="success">0.019s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2025-11-25T22:05:39.783+01:00  INFO 22000 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.repository.TravelTimeRepositoryTest]: TravelTimeRepositoryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2025-11-25T22:05:39.790+01:00  INFO 22000 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.repository.TravelTimeRepositoryTest
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: delete from travel_time where id=?
+Hibernate: select tt1_0.id,tt1_0.distance_km,tt1_0.duration_minutes,tt1_0.end_time,fe1_0.id,fe1_0.end_time,l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name,fe1_0.start_time,fe1_0.status,fe1_0.summary,fe1_0.user_id,u1_0.id,u1_0.password,u1_0.username,tt1_0.mode,tt1_0.start_time,te1_0.id,te1_0.end_time,l2_0.id,l2_0.address,l2_0.latitude,l2_0.longitude,l2_0.name,te1_0.start_time,te1_0.status,te1_0.summary,te1_0.user_id,u2_0.id,u2_0.password,u2_0.username,tt1_0.user_id,u3_0.id,u3_0.password,u3_0.username from travel_time tt1_0 left join event fe1_0 on fe1_0.id=tt1_0.from_event_id left join location l1_0 on l1_0.id=fe1_0.location_id left join users u1_0 on u1_0.id=fe1_0.user_id left join event te1_0 on te1_0.id=tt1_0.to_event_id left join location l2_0 on l2_0.id=te1_0.location_id left join users u2_0 on u2_0.id=te1_0.user_id join users u3_0 on u3_0.id=tt1_0.user_id where tt1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select tt1_0.id,tt1_0.distance_km,tt1_0.duration_minutes,tt1_0.end_time,tt1_0.from_event_id,tt1_0.mode,tt1_0.start_time,tt1_0.to_event_id,tt1_0.user_id from travel_time tt1_0 left join event te1_0 on te1_0.id=tt1_0.to_event_id where te1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select tt1_0.id,tt1_0.distance_km,tt1_0.duration_minutes,tt1_0.end_time,fe1_0.id,fe1_0.end_time,l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name,fe1_0.start_time,fe1_0.status,fe1_0.summary,fe1_0.user_id,u1_0.id,u1_0.password,u1_0.username,tt1_0.mode,tt1_0.start_time,te1_0.id,te1_0.end_time,l2_0.id,l2_0.address,l2_0.latitude,l2_0.longitude,l2_0.name,te1_0.start_time,te1_0.status,te1_0.summary,te1_0.user_id,u2_0.id,u2_0.password,u2_0.username,tt1_0.user_id,u3_0.id,u3_0.password,u3_0.username from travel_time tt1_0 left join event fe1_0 on fe1_0.id=tt1_0.from_event_id left join location l1_0 on l1_0.id=fe1_0.location_id left join users u1_0 on u1_0.id=fe1_0.user_id left join event te1_0 on te1_0.id=tt1_0.to_event_id left join location l2_0 on l2_0.id=te1_0.location_id left join users u2_0 on u2_0.id=te1_0.user_id join users u3_0 on u3_0.id=tt1_0.user_id where tt1_0.id=?
+Hibernate: update travel_time set distance_km=?,duration_minutes=?,end_time=?,from_event_id=?,mode=?,start_time=?,to_event_id=?,user_id=? where id=?
+Hibernate: select tt1_0.id,tt1_0.distance_km,tt1_0.duration_minutes,tt1_0.end_time,fe1_0.id,fe1_0.end_time,l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name,fe1_0.start_time,fe1_0.status,fe1_0.summary,fe1_0.user_id,u1_0.id,u1_0.password,u1_0.username,tt1_0.mode,tt1_0.start_time,te1_0.id,te1_0.end_time,l2_0.id,l2_0.address,l2_0.latitude,l2_0.longitude,l2_0.name,te1_0.start_time,te1_0.status,te1_0.summary,te1_0.user_id,u2_0.id,u2_0.password,u2_0.username,tt1_0.user_id,u3_0.id,u3_0.password,u3_0.username from travel_time tt1_0 left join event fe1_0 on fe1_0.id=tt1_0.from_event_id left join location l1_0 on l1_0.id=fe1_0.location_id left join users u1_0 on u1_0.id=fe1_0.user_id left join event te1_0 on te1_0.id=tt1_0.to_event_id left join location l2_0 on l2_0.id=te1_0.location_id left join users u2_0 on u2_0.id=te1_0.user_id join users u3_0 on u3_0.id=tt1_0.user_id where tt1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select tt1_0.id,tt1_0.distance_km,tt1_0.duration_minutes,tt1_0.end_time,tt1_0.from_event_id,tt1_0.mode,tt1_0.start_time,tt1_0.to_event_id,tt1_0.user_id from travel_time tt1_0 left join users u1_0 on u1_0.id=tt1_0.user_id where u1_0.id=?
+Hibernate: select tt1_0.id,tt1_0.distance_km,tt1_0.duration_minutes,tt1_0.end_time,tt1_0.from_event_id,tt1_0.mode,tt1_0.start_time,tt1_0.to_event_id,tt1_0.user_id from travel_time tt1_0 left join users u1_0 on u1_0.id=tt1_0.user_id where u1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select tt1_0.id,tt1_0.distance_km,tt1_0.duration_minutes,tt1_0.end_time,fe1_0.id,fe1_0.end_time,l1_0.id,l1_0.address,l1_0.latitude,l1_0.longitude,l1_0.name,fe1_0.start_time,fe1_0.status,fe1_0.summary,fe1_0.user_id,u1_0.id,u1_0.password,u1_0.username,tt1_0.mode,tt1_0.start_time,te1_0.id,te1_0.end_time,l2_0.id,l2_0.address,l2_0.latitude,l2_0.longitude,l2_0.name,te1_0.start_time,te1_0.status,te1_0.summary,te1_0.user_id,u2_0.id,u2_0.password,u2_0.username,tt1_0.user_id,u3_0.id,u3_0.password,u3_0.username from travel_time tt1_0 left join event fe1_0 on fe1_0.id=tt1_0.from_event_id left join location l1_0 on l1_0.id=fe1_0.location_id left join users u1_0 on u1_0.id=fe1_0.user_id left join event te1_0 on te1_0.id=tt1_0.to_event_id left join location l2_0 on l2_0.id=te1_0.location_id left join users u2_0 on u2_0.id=te1_0.user_id join users u3_0 on u3_0.id=tt1_0.user_id where tt1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select tt1_0.id,tt1_0.distance_km,tt1_0.duration_minutes,tt1_0.end_time,tt1_0.from_event_id,tt1_0.mode,tt1_0.start_time,tt1_0.to_event_id,tt1_0.user_id from travel_time tt1_0 left join users u1_0 on u1_0.id=tt1_0.user_id where u1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: select tt1_0.id,tt1_0.distance_km,tt1_0.duration_minutes,tt1_0.end_time,tt1_0.from_event_id,tt1_0.mode,tt1_0.start_time,tt1_0.to_event_id,tt1_0.user_id from travel_time tt1_0 left join event te1_0 on te1_0.id=tt1_0.to_event_id where te1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: select tt1_0.id,tt1_0.distance_km,tt1_0.duration_minutes,tt1_0.end_time,tt1_0.from_event_id,tt1_0.mode,tt1_0.start_time,tt1_0.to_event_id,tt1_0.user_id from travel_time tt1_0 left join users u1_0 on u1_0.id=tt1_0.user_id where u1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into location (address,latitude,longitude,name,id) values (?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,user_id,id) values (?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into travel_time (distance_km,duration_minutes,end_time,from_event_id,mode,start_time,to_event_id,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select tt1_0.id,tt1_0.distance_km,tt1_0.duration_minutes,tt1_0.end_time,tt1_0.from_event_id,tt1_0.mode,tt1_0.start_time,tt1_0.to_event_id,tt1_0.user_id from travel_time tt1_0 left join users u1_0 on u1_0.id=tt1_0.user_id where u1_0.id=? and tt1_0.start_time between ? and ?
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 8.14.3</a> at 25 nov. 2025, 22 h 05 min 47 s</p>
+</div>
+</div>
+</body>
+</html>

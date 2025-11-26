@@ -39,8 +39,8 @@ class TaskTest {
         assertEquals(60, task.getEstimatedDuration());
         assertEquals(1, task.getPriority());
         assertFalse(task.isDone()); // Tâche non terminée
-        assertEquals(user, task.getUser());
-        assertEquals(event, task.getEvent());
+        assertEquals(user.getId(), task.getUserId());
+        assertEquals(event.getId(), task.getEventId());
 
     }
 
@@ -76,7 +76,7 @@ class TaskTest {
         assertEquals(90, task.getEstimatedDuration());
         assertEquals(2, task.getPriority());
         assertTrue(task.isDone());
-        assertEquals(user, task.getUser());
-        assertEquals(event, task.getEvent());
+        assertEquals(user.getId(), task.getUserId());
+        assertEquals(event.getId(), task.getEventId());
     }
 }

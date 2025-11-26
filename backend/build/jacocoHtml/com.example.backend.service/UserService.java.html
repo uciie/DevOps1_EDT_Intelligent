@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>UserService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.example.backend.service</a> &gt; <span class="el_source">UserService.java</span></div><h1>UserService.java</h1><pre class="source lang-java linenums">package com.example.backend.service;
+
+import org.springframework.stereotype.Service;
+
+import com.example.backend.model.User;
+import com.example.backend.repository.UserRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+
+<span class="fc" id="L16">    public UserService(UserRepository userRepository) {</span>
+<span class="fc" id="L17">        this.userRepository = userRepository;</span>
+<span class="fc" id="L18">    }</span>
+
+    /**
+     * Enregistre un nouvel utilisateur
+     * 
+     * @param username le nom d'utilisateur
+     * @param password le mot de passe
+     * @return l'utilisateur créé
+     * @throws IllegalArgumentException si username ou password est null
+     * @throws RuntimeException si le username existe déjà
+     */
+    public User registerUser(String username, String password) {
+<span class="fc bfc" id="L30" title="All 2 branches covered.">        if (username == null) {</span>
+<span class="fc" id="L31">            throw new IllegalArgumentException(&quot;username must not be null&quot;);</span>
+        }
+<span class="fc bfc" id="L33" title="All 2 branches covered.">        if (password == null) {</span>
+<span class="fc" id="L34">            throw new IllegalArgumentException(&quot;password must not be null&quot;);</span>
+        }
+
+<span class="fc bfc" id="L37" title="All 2 branches covered.">        if (userRepository.findByUsername(username).isPresent()) {</span>
+<span class="fc" id="L38">            throw new RuntimeException(&quot;Nom d'utilisateur déjà pris&quot;);</span>
+        }
+
+<span class="fc" id="L41">        User newUser = new User(username, password);</span>
+<span class="fc" id="L42">        return userRepository.save(newUser);</span>
+    }
+
+    /**
+     * Authentifie un utilisateur avec username et password
+     * 
+     * @param username le nom d'utilisateur
+     * @param password le mot de passe
+     * @return l'utilisateur si les identifiants sont corrects, null sinon
+     */
+    public User authenticate(String username, String password) {
+<span class="nc bnc" id="L53" title="All 4 branches missed.">        if (username == null || password == null) {</span>
+<span class="nc" id="L54">            return null;</span>
+        }
+
+<span class="nc" id="L57">        Optional&lt;User&gt; userOpt = userRepository.findByUsername(username);</span>
+
+<span class="nc bnc" id="L59" title="All 2 branches missed.">        if (userOpt.isEmpty()) {</span>
+<span class="nc" id="L60">            return null; // Utilisateur non trouvé</span>
+        }
+
+<span class="nc" id="L63">        User user = userOpt.get();</span>
+
+        // ATTENTION: En production, utiliser BCrypt pour comparer les mots de passe hachés
+        // Exemple: if (!passwordEncoder.matches(password, user.getPassword()))
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (!user.getPassword().equals(password)) {</span>
+<span class="nc" id="L68">            return null; // Mot de passe incorrect</span>
+        }
+
+<span class="nc" id="L71">        return user; // Authentification réussie</span>
+    }
+
+    /**
+     * Récupère tous les utilisateurs
+     * 
+     * @return la liste de tous les utilisateurs
+     */
+    public List&lt;User&gt; getAllUsers() {
+<span class="fc" id="L80">        return userRepository.findAll();</span>
+    }
+
+    /**
+     * Récupère un utilisateur par son ID
+     * 
+     * @param id l'ID de l'utilisateur
+     * @return l'utilisateur trouvé
+     * @throws RuntimeException si l'utilisateur n'existe pas
+     */
+    public User getUserById(Long id) {
+<span class="nc" id="L91">        return userRepository.findById(id)</span>
+<span class="nc" id="L92">                .orElseThrow(() -&gt; new RuntimeException(&quot;Utilisateur non trouvé avec l'ID: &quot; + id));</span>
+    }
+
+    /**
+     * Vérifie si un username existe
+     * 
+     * @param username le nom d'utilisateur
+     * @return true si le username existe
+     */
+    public boolean existsByUsername(String username) {
+<span class="nc" id="L102">        return userRepository.existsByUsername(username);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

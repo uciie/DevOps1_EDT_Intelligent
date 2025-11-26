@@ -86,11 +86,15 @@ public class TaskServiceImpl implements TaskService {
                 task.getUser()
         );
 
-        event.setTask(task);
-        eventRepository.save(event);
+        // Ajout d'une tâche à la liste des tâches de l’événement
+        event.getTasks().add(task); // Access the list and add to it
+        
+        // Save the event first so it has an ID
+        event = eventRepository.save(event);
 
-        // Lier l’événement à la tâche
+        // Lier l’événement à la tâche (update the task side of the relationship)
         task.setEvent(event);
+        
         return taskRepository.save(task);
     }
 }

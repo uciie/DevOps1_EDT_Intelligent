@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.example.backend.service</a> &gt; <span class="el_source">EventService.java</span></div><h1>EventService.java</h1><pre class="source lang-java linenums">package com.example.backend.service;
+
+import com.example.backend.controller.EventController.EventRequest;
+import com.example.backend.model.Event;
+import com.example.backend.model.Location;
+import com.example.backend.model.User;
+import com.example.backend.repository.EventRepository;
+import com.example.backend.repository.UserRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * Service pour la gestion des événements.
+ */
+@Service
+public class EventService {
+
+    private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+
+<span class="fc" id="L25">    public EventService(EventRepository eventRepository, UserRepository userRepository) {</span>
+<span class="fc" id="L26">        this.eventRepository = eventRepository;</span>
+<span class="fc" id="L27">        this.userRepository = userRepository;</span>
+<span class="fc" id="L28">    }</span>
+
+    /**
+     * Récupère tous les événements d'un utilisateur.
+     *
+     * @param userId l'ID de l'utilisateur
+     * @return liste des événements
+     */
+    public List&lt;Event&gt; getEventsByUserId(Long userId) {
+<span class="fc" id="L37">        return eventRepository.findAll().stream()</span>
+<span class="pc bpc" id="L38" title="1 of 4 branches missed.">                .filter(event -&gt; event.getUser() != null &amp;&amp; event.getUser().getId().equals(userId))</span>
+<span class="fc" id="L39">                .sorted((e1, e2) -&gt; e1.getStartTime().compareTo(e2.getStartTime()))</span>
+<span class="fc" id="L40">                .collect(Collectors.toList());</span>
+    }
+
+    /**
+     * Récupère un événement par son ID.
+     *
+     * @param id l'ID de l'événement
+     * @return l'événement
+     */
+    public Event getEventById(Long id) {
+<span class="fc" id="L50">        return eventRepository.findById(id)</span>
+<span class="fc" id="L51">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;Event not found with id: &quot; + id));</span>
+    }
+
+    /**
+     * Crée un nouvel événement.
+     *
+     * @param eventRequest les données de l'événement
+     * @return l'événement créé
+     */
+    @Transactional
+    public Event createEvent(EventRequest eventRequest) {
+<span class="fc" id="L62">        User user = userRepository.findById(eventRequest.getUserId())</span>
+<span class="fc" id="L63">                .orElseThrow(() -&gt; new IllegalArgumentException(&quot;User not found&quot;));</span>
+
+<span class="fc" id="L65">        Event event = new Event(</span>
+<span class="fc" id="L66">                eventRequest.getSummary(),</span>
+<span class="fc" id="L67">                eventRequest.getStartTime(),</span>
+<span class="fc" id="L68">                eventRequest.getEndTime(),</span>
+                user
+        );
+
+        // Ajouter la localisation si fournie
+<span class="fc bfc" id="L73" title="All 2 branches covered.">        if (eventRequest.getLocation() != null) {</span>
+<span class="fc" id="L74">            Location location = eventRequest.getLocation().toLocation();</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">            if (location != null) {</span>
+<span class="fc" id="L76">                event.setLocation(location);</span>
+            }
+        }
+
+<span class="fc" id="L80">        return eventRepository.save(event);</span>
+    }
+
+    /**
+     * Met à jour un événement existant.
+     *
+     * @param id l'ID de l'événement
+     * @param eventRequest les nouvelles données
+     * @return l'événement mis à jour
+     */
+    @Transactional
+    public Event updateEvent(Long id, EventRequest eventRequest) {
+<span class="fc" id="L92">        Event event = getEventById(id);</span>
+
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        if (eventRequest.getSummary() != null) {</span>
+<span class="fc" id="L95">            event.setSummary(eventRequest.getSummary());</span>
+        }
+<span class="pc bpc" id="L97" title="1 of 2 branches missed.">        if (eventRequest.getStartTime() != null) {</span>
+<span class="fc" id="L98">            event.setStartTime(eventRequest.getStartTime());</span>
+        }
+<span class="pc bpc" id="L100" title="1 of 2 branches missed.">        if (eventRequest.getEndTime() != null) {</span>
+<span class="fc" id="L101">            event.setEndTime(eventRequest.getEndTime());</span>
+        }
+<span class="pc bpc" id="L103" title="1 of 2 branches missed.">        if (eventRequest.getLocation() != null) {</span>
+<span class="nc" id="L104">            Location location = eventRequest.getLocation().toLocation();</span>
+<span class="nc bnc" id="L105" title="All 2 branches missed.">            if (location != null) {</span>
+<span class="nc" id="L106">                event.setLocation(location);</span>
+            }
+        }
+
+<span class="fc" id="L110">        return eventRepository.save(event);</span>
+    }
+
+    /**
+     * Supprime un événement.
+     *
+     * @param id l'ID de l'événement
+     */
+    @Transactional
+    public void deleteEvent(Long id) {
+<span class="fc bfc" id="L120" title="All 2 branches covered.">        if (!eventRepository.existsById(id)) {</span>
+<span class="fc" id="L121">            throw new IllegalArgumentException(&quot;Event not found with id: &quot; + id);</span>
+        }
+<span class="fc" id="L123">        eventRepository.deleteById(id);</span>
+<span class="fc" id="L124">    }</span>
+
+    /**
+     * Récupère les événements d'un utilisateur dans une période donnée.
+     *
+     * @param userId l'ID de l'utilisateur
+     * @param start date de début
+     * @param end date de fin
+     * @return liste des événements dans la période
+     */
+    public List&lt;Event&gt; getEventsByUserIdAndPeriod(Long userId, LocalDateTime start, LocalDateTime end) {
+<span class="nc" id="L135">        return eventRepository.findAll().stream()</span>
+                // 1. Filtrer par User
+<span class="nc bnc" id="L137" title="All 4 branches missed.">                .filter(event -&gt; event.getUser() != null &amp;&amp; event.getUser().getId().equals(userId))</span>
+                // 2. Filtrer par Date (Start time is within the range)
+<span class="nc" id="L139">                .filter(event -&gt; {</span>
+<span class="nc" id="L140">                    LocalDateTime eventStart = event.getStartTime();</span>
+<span class="nc bnc" id="L141" title="All 4 branches missed.">                    return (eventStart.isEqual(start) || eventStart.isAfter(start)) &amp;&amp;</span>
+<span class="nc bnc" id="L142" title="All 4 branches missed.">                        (eventStart.isBefore(end) || eventStart.isEqual(end));</span>
+                })
+                // 3. Trier par heure de début
+<span class="nc" id="L145">                .sorted((e1, e2) -&gt; e1.getStartTime().compareTo(e2.getStartTime()))</span>
+<span class="nc" id="L146">                .collect(Collectors.toList());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

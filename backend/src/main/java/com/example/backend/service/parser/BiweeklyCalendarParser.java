@@ -52,7 +52,7 @@ public class BiweeklyCalendarParser implements ICalendarParser {
                 }
 
                 // Crée et ajoute l’événement à la liste
-                Event event = new Event(vevent.getSummary().getValue(), start, end);
+                Event event = new Event(vevent.getSummary().getValue(), start, end, null);
                 events.add(event);
             }
         }

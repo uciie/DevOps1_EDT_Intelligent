@@ -1,13 +1,17 @@
 package com.example.backend.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 /**
  * Représente un événement dans le calendrier.
- * Un événement a un début, une fin, un résumé et est associé à un utilisateur.
  */
 @Entity
 public class Event {
@@ -20,7 +24,11 @@ public class Event {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-    private String status = "PLANNED"; // PLANNED, CANCELLED, DONE, etc.
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "location_id")
+    private Location location;
+
+    private String status = "PLANNED";
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -38,6 +46,10 @@ public class Event {
     this.endTime = endTime;
     }
 
+    // Liste des tâches (Correctement géré en liste)
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference // <--- INDISPENSABLE : Côté Parent
+    private List<Task> tasks = new ArrayList<>();
 
     public Event() {}
 
@@ -48,14 +60,22 @@ public class Event {
         this.user = user;
     }
 
+    // --- Getters et Setters ---
+
     public Long getId() {
         return id;
     }
 
-    public Long getUserId() {
-    return user != null ? user.getId() : null;
+    public void setId(Long id) {
+        this.id = id;
     }
 
+    /**
+     * Helper pour récupérer l'ID utilisateur directement
+     */
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
 
     public String getSummary() {
         return summary;
@@ -97,25 +117,38 @@ public class Event {
         this.user = user;
     }
 
-    public Task getTask() {
-        return task;
+    // --- Gestion de la Location (Fusionné depuis la branche distante) ---
+
+    public Location getLocation() {
+        return location;
     }
 
-    public void setTask(Task task) {
-        this.task = task;
+    public void setLocation(Location location) {
+        this.location = location;
     }
 
-        // Méthodes de compatibilité pour les anciens tests
-    public void setTasks(List<Task> tasks) {
-        if (tasks != null && !tasks.isEmpty()) {
-            this.task = tasks.get(0); // On garde seulement la première tâche
-        }
-    }
+    // --- Gestion des Tâches (Logique corrigée : On garde la LISTE) ---
 
     public List<Task> getTasks() {
-        return task != null ? List.of(task) : List.of();
+        return tasks;
     }
 
+    public void setTasks(List<Task> tasks) {
+        this.tasks = tasks;
+    }
 
-    
+    // --- Méthodes standard ---
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Event event = (Event) obj;
+        return id != null ? id.equals(event.id) : event.id == null;
+    }
 }

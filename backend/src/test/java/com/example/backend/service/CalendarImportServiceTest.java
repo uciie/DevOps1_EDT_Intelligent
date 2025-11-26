@@ -10,6 +10,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.io.InputStream;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -47,7 +49,9 @@ class CalendarImportServiceTest {
         );
 
         // Simule le parser
-        Event mockEvent = new Event("Test Event", null, null);
+        // constructeur Event(summary, start, end, user)
+        Event mockEvent = new Event("Test Event", null, null, null);
+        
         when(parser.parse(any(InputStream.class))).thenReturn(Collections.singletonList(mockEvent));
 
         // Appelle le service

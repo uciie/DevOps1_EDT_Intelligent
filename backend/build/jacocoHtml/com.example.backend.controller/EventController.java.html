@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>EventController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.example.backend.controller</a> &gt; <span class="el_source">EventController.java</span></div><h1>EventController.java</h1><pre class="source lang-java linenums">package com.example.backend.controller;
+
+import com.example.backend.model.Event;
+import com.example.backend.model.Location;
+import com.example.backend.service.EventService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * Contrôleur REST pour la gestion des événements.
+ * Fournit des endpoints pour créer, lire, mettre à jour et supprimer des événements.
+ */
+@RestController
+@RequestMapping(&quot;/api/events&quot;)
+@CrossOrigin(origins = &quot;http://localhost:5173&quot;)
+public class EventController {
+
+    private final EventService eventService;
+
+<span class="fc" id="L23">    public EventController(EventService eventService) {</span>
+<span class="fc" id="L24">        this.eventService = eventService;</span>
+<span class="fc" id="L25">    }</span>
+
+    /**
+     * Récupère tous les événements d'un utilisateur.
+     *
+     * @param userId l'ID de l'utilisateur
+     * @return liste des événements
+     */
+    @GetMapping(&quot;/user/{userId}&quot;)
+    public ResponseEntity&lt;List&lt;Event&gt;&gt; getEventsByUser(@PathVariable Long userId) {
+<span class="fc" id="L35">        List&lt;Event&gt; events = eventService.getEventsByUserId(userId);</span>
+<span class="fc" id="L36">        return ResponseEntity.ok(events);</span>
+    }
+
+    /**
+     * Récupère les événements d'un utilisateur dans une période donnée.
+     *
+     * @param userId l'ID de l'utilisateur
+     * @param start date de début (ISO format)
+     * @param end date de fin (ISO format)
+     * @return liste des événements dans la période
+     */
+    @GetMapping(&quot;/user/{userId}/period&quot;)
+    public ResponseEntity&lt;List&lt;Event&gt;&gt; getEventsByUserAndPeriod(
+            @PathVariable Long userId,
+            @RequestParam String start,
+            @RequestParam String end) {
+<span class="fc" id="L52">        LocalDateTime startDate = LocalDateTime.parse(start);</span>
+<span class="fc" id="L53">        LocalDateTime endDate = LocalDateTime.parse(end);</span>
+<span class="fc" id="L54">        List&lt;Event&gt; events = eventService.getEventsByUserIdAndPeriod(userId, startDate, endDate);</span>
+<span class="fc" id="L55">        return ResponseEntity.ok(events);</span>
+    }
+
+    /**
+     * Récupère un événement par son ID.
+     *
+     * @param id l'ID de l'événement
+     * @return l'événement trouvé
+     */
+    @GetMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;Event&gt; getEventById(@PathVariable Long id) {
+<span class="fc" id="L66">        Event event = eventService.getEventById(id);</span>
+<span class="fc" id="L67">        return ResponseEntity.ok(event);</span>
+    }
+
+    /**
+     * Crée un nouvel événement.
+     *
+     * @param eventRequest les données de l'événement à créer
+     * @return l'événement créé avec les temps de trajet calculés
+     */
+    @PostMapping
+    public ResponseEntity&lt;Event&gt; createEvent(@RequestBody EventRequest eventRequest) {
+<span class="fc" id="L78">        Event createdEvent = eventService.createEvent(eventRequest);</span>
+<span class="fc" id="L79">        return ResponseEntity.ok(createdEvent);</span>
+    }
+
+    /**
+     * Met à jour un événement existant.
+     *
+     * @param id l'ID de l'événement à modifier
+     * @param eventRequest les nouvelles données
+     * @return l'événement mis à jour
+     */
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;Event&gt; updateEvent(
+            @PathVariable Long id,
+            @RequestBody EventRequest eventRequest) {
+<span class="fc" id="L93">        Event updatedEvent = eventService.updateEvent(id, eventRequest);</span>
+<span class="fc" id="L94">        return ResponseEntity.ok(updatedEvent);</span>
+    }
+
+    /**
+     * Supprime un événement.
+     *
+     * @param id l'ID de l'événement à supprimer
+     * @return confirmation de suppression
+     */
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;String&gt; deleteEvent(@PathVariable Long id) {
+<span class="fc" id="L105">        eventService.deleteEvent(id);</span>
+<span class="fc" id="L106">        return ResponseEntity.ok(&quot;Événement supprimé avec succès&quot;);</span>
+    }
+
+    /**
+     * DTO pour la création/modification d'événements.
+     */
+<span class="fc" id="L112">    public static class EventRequest {</span>
+        private String summary;
+        private LocalDateTime startTime;
+        private LocalDateTime endTime;
+        private Long userId;
+        private LocationRequest location;
+
+        // Getters et Setters
+<span class="fc" id="L120">        public String getSummary() { return summary; }</span>
+<span class="fc" id="L121">        public void setSummary(String summary) { this.summary = summary; }</span>
+
+<span class="fc" id="L123">        public LocalDateTime getStartTime() { return startTime; }</span>
+<span class="fc" id="L124">        public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }</span>
+
+<span class="fc" id="L126">        public LocalDateTime getEndTime() { return endTime; }</span>
+<span class="fc" id="L127">        public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }</span>
+
+<span class="fc" id="L129">        public Long getUserId() { return userId; }</span>
+<span class="fc" id="L130">        public void setUserId(Long userId) { this.userId = userId; }</span>
+
+<span class="fc" id="L132">        public LocationRequest getLocation() { return location; }</span>
+<span class="fc" id="L133">        public void setLocation(LocationRequest location) { this.location = location; }</span>
+    }
+
+    /**
+     * DTO pour la localisation dans les requêtes.
+     */
+<span class="fc" id="L139">    public static class LocationRequest {</span>
+        private String address;
+        private Double latitude;
+        private Double longitude;
+        private String name;
+
+        // Getters et Setters
+<span class="nc" id="L146">        public String getAddress() { return address; }</span>
+<span class="fc" id="L147">        public void setAddress(String address) { this.address = address; }</span>
+
+<span class="nc" id="L149">        public Double getLatitude() { return latitude; }</span>
+<span class="fc" id="L150">        public void setLatitude(Double latitude) { this.latitude = latitude; }</span>
+
+<span class="nc" id="L152">        public Double getLongitude() { return longitude; }</span>
+<span class="fc" id="L153">        public void setLongitude(Double longitude) { this.longitude = longitude; }</span>
+
+<span class="nc" id="L155">        public String getName() { return name; }</span>
+<span class="fc" id="L156">        public void setName(String name) { this.name = name; }</span>
+
+        /**
+         * Convertit ce LocationRequest en objet Location.
+         * 
+         * @return un objet Location ou null si les données sont insuffisantes
+         */
+        public Location toLocation() {
+            // Si on a des coordonnées GPS, créer avec GPS
+<span class="pc bpc" id="L165" title="2 of 4 branches missed.">            if (latitude != null &amp;&amp; longitude != null) {</span>
+<span class="fc" id="L166">                Location location = new Location(latitude, longitude);</span>
+<span class="fc" id="L167">                location.setName(name);</span>
+<span class="pc bpc" id="L168" title="2 of 4 branches missed.">                if (address != null &amp;&amp; !address.trim().isEmpty()) {</span>
+<span class="fc" id="L169">                    location.setAddress(address);</span>
+                }
+<span class="fc" id="L171">                return location;</span>
+            }
+            
+            // Sinon, si on a une adresse, créer avec adresse
+<span class="nc bnc" id="L175" title="All 4 branches missed.">            if (address != null &amp;&amp; !address.trim().isEmpty()) {</span>
+<span class="nc" id="L176">                Location location = new Location(address);</span>
+<span class="nc" id="L177">                location.setName(name);</span>
+<span class="nc" id="L178">                return location;</span>
+            }
+            
+            // Pas assez de données pour créer une Location
+<span class="nc" id="L182">            return null;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>

@@ -1,30 +1,53 @@
 package com.example.backend.service.impl;
 
+import com.example.backend.service.ScheduleOptimizerService;
+// CONSERVÉ DE 5512fe3 : Imports pour les services de localisation/stratégie qui pourraient être utilisés plus tard
+import com.example.backend.service.ScheduleOptimizerService;
+import com.example.backend.service.strategy.TaskSelectionStrategy;
+import com.example.backend.service.TravelTimeService;
+
 import com.example.backend.model.Event;
 import com.example.backend.model.Task;
+import com.example.backend.model.TravelTime;
+import com.example.backend.model.TravelTime.TransportMode;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.TaskRepository;
-import com.example.backend.service.ScheduleOptimizerService;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
+import java.util.Comparator; // <-- CONSERVÉ DE HEAD pour le tri des tâches
 import java.util.List;
 
+/**
+ * Service d'optimisation de l'emploi du temps avec gestion des temps de trajet.
+ */
 @Service
 public class DefaultScheduleOptimizerService implements ScheduleOptimizerService {
 
     private final EventRepository eventRepository;
     private final TaskRepository taskRepository;
+    // CONSERVÉ DE 5512fe3 : Injection des nouvelles dépendances
+    private final TaskSelectionStrategy taskSelectionStrategy;
+    private final TravelTimeService travelTimeService;
 
-    public DefaultScheduleOptimizerService(EventRepository eventRepository, TaskRepository taskRepository) {
+    // CONSTRUCTEUR FUSIONNÉ avec toutes les dépendances
+    public DefaultScheduleOptimizerService(EventRepository eventRepository,
+                                         TaskRepository taskRepository,
+                                         // Les injections de 5512fe3
+                                         TaskSelectionStrategy taskSelectionStrategy,
+                                         TravelTimeService travelTimeService) {
         this.eventRepository = eventRepository;
         this.taskRepository = taskRepository;
+        this.taskSelectionStrategy = taskSelectionStrategy;
+        this.travelTimeService = travelTimeService;
     }
 
     // Dans DefaultScheduleOptimizerService.java
 
     @Override
+    // CONSERVÉ DE HEAD : La signature de la méthode complète de planification
     public void reshuffle(Long userId) {
 
         // 1️⃣ Charger tous les événements existants (emploi du temps)
@@ -50,7 +73,6 @@ public class DefaultScheduleOptimizerService implements ScheduleOptimizerService
         if (!events.isEmpty()) {
             cursor = events.get(events.size() - 1).getEndTime();
         }
-
 
         for (Task task : tasks) {
             
@@ -120,4 +142,7 @@ public class DefaultScheduleOptimizerService implements ScheduleOptimizerService
             }
         }
     }
+    
+    // NOTE: Les méthodes privées `findNextEvent` et `estimateTravelTime` de 5512fe3 sont ignorées ici
+    // car elles font partie de la logique de "réaction à l'annulation" qui doit être gérée séparément.
 }

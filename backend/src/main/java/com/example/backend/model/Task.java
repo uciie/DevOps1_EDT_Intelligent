@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
 
@@ -33,7 +34,8 @@ public class Task {
     @JsonBackReference("userTasks")
     private User user;
 
-    @OneToOne(mappedBy = "task")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id") // <-- Ceci crée la colonne FK dans la table Task
     @JsonBackReference("taskEvent")
     private Event event; // ✅ Une tâche peut être liée à un seul événement
 
@@ -51,19 +53,20 @@ public class Task {
     }
 
     public Task(String title, int estimatedDuration, int priority, boolean done, User user, Event event) {
-    this.title = title;
-    this.estimatedDuration = estimatedDuration;
-    this.priority = priority;
-    this.done = done;
-    this.user = user;
-    this.event = event;
-}
-
-    
-
+        this.title = title;
+        this.estimatedDuration = estimatedDuration;
+        this.priority = priority;
+        this.done = done;
+        this.user = user;
+        this.event = event;
+    }
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getTitle() {
@@ -102,12 +105,20 @@ public class Task {
         return user;
     }
 
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
+
     public void setUser(User user) {
         this.user = user;
     }
 
     public Event getEvent() {
         return event;
+    }
+
+    public Long getEventId() {
+        return event != null ? event.getId() : null;
     }
 
     public void setEvent(Event event) {

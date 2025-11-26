@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="fr"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TaskController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">backend</a> &gt; <a href="index.source.html" class="el_package">com.example.backend.controller</a> &gt; <span class="el_source">TaskController.java</span></div><h1>TaskController.java</h1><pre class="source lang-java linenums">package com.example.backend.controller;
+
+import com.example.backend.model.Task;
+import com.example.backend.service.TaskService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+@RestController
+@RequestMapping(&quot;/api/tasks&quot;)
+public class TaskController {
+
+    private final TaskService taskService;
+
+<span class="fc" id="L17">    public TaskController(TaskService taskService) {</span>
+<span class="fc" id="L18">        this.taskService = taskService;</span>
+<span class="fc" id="L19">    }</span>
+
+    @GetMapping(&quot;/user/{userId}&quot;)
+    public ResponseEntity&lt;List&lt;Task&gt;&gt; getUserTasks(@PathVariable Long userId) {
+<span class="fc" id="L23">        return ResponseEntity.ok(taskService.getTasksByUserId(userId));</span>
+    }
+
+    @PostMapping
+    public ResponseEntity&lt;Task&gt; createTask(@RequestBody Task task) {
+<span class="fc" id="L28">        return ResponseEntity.ok(taskService.createTask(task));</span>
+    }
+
+    @PutMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;Task&gt; updateTask(@PathVariable Long id, @RequestBody Task task) {
+<span class="fc" id="L33">        return ResponseEntity.ok(taskService.updateTask(id, task));</span>
+    }
+
+    @DeleteMapping(&quot;/{id}&quot;)
+    public ResponseEntity&lt;Void&gt; deleteTask(@PathVariable Long id) {
+<span class="fc" id="L38">        taskService.deleteTask(id);</span>
+<span class="fc" id="L39">        return ResponseEntity.noContent().build();</span>
+    }
+
+    @PostMapping(&quot;/{taskId}/planify&quot;)
+    public ResponseEntity&lt;Task&gt; planifyTask(
+            @PathVariable Long taskId,
+            @RequestParam LocalDateTime start,
+            @RequestParam LocalDateTime end
+    ) {
+<span class="fc" id="L48">        return ResponseEntity.ok(taskService.planifyTask(taskId, start, end));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.13.202504020838</span></div></body></html>
