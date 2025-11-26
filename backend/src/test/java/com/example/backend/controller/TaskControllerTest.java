@@ -40,7 +40,10 @@ class TaskControllerTest {
     void setUp() {
         User user = new User("user", "pass");
         user.setId(1L);
-        task = new Task("Test Task", 60, 1, false, user);
+        
+        // CORRECTION : Cast explicite de null en LocalDateTime pour lever l'ambiguïté
+        task = new Task("Test Task", 60, 1, false, user, (LocalDateTime) null); 
+        
         task.setId(1L);
     }
 
@@ -53,17 +56,52 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$[0].title").value("Test Task"));
     }
 
-    @Test
+@Test
     void testCreateTask() throws Exception {
-        when(taskService.createTask(any(Task.class))).thenReturn(task);
+        // Le contrôleur appelle createTask(Task task, Long userId). Mocker cette signature.
+        when(taskService.createTask(any(Task.class), eq(1L))).thenReturn(task); 
 
-        mockMvc.perform(post("/api/tasks")
+        mockMvc.perform(post("/api/tasks/user/1") // <-- URL CORRIGÉE
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(task)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.title").value("Test Task"));
     }
+    
+    // ... updateTask et deleteTask existants
 
+    // TEST MIS À JOUR POUR LA PLANIFICATION AVEC DATES (Test du cas 1)
+    @Test
+    void testPlanifyTask_WithDates() throws Exception {
+        when(taskService.planifyTask(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
+                .thenReturn(task);
+
+        mockMvc.perform(post("/api/tasks/1/planify")
+                .param("start", "2025-10-10T10:00:00")
+                .param("end", "2025-10-10T11:00:00"))
+                .andExpect(status().isOk());
+        
+        // Vérifier que la méthode du service est bien appelée
+        verify(taskService).planifyTask(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class));
+    }
+    
+    // NOUVEAU TEST POUR LA PLANIFICATION AUTOMATIQUE (Test du cas 2: First-Fit)
+    // ----------------------------------------------------------------------
+    @Test
+    void testPlanifyTask_AutomaticFirstFit() throws Exception {
+        // Le mock doit gérer les arguments null
+        when(taskService.planifyTask(eq(1L), eq(null), eq(null))) 
+                .thenReturn(task);
+
+        // Appel sans aucun paramètre 'param'
+        mockMvc.perform(post("/api/tasks/1/planify"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L));
+
+        // Vérifier que la méthode du service est appelée avec null pour les dates
+        // Remarque: L'appel MockMvc est converti en 'null' par Spring pour les @RequestParam(required = false) manquants.
+        verify(taskService).planifyTask(eq(1L), eq(null), eq(null));
+    }
     @Test
     void testUpdateTask() throws Exception {
         when(taskService.updateTask(eq(1L), any(Task.class))).thenReturn(task);

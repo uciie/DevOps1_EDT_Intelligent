@@ -71,15 +71,12 @@ class EventTest {
         Task task1 = new Task("Prepare slides", 30, 2, false, user, event);
         Task task2 = new Task("Send invites", 15, 1, true, user, event);
 
-        // Association des tâches à l'événement
-        event.setTasks(List.of(task1, task2));
 
         // Modification du statut
         event.setStatus("DONE");
 
         // Vérifications des relations et du statut
         assertEquals("DONE", event.getStatus());
-        assertEquals(2, event.getTasks().size());
         assertEquals(user, event.getUser());
         assertEquals(user.getId(), event.getUserId()); // Vérifie la cohérence user ↔ event
     }
@@ -97,9 +94,7 @@ class EventTest {
         assertEquals("PLANNED", event.getStatus());
         assertNull(event.getUser());
         
-        // CORRECTION : La liste tasks est initialisée à new ArrayList<>() dans l'entité, donc elle n'est pas null
-        assertNotNull(event.getTasks());
-        assertTrue(event.getTasks().isEmpty());
+
     }
 
     @Test

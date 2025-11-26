@@ -100,7 +100,7 @@ class DefaultScheduleOptimizerServiceTest {
     void testReshuffle_WithTaskAndNoTravelNeeded() {
         when(eventRepository.findById(100L)).thenReturn(Optional.of(cancelledEvent));
         
-        Task task = new Task("New Task", 45, 1, false, user);
+        Task task = new Task("New Task", 45, 1, false, user, (LocalDateTime) null);
         when(taskSelectionStrategy.selectTask(eq(1L), anyLong())).thenReturn(task);
 
         optimizerService.reshuffle(100L);
@@ -135,7 +135,7 @@ class DefaultScheduleOptimizerServiceTest {
         // Important : Mock doit répondre à n'importe quel appel
         when(travelTimeService.createTravelTime(any(), any(), any())).thenReturn(mockTravelTime);
 
-        Task task = new Task("Quick Task", 30, 1, false, user);
+        Task task = new Task("Quick Task", 30, 1, false, user, (LocalDateTime) null);
         when(taskSelectionStrategy.selectTask(eq(1L), anyLong())).thenReturn(task);
 
         // When
