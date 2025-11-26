@@ -18,7 +18,7 @@ export async function getUserTasks(userId) {
  */
 export async function createTask(taskData) {
   try {
-    const response = await api.post("/tasks", taskData);
+    const response = await api.post(`/tasks/user/${taskData.userId}`, taskData);
     return response.data;
   } catch (error) {
     console.error("Erreur lors de la création de la tâche:", error);
