@@ -18,7 +18,7 @@ public class ActivityLog {
     private Long userId;
 
     @Column(nullable = false)
-    private String activityType; // e.g., "work", "course"
+    private ActivityCategory activityType; // e.g., "work", "course"
 
     @Column(nullable = false)
     private LocalDateTime startTime;
@@ -34,8 +34,8 @@ public class ActivityLog {
     public void setId(Long id) { this.id = id; }
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
-    public String getActivityType() { return activityType; }
-    public void setActivityType(String activityType) { this.activityType = activityType; }
+    public ActivityCategory getActivityType() { return activityType; }
+    public void setActivityType(ActivityCategory activityType) { this.activityType = activityType; }
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
     public LocalDateTime getEndTime() { return endTime; }
