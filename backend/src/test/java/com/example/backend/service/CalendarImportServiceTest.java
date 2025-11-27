@@ -56,7 +56,9 @@ class CalendarImportServiceTest {
         );
 
         // Simule le parser
-        Event mockEvent = new Event("Test Event", null, null);
+        // constructeur Event(summary, start, end, user)
+        Event mockEvent = new Event("Test Event", null, null, null);
+        
         when(parser.parse(any(InputStream.class))).thenReturn(Collections.singletonList(mockEvent));
 
         // Appelle le service

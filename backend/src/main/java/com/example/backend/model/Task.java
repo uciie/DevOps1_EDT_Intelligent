@@ -1,6 +1,11 @@
 package com.example.backend.model;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 /**
@@ -14,6 +19,10 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private LocalDateTime deadline;
+    // Dans votre classe Task
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean late = false; 
 
     private String title;
     private int estimatedDuration; // en minutes
@@ -22,36 +31,42 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference("userTasks")
     private User user;
 
-    @OneToOne(mappedBy = "task")
-    @JsonBackReference
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id") // <-- Ceci crée la colonne FK dans la table Task
+    @JsonBackReference("taskEvent")
     private Event event; // ✅ Une tâche peut être liée à un seul événement
 
-    public Task() {}
+    public Task() {
 
-    public Task(String title, int estimatedDuration, int priority, boolean done, User user) {
+    }
+
+    public Task(String title, int estimatedDuration, int priority, boolean done, User user, LocalDateTime deadline ) {
         this.title = title;
         this.estimatedDuration = estimatedDuration;
         this.priority = priority;
         this.done = done;
         this.user = user;
+        this.deadline = deadline;
     }
 
     public Task(String title, int estimatedDuration, int priority, boolean done, User user, Event event) {
-    this.title = title;
-    this.estimatedDuration = estimatedDuration;
-    this.priority = priority;
-    this.done = done;
-    this.user = user;
-    this.event = event;
-}
-
-    
-
+        this.title = title;
+        this.estimatedDuration = estimatedDuration;
+        this.priority = priority;
+        this.done = done;
+        this.user = user;
+        this.event = event;
+    }
 
     public Long getId() {
         return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getTitle() {
@@ -90,6 +105,10 @@ public class Task {
         return user;
     }
 
+    public Long getUserId() {
+        return user != null ? user.getId() : null;
+    }
+
     public void setUser(User user) {
         this.user = user;
     }
@@ -98,7 +117,35 @@ public class Task {
         return event;
     }
 
+    public Long getEventId() {
+        return event != null ? event.getId() : null;
+    }
+
     public void setEvent(Event event) {
         this.event = event;
     }
+
+    
+
+    public boolean isLate() {
+        return late;
+    }
+
+    public void setLate(boolean late) {
+        this.late = late;
+    }
+
+    public LocalDateTime getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(LocalDateTime deadline) {
+        this.deadline = deadline;
+    }
+
+    // alias pour l'algo
+    public int getDuration() {
+        return estimatedDuration;
+    }
+
 }

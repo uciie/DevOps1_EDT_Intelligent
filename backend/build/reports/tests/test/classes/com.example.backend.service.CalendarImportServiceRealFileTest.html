@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - CalendarImportServiceRealFileTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>CalendarImportServiceRealFileTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.example.backend.service.html">com.example.backend.service</a> &gt; CalendarImportServiceRealFileTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">1</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">0.108s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a href="#">Tests</a>
+</li>
+<li>
+<a href="#">Standard output</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">testImportRealIcsFile()</td>
+<td class="success">0.108s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2025-11-27T23:32:15.038+01:00  INFO 26681 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.service.CalendarImportServiceRealFileTest]: CalendarImportServiceRealFileTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2025-11-27T23:32:15.054+01:00  INFO 26681 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.service.CalendarImportServiceRealFileTest
+2025-11-27T23:32:15.059+01:00  INFO 26681 --- [    Test worker] m.p.springdotenv.DotenvPropertySource    : Initialized Dotenv with DotenvConfig{directory=null, filename=null, ignoreIfMalformed=false, ignoreIfMissing=true, systemProperties=false, prefix=null}
+2025-11-27T23:32:15.085+01:00  INFO 26681 --- [    Test worker] .e.b.s.CalendarImportServiceRealFileTest : Starting CalendarImportServiceRealFileTest using Java 21.0.8 with PID 26681 (started by paul in /home/paul/FAC/M1/DevOps1_EDT_Intelligent/backend)
+2025-11-27T23:32:15.085+01:00  INFO 26681 --- [    Test worker] .e.b.s.CalendarImportServiceRealFileTest : The following 1 profile is active: &quot;default&quot;
+2025-11-27T23:32:15.159+01:00  INFO 26681 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-11-27T23:32:15.173+01:00  INFO 26681 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 13 ms. Found 6 JPA repository interfaces.
+2025-11-27T23:32:15.186+01:00  INFO 26681 --- [    Test worker] beddedDataSourceBeanFactoryPostProcessor : Replacing 'dataSource' DataSource bean with embedded version
+2025-11-27T23:32:15.198+01:00  INFO 26681 --- [    Test worker] o.s.j.d.e.EmbeddedDatabaseFactory        : Starting embedded database: url='jdbc:h2:mem:065c098f-f4d5-4b62-93ee-4ae4d1e2fec0;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false', username='sa'
+2025-11-27T23:32:15.218+01:00  INFO 26681 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-11-27T23:32:15.221+01:00  INFO 26681 --- [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-11-27T23:32:15.228+01:00  INFO 26681 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-11-27T23:32:15.229+01:00  WARN 26681 --- [    Test worker] org.hibernate.orm.deprecation            : HHH90000025: H2Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-11-27T23:32:15.230+01:00  INFO 26681 --- [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseFactory$EmbeddedDataSourceProxy@2e112e65']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-11-27T23:32:15.301+01:00  INFO 26681 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+Hibernate: drop table if exists activity_log cascade 
+Hibernate: drop table if exists event cascade 
+Hibernate: drop table if exists location cascade 
+Hibernate: drop table if exists task cascade 
+Hibernate: drop table if exists travel_time cascade 
+Hibernate: drop table if exists users cascade 
+Hibernate: create table activity_log (activity_type tinyint not null check (activity_type between 0 and 6), end_time timestamp(6) not null, event_id bigint, id bigint generated by default as identity, start_time timestamp(6) not null, user_id bigint not null, primary key (id))
+Hibernate: create table event (end_time timestamp(6), id bigint generated by default as identity, location_id bigint, start_time timestamp(6), task_id bigint unique, user_id bigint not null, status varchar(255), summary varchar(255), primary key (id))
+Hibernate: create table location (latitude float(53), longitude float(53), id bigint generated by default as identity, name varchar(200), address varchar(255) not null, primary key (id))
+Hibernate: create table task (done boolean not null, estimated_duration integer not null, late boolean default false not null, priority integer not null, deadline timestamp(6), event_id bigint unique, id bigint generated by default as identity, user_id bigint not null, title varchar(255), primary key (id))
+Hibernate: create table travel_time (distance_km float(53), duration_minutes integer not null, end_time timestamp(6), from_event_id bigint, id bigint generated by default as identity, start_time timestamp(6), to_event_id bigint, user_id bigint not null, mode enum ('CYCLING','DRIVING','TRANSIT','WALKING'), primary key (id))
+Hibernate: create table users (id bigint generated by default as identity, password varchar(255) not null, username varchar(255) not null unique, primary key (id))
+Hibernate: alter table if exists event add constraint FKbb6c0h5nhs5og47iem617ehrl foreign key (location_id) references location
+Hibernate: alter table if exists event add constraint FKpxqrrwy7eae3ulr9fj38cyc89 foreign key (task_id) references task
+Hibernate: alter table if exists event add constraint FK31rxexkqqbeymnpw4d3bf9vsy foreign key (user_id) references users
+Hibernate: alter table if exists task add constraint FKql5q2fsknlt9fb8db3j6gly51 foreign key (event_id) references event
+Hibernate: alter table if exists task add constraint FKbhwpp8tr117vvbxhf5sbkdkc9 foreign key (user_id) references users
+Hibernate: alter table if exists travel_time add constraint FK6b2a92adw6klhuiojyblnhwkg foreign key (from_event_id) references event
+Hibernate: alter table if exists travel_time add constraint FKe0lwkaukxtf6sun1bdifhnxdg foreign key (to_event_id) references event
+Hibernate: alter table if exists travel_time add constraint FKbnnd29dvhsv6iep2arw64ivq0 foreign key (user_id) references users
+2025-11-27T23:32:15.330+01:00  INFO 26681 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-11-27T23:32:15.428+01:00  INFO 26681 --- [    Test worker] .e.b.s.CalendarImportServiceRealFileTest : Started CalendarImportServiceRealFileTest in 0.371 seconds (process running for 16.894)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,task_id,user_id,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,task_id,user_id,id) values (?,?,?,?,?,?,?,default)
+Hibernate: select e1_0.id,e1_0.end_time,e1_0.location_id,e1_0.start_time,e1_0.status,e1_0.summary,e1_0.task_id,e1_0.user_id from event e1_0
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 8.14.3</a> at 27 nov. 2025, 23:32:18</p>
+</div>
+</div>
+</body>
+</html>

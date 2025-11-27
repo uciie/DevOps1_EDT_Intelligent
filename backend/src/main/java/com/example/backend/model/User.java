@@ -3,6 +3,9 @@ package com.example.backend.model;
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 /**
  * Représente un utilisateur de l'application.
  * Un utilisateur a un nom d'utilisateur unique, un mot de passe, et des listes d'événements et de tâches associés.
@@ -21,9 +24,11 @@ public class User {
     private String password;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("userEvents")
     private List<Event> events;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("userTasks")
     private List<Task> tasks;
 
     /**
@@ -34,12 +39,34 @@ public class User {
     /**
      * Construit un nouvel utilisateur avec le nom d'utilisateur et le mot de passe donnés.
      *
-     * @param username le nom d'utilisateur.
-     * @param password le mot de passe.
+     * @param username le nom d'utilisateur (non-null, non-vide)
+     * @param password le mot de passe (non-null, peut être vide)
+     * @throws IllegalArgumentException si le nom d'utilisateur est nul ou vide, ou si le mot de passe est null.
      */
     public User(String username, String password) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("username ne doit pas être vide");
+        }
+        if (password == null) {
+            throw new IllegalArgumentException("password ne doit pas être null");
+        }
         this.username = username;
         this.password = password;
+    }
+
+    @Override
+    public int hashCode() {
+        return username.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+
+        User user = (User) obj;
+
+        return username != null ? username.equals(user.username) : user.username == null;
     }
 
     public Long getId() { return id; }

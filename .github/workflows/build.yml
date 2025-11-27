@@ -29,6 +29,13 @@ jobs:
       VITE_API_URL: http://localhost:8080/api
       BACKEND_URL: http://localhost:8080
 
+      # Token SonarCloud
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_USER_HOME: ~/.sonar
+
+      # Google Maps API Key
+      GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+
     steps:
       # ----------------------
       # 1. Checkout du code
@@ -52,7 +59,7 @@ jobs:
         working-directory: ./backend
         run: |
           chmod +x gradlew
-          ./gradlew clean assemble -x test --no-daemon
+          ./gradlew clean assemble -x test --no-daemon --refresh-dependencies
 
       # ----------------------
       # 4. Setup Node (frontend)

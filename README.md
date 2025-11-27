@@ -88,7 +88,10 @@ cd DevOps1_EDT_Intelligent
 # fichier .env
 DB_URL=jdbc:postgresql://ep-autumn-wind-abwdkup1-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require
 DB_USER=neondb_owner
-DB_PASSWORD=npg_5Vx0NjUkQYun
+DB_PASSWORD=npg_QezZmuhtJ17I
+GOOGLE_MAPS_INTEGRATION_TESTS=true
+GOOGLE_MAPS_API_KEY= # Merci de contacter @uciie pour l'obtention de la clé
+SPRING_PROFILES=external-api
 ```
 ---
 
@@ -147,6 +150,8 @@ L’interface sera accessible sur [http://localhost:5173](http://localhost:5173)
 
 
 > Projet académique open-source — *Smart Scheduler* © 2025
+
+
 
 
 

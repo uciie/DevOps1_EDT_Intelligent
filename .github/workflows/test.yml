@@ -23,6 +23,9 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_USER_HOME: ~/.sonar
 
+      # Google Maps API Key
+      GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+
     steps:
       # 1️⃣ Checkout du dépôt
       - name: Checkout repository

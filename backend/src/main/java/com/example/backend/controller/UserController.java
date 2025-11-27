@@ -2,14 +2,17 @@ package com.example.backend.controller;
 
 import com.example.backend.model.User;
 import com.example.backend.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Contrôleur pour la gestion des utilisateurs.
- * Fournit des points de terminaison pour l'enregistrement et la récupération des utilisateurs.
+ * Fournit des points de terminaison pour l'enregistrement, la connexion et la récupération des utilisateurs.
  */
 @RestController
 @RequestMapping("/api/users")
@@ -28,29 +31,89 @@ public class UserController {
     }
 
     /**
+     * POST /api/users/login
+     * Body: { "username": "...", "password": "..." }
+     * 
+     * @param credentials Map contenant username et password
+     * @return ResponseEntity avec l'utilisateur ou une erreur
+     */
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
+        String username = credentials.get("username");
+        String password = credentials.get("password");
+
+        // Validation
+        if (username == null || username.trim().isEmpty()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Username requis");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+
+        if (password == null || password.trim().isEmpty()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Password requis");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+
+        // Authentification via le service
+        User user = userService.authenticate(username, password);
+
+        if (user == null) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Identifiants incorrects");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+        }
+
+        // Succès: retourner l'utilisateur SANS le mot de passe
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
+        response.put("username", user.getUsername());
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * Enregistre un nouvel utilisateur.
      *
      * @param user l'utilisateur à enregistrer.
      * @return une ResponseEntity contenant l'utilisateur nouvellement créé ou une erreur si l'enregistrement échoue.
      */
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
+    public ResponseEntity<?> register(@RequestBody User user) {
         try {
             User newUser = userService.registerUser(user.getUsername(), user.getPassword());
-            newUser.setPassword(null); // on ne renvoie pas le mot de passe
-            return ResponseEntity.ok(newUser);
+            
+            // Retourner sans le mot de passe
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", newUser.getId());
+            response.put("username", newUser.getUsername());
+            
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(null);
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
         }
     }
 
     /**
-     * Récupère tous les utilisateurs.
-     *
-     * @return une liste de tous les utilisateurs.
+     * Récupère tous les utilisateurs (ID et Username uniquement).
      */
     @GetMapping
-    public List<User> getAll() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<Map<String, Object>>> getAll() {
+        List<User> users = userService.getAllUsers();
+        
+        // On transforme la liste d'utilisateurs en liste de Maps simplifiées
+        List<Map<String, Object>> simpleUsers = users.stream()
+            .map(user -> {
+                Map<String, Object> userMap = new HashMap<>();
+                userMap.put("id", user.getId());
+                userMap.put("username", user.getUsername());
+                // On n'ajoute PAS events ni tasks ici
+                return userMap;
+            })
+            .toList(); // Ou .collect(Collectors.toList()) pour les vieilles versions de Java
+        
+        return ResponseEntity.ok(simpleUsers);
     }
 }

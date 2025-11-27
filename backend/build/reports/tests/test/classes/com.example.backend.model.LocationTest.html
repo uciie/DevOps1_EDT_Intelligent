@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - LocationTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>LocationTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.example.backend.model.html">com.example.backend.model</a> &gt; LocationTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">29</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">0.022s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a href="#">Tests</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Method name</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">Constructeur avec adresse complète uniquement</td>
+<td class="success">testConstructor_AddressOnly()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Créer une location avec GPS puis ajouter adresse et nom</td>
+<td class="success">testConstructor_GPSThenAddressAndName()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Constructeur avec coordonnées GPS uniquement</td>
+<td class="success">testConstructor_WithCoordinates()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Coordonnées aux limites géographiques</td>
+<td class="success">testCoordinatesAtGeographicLimits()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Modification des coordonnées via setters</td>
+<td class="success">testCoordinatesSetters()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getDisplayName retourne le nom si défini</td>
+<td class="success">testGetDisplayName_WithName()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getDisplayName retourne l'adresse courte si pas de nom</td>
+<td class="success">testGetDisplayName_WithoutName()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getFullDescription contient toutes les informations</td>
+<td class="success">testGetFullDescription_Complete()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getFullDescription avec GPS uniquement</td>
+<td class="success">testGetFullDescription_WithGPSOnly()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">getFullDescription sans coordonnées</td>
+<td class="success">testGetFullDescription_WithoutCoordinates()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Méthode hasCoordinates retourne true si les deux coordonnées sont définies</td>
+<td class="success">testHasCoordinates_BothCoordinatesSet()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Méthode hasCoordinates retourne false si latitude est nulle</td>
+<td class="success">testHasCoordinates_NullLatitude()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Méthode hasCoordinates retourne false si longitude est nulle</td>
+<td class="success">testHasCoordinates_NullLongitude()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Setter d'ID fonctionne correctement</td>
+<td class="success">testIdSetter()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">L'ID est null avant la persistance</td>
+<td class="success">testId_NullBeforePersistence()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Setter et getter pour le nom de la localisation</td>
+<td class="success">testNameSetterAndGetter()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Coordonnées négatives sont acceptées</td>
+<td class="success">testNegativeCoordinates()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Modification de l'adresse via setter valide la nouvelle adresse</td>
+<td class="success">testSetAddress_ValidatesNewAddress()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Modification de latitude via setter valide la coordonnée</td>
+<td class="success">testSetLatitude_ValidatesCoordinate()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Modification de longitude via setter valide la coordonnée</td>
+<td class="success">testSetLongitude_ValidatesCoordinate()</td>
+<td class="success">0.004s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">toString contient les informations principales</td>
+<td class="success">testToString()</td>
+<td class="success">0.003s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Validation - Adresse trop courte est rejetée</td>
+<td class="success">testValidation_AddressTooShort()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Validation - Adresse sans virgule est rejetée</td>
+<td class="success">testValidation_AddressWithoutComma()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Validation - Adresse vide est rejetée</td>
+<td class="success">testValidation_EmptyAddress()</td>
+<td class="success">0s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Validation - Latitude invalide (&gt; 90)</td>
+<td class="success">testValidation_LatitudeTooHigh()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Validation - Latitude invalide (&lt; -90)</td>
+<td class="success">testValidation_LatitudeTooLow()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Validation - Longitude invalide (&gt; 180)</td>
+<td class="success">testValidation_LongitudeTooHigh()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Validation - Longitude invalide (&lt; -180)</td>
+<td class="success">testValidation_LongitudeTooLow()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Validation - Adresse null est rejetée</td>
+<td class="success">testValidation_NullAddress()</td>
+<td class="success">0.001s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 8.14.3</a> at 27 nov. 2025, 23:32:18</p>
+</div>
+</div>
+</body>
+</html>

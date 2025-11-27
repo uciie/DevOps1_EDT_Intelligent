@@ -13,7 +13,7 @@ globalThis.fetch = vi.fn(() =>
 describe("App component", () => {
   it("renders the main heading", () => {
     render(<App />);
-    const heading = screen.getByText(/EDT intelligent/i);
+    const heading = screen.getByRole("heading", { name: /bienvenue sur edt intelligent/i });
     expect(heading).toBeInTheDocument();
   });
 });

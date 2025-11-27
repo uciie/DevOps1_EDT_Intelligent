@@ -1,6 +1,11 @@
 # backend
 /backend/.gradle/
-/backend/build/
+/backend/build/classes/
+/backend/build/generated/
+/backend/build/libs
+/backend/build/resources/
+/backend/build/test-results/
+/backend/build/tmp/
 /backend/out/
 /backend/.idea/
 /backend/.vscode/
