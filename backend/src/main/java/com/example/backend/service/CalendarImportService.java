@@ -1,5 +1,5 @@
 package com.example.backend.service;
-
+import com.example.backend.model.User;
 import com.example.backend.model.Event;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.service.parser.ICalendarParser;
@@ -20,9 +20,15 @@ public class CalendarImportService {
         this.parser = parser;
     }
 
-    public int importCalendar(MultipartFile file) throws IOException {
+    
+
+    public List<Event> importCalendar(MultipartFile file, User user) throws IOException {
         List<Event> events = parser.parse(file.getInputStream());
+        // assigner l'utilisateur à chaque événement
+        for (Event event : events) {
+            event.setUser(user);
+        }
         eventRepository.saveAll(events);
-        return events.size();
+        return events;
     }
 }
