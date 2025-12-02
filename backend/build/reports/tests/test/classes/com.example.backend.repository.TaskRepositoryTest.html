@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - TaskRepositoryTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>TaskRepositoryTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.example.backend.repository.html">com.example.backend.repository</a> &gt; TaskRepositoryTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">16</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">0.257s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="tab-container">
+<ul class="tabLinks">
+<li>
+<a href="#">Tests</a>
+</li>
+<li>
+<a href="#">Standard output</a>
+</li>
+</ul>
+<div class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Method name</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">Suppression d'une tâche</td>
+<td class="success">testDeleteTask()</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Tâches terminées et non terminées pour le même utilisateur</td>
+<td class="success">testDoneAndUndoneTasks()</td>
+<td class="success">0.014s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Récupération de toutes les tâches</td>
+<td class="success">testFindAll()</td>
+<td class="success">0.016s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Recherche des tâches par utilisateur</td>
+<td class="success">testFindByUser_Id()</td>
+<td class="success">0.022s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Recherche retourne liste vide pour utilisateur sans tâches</td>
+<td class="success">testFindByUser_Id_EmptyList()</td>
+<td class="success">0.012s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Plusieurs tâches avec différentes priorités</td>
+<td class="success">testMultipleTasksWithDifferentPriorities()</td>
+<td class="success">0.016s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Sauvegarde et récupération d'une tâche</td>
+<td class="success">testSaveAndFindTask()</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Tâche avec événement associé</td>
+<td class="success">testTaskWithEvent()</td>
+<td class="success">0.017s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Tâche avec titre très long</td>
+<td class="success">testTaskWithLongTitle()</td>
+<td class="success">0.014s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Tâche avec priorité négative</td>
+<td class="success">testTaskWithNegativePriority()</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Tâche avec durée estimée zéro</td>
+<td class="success">testTaskWithZeroDuration()</td>
+<td class="success">0.011s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Tâche sans événement associé</td>
+<td class="success">testTaskWithoutEvent()</td>
+<td class="success">0.010s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Modification de la durée estimée</td>
+<td class="success">testUpdateEstimatedDuration()</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Mise à jour de la priorité</td>
+<td class="success">testUpdatePriority()</td>
+<td class="success">0.044s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Mise à jour du statut d'une tâche</td>
+<td class="success">testUpdateTaskStatus()</td>
+<td class="success">0.016s</td>
+<td class="success">passed</td>
+</tr>
+<tr>
+<td class="success">Modification du titre</td>
+<td class="success">testUpdateTitle()</td>
+<td class="success">0.013s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2025-11-27T23:32:14.234+01:00  INFO 26681 --- [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.example.backend.repository.TaskRepositoryTest]: TaskRepositoryTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2025-11-27T23:32:14.243+01:00  INFO 26681 --- [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.example.backend.BackendApplication for test class com.example.backend.repository.TaskRepositoryTest
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: update task set deadline=?,done=?,estimated_duration=?,event_id=?,late=?,priority=?,title=?,user_id=? where id=?
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: update task set deadline=?,done=?,estimated_duration=?,event_id=?,late=?,priority=?,title=?,user_id=? where id=?
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id from task t1_0
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id from task t1_0 left join users u1_0 on u1_0.id=t1_0.user_id where u1_0.id=?
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id from task t1_0 left join users u1_0 on u1_0.id=t1_0.user_id where u1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: update task set deadline=?,done=?,estimated_duration=?,event_id=?,late=?,priority=?,title=?,user_id=? where id=?
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id from task t1_0 left join users u1_0 on u1_0.id=t1_0.user_id where u1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into event (end_time,location_id,start_time,status,summary,task_id,user_id,id) values (?,?,?,?,?,?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: delete from task where id=?
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id from task t1_0 left join users u1_0 on u1_0.id=t1_0.user_id where u1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id from task t1_0 left join users u1_0 on u1_0.id=t1_0.user_id where u1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: update task set deadline=?,done=?,estimated_duration=?,event_id=?,late=?,priority=?,title=?,user_id=? where id=?
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into users (password,username,id) values (?,?,default)
+Hibernate: insert into task (deadline,done,estimated_duration,event_id,late,priority,title,user_id,id) values (?,?,?,?,?,?,?,?,default)
+Hibernate: select t1_0.id,t1_0.deadline,t1_0.done,t1_0.estimated_duration,t1_0.event_id,t1_0.late,t1_0.priority,t1_0.title,t1_0.user_id,u1_0.id,u1_0.password,u1_0.username from task t1_0 join users u1_0 on u1_0.id=t1_0.user_id where t1_0.id=?
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="https://www.gradle.org">Gradle 8.14.3</a> at 27 nov. 2025, 23:32:18</p>
+</div>
+</div>
+</body>
+</html>

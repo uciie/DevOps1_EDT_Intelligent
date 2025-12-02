@@ -15,7 +15,6 @@ import java.util.List;
 
 /**
  * Implémentation du parser pour fichiers ICS (.ics) utilisant Biweekly.
- * Respecte le principe SOLID : responsabilité unique de parser un flux ICS en Event.
  */
 @Component
 public class BiweeklyCalendarParser implements ICalendarParser {

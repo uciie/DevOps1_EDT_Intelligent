@@ -14,6 +14,18 @@
   color: white;
   box-shadow: var(--shadow-md);
   animation: fadeIn 0.5s ease;
+
+  /* AJOUTS FLEXBOX POUR L'ALIGNEMENT */
+  display: flex;
+  justify-content: space-between; /* Texte à gauche, Event à droite */
+  align-items: center;          /* Centrage vertical */
+  flex-wrap: wrap;              /* Permet de passer à la ligne sur mobile */
+  gap: var(--space-4);
+}
+
+.welcome-text {
+  flex: 1;
+  min-width: 280px; /* Largeur minimale pour la lisibilité */
 }
 
 .schedule-welcome h1 {
@@ -28,6 +40,24 @@
   font-size: var(--text-lg);
   opacity: 0.95;
   font-weight: 500;
+}
+
+/* Style pour le conteneur de l'Event à droite */
+.welcome-event-action {
+  flex-shrink: 0; /* Empêche le composant de s'écraser */
+}
+
+/* Adaptation Responsive */
+@media (max-width: 768px) {
+  .schedule-welcome {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .welcome-event-action {
+    width: 100%;
+    margin-top: var(--space-4);
+  }
 }
 
 .schedule-content {
