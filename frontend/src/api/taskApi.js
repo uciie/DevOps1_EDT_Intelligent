@@ -18,7 +18,7 @@ export async function getUserTasks(userId) {
  */
 export async function createTask(taskData) {
   try {
-    const response = await api.post("/tasks", taskData);
+    const response = await api.post(`/tasks/user/${taskData.userId}`, taskData);
     return response.data;
   } catch (error) {
     console.error("Erreur lors de la création de la tâche:", error);
@@ -47,6 +47,27 @@ export async function deleteTask(taskId) {
     await api.delete(`/tasks/${taskId}`);
   } catch (error) {
     console.error("Erreur lors de la suppression de la tâche:", error);
+    throw error;
+  }
+}
+
+/**
+ * Planifie une tâche.
+ * Pour le Drag & Drop automatique (First-Fit), passez start=null et end=null.
+ */
+export async function planifyTask(taskId, start, end) {
+  try {
+    // IMPORTANT : On utilise POST car le contrôleur a @PostMapping
+    // Le 2ème argument est le body (null ici), le 3ème contient les query params
+    const response = await api.post(`/tasks/${taskId}/planify`, null, {
+      params: {
+        start: start, // Axios gère les dates ou les nulls
+        end: end
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la planification de la tâche:", error);
     throw error;
   }
 }

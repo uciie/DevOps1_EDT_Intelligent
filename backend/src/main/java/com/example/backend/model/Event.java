@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 /**
@@ -37,7 +38,9 @@ public class Event {
 
     @OneToOne
     @JoinColumn(name = "task_id", nullable = true)
-    @JsonManagedReference("taskEvent")
+    //@JsonManagedReference("taskEvent")
+    @JsonIgnoreProperties("event")
+    
     private Task task; // ✅ une tâche associée (facultative)
 
     public Event(String summary, LocalDateTime startTime, LocalDateTime endTime) {

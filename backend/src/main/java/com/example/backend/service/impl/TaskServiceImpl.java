@@ -117,6 +117,10 @@ public Task planifyTask(Long taskId, LocalDateTime start, LocalDateTime end) {
     }
     // -------------------------------------------------------------
 
+    System.out.println("DEBUG PLANIFICATION: Tâche ID " + taskId + 
+                       " planifiée. Start: " + start + 
+                       ", End: " + end);
+                       
     // Crée un nouvel événement à partir de la tâche (utilise les 'start' et 'end' trouvés ou fournis)
     Event event = new Event(
             task.getTitle(),

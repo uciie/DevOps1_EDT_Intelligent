@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Calendar from '../components/Calendar';
 import TodoList from '../components/TodoList';
 import { getCurrentUser } from '../api/authApi';
-import { getUserTasks, createTask, updateTask, deleteTask } from '../api/taskApi';
+import { getUserTasks, createTask, updateTask, deleteTask, planifyTask } from '../api/taskApi';
 import '../styles/pages/SchedulePage.css';
 
 function SchedulePage() {
@@ -128,43 +128,50 @@ function SchedulePage() {
     }
   };
 
-  const handleDropTaskOnCalendar = async (taskId, day, hour) => {
-    try {
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
+const handleDropTaskOnCalendar = async (taskId, day, hour) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
 
-      const startTime = new Date(day);
-      startTime.setHours(hour, 0, 0, 0);
+      // 1. Ne pas calculer startTime et endTime.
+      // Le paramètre 'day' est souvent nécessaire pour le frontend pour savoir quel jour l'utilisateur regarde.
+      // Cependant, nous allons ignorer l'heure et la date précises du drop pour le backend.
       
-      const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + (task.durationMinutes || 60));
+      // 2. Appeler le service backend 'planifyTask' avec NULL pour déclencher la logique First-Fit.
+      // NOTE: Assurez-vous que planifyTask dans taskApi.js gère le passage de null (voir étape 1 ci-dessous).
+      const plannedTask = await planifyTask(taskId, null, null); // <== CLÉ DE LA CORRECTION
 
+      // 3. Mettre à jour les états locaux avec la réponse du backend
+      
+      // La Task mise à jour
+      setTasks(tasks.map(t => t.id === taskId ? plannedTask : t));
+
+      // L'Event créé (doit contenir les dates calculées par le First-Fit)
+      if (!plannedTask.event) {
+          throw new Error("Le service de planification n'a pas retourné l'événement créé.");
+      }
+      
       const newEvent = {
-        id: `event-${Date.now()}`,
-        taskId: task.id,
-        title: task.title,
-        startTime: startTime.toISOString(),
-        endTime: endTime.toISOString(),
-        priority: task.priority,
-        day: day.toISOString().split('T')[0],
-        hour: hour
+        id: plannedTask.event.id,
+        taskId: plannedTask.id, 
+        title: plannedTask.title,
+        // Utiliser les heures calculées par le backend
+        startTime: plannedTask.event.startTime, 
+        endTime: plannedTask.event.endTime,
+        priority: plannedTask.priority,
+        // Calculer les propriétés 'day' et 'hour' à partir du résultat du backend pour le Calendar
+        day: new Date(plannedTask.event.startTime).toISOString().split('T')[0],
+        hour: new Date(plannedTask.event.startTime).getHours()
       };
-
-      const updatedTask = {
-        ...task,
-        scheduledTime: startTime.toISOString()
-      };
-
-      await updateTask(taskId, updatedTask);
       
+      // Ajout du nouvel événement au calendrier
       setEvents([...events, newEvent]);
-      setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
-      
-    } catch (err) {
-      console.error("Erreur lors de la planification de la tâche:", err);
-      setError("Impossible de planifier la tâche");
-    }
-  };
+      
+    } catch (err) {
+      console.error("Erreur lors de la planification automatique de la tâche:", err);
+      setError("Impossible de planifier la tâche automatiquement");
+    }
+  };
 
   const handleDeleteEvent = (eventId) => {
     try {
