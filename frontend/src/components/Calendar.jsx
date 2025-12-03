@@ -4,7 +4,7 @@ import { ITEM_TYPES } from './TodoList';
 import '../styles/components/Calendar.css';
 
 // Composant pour une cellule de calendrier qui peut recevoir des tâches
-function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent }) {
+function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick }) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ITEM_TYPES.TASK,
     drop: (item) => {
@@ -15,8 +15,8 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent }) {
     }),
   }), [day, hour]);
 
-  // Filtrer les événements pour cette cellule
   const cellEvents = events.filter(event => {
+    if (!event.day) return false;
     const eventDate = new Date(event.day);
     return (
       eventDate.toDateString() === day.toDateString() &&
@@ -29,18 +29,30 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent }) {
       ref={drop}
       className={`calendar-cell ${isOver ? 'drop-target' : ''}`}
     >
+      {/* Zone pour cliquer et ajouter un événement */}
+      <button
+        className="ghost-button"
+        onClick={() => onAddClick(day, hour)}
+        title="Ajouter un événement"
+      >
+        <span className="ghost-icon">+</span>
+      </button>
+
+      {/* Affichage des événements existants par dessus le bouton */}
       {cellEvents.map((event) => (
         <div
           key={event.id}
-          className={`calendar-event priority-${event.priority}`}
+          className="calendar-event"
+          style={{ 
+            // Application de la couleur de catégorie si disponible (Doit rester inline car dynamique)
+            borderLeftColor: event.color || '#3b82f6',
+            backgroundColor: event.color ? `${event.color}15` : '#eeffff' // Légère transparence
+          }}
         >
           <div className="event-content">
-            <div className="event-title">{event.title}</div>
+            <div className="event-title">{event.summary || event.title || "Sans titre"}</div>
             <div className="event-time">
               {new Date(event.startTime).toLocaleTimeString('fr-FR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-              })} - {new Date(event.endTime).toLocaleTimeString('fr-FR', { 
                 hour: '2-digit', 
                 minute: '2-digit' 
               })}
@@ -48,8 +60,10 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent }) {
           </div>
           <button
             className="btn-delete-event"
-            onClick={() => onDeleteEvent(event.id)}
-            aria-label="Supprimer l'événement"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteEvent(event.id);
+            }}
           >
             ×
           </button>
@@ -59,7 +73,7 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent }) {
   );
 }
 
-export default function Calendar({ events, onDropTask, onDeleteEvent, onMoveEvent }) {
+export default function Calendar({ events, onDropTask, onDeleteEvent, onAddEventRequest }) {
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     const day = today.getDay();
@@ -78,10 +92,34 @@ export default function Calendar({ events, onDropTask, onDeleteEvent, onMoveEven
     return days;
   };
 
-  // Heures de 8h à 20h
-  const hours = Array.from({ length: 13 }, (_, i) => i + 8);
-
+  // Récupère les jours de la semaine actuelle
   const days = getDaysOfWeek();
+
+  // Calcule l'heure de début basée sur les événements de la semaine visible
+  const startHour = (() => {
+    // 1. On filtre pour ne garder que les événements de la semaine affichée
+    const eventsInCurrentWeek = events.filter(event => {
+      if (!event.startTime) return false;
+      const eventDate = new Date(event.startTime);
+      // On regarde si la date de l'événement correspond à un des jours affichés
+      return days.some(day => day.toDateString() === eventDate.toDateString());
+    });
+
+    // 2. S'il n'y a aucun événement cette semaine, on commence à 8h par défaut
+    if (eventsInCurrentWeek.length === 0) return 8;
+
+    // 3. Sinon, on trouve l'heure minimale (minHour)
+    const hoursInWeek = eventsInCurrentWeek.map(e => new Date(e.startTime).getHours());
+    const minHour = Math.min(...hoursInWeek);
+
+    // Optionnel : On peut ajouter une marge (padding) pour ne pas coller l'événement tout en haut
+    // Par exemple : Math.max(0, minHour - 1); -> commencer 1h avant le premier événement
+    return minHour; 
+  })();
+
+  // Génère les heures de 'startHour' jusqu'à 23h (fin de journée)
+  // 24 - startHour donne le nombre d'heures restantes
+  const hours = Array.from({ length: 24 - startHour }, (_, i) => i + startHour);
 
   const goToPreviousWeek = () => {
     const newDate = new Date(currentWeekStart);
@@ -120,13 +158,13 @@ export default function Calendar({ events, onDropTask, onDeleteEvent, onMoveEven
       <div className="calendar-header">
         <div className="calendar-nav">
           <button className="btn-nav" onClick={goToPreviousWeek} aria-label="Semaine précédente">
-            ‹
+            {'<'}
           </button>
           <button className="btn-today" onClick={goToToday}>
             Aujourd'hui
           </button>
           <button className="btn-nav" onClick={goToNextWeek} aria-label="Semaine suivante">
-            ›
+            {'>'}
           </button>
         </div>
         <div className="current-week">{formatWeekRange()}</div>
@@ -147,12 +185,7 @@ export default function Calendar({ events, onDropTask, onDeleteEvent, onMoveEven
         {/* Grille avec heures et cellules */}
         {hours.map((hour) => (
           <div key={`hour-${hour}`} style={{ display: 'contents' }}>
-            {/* Label de l'heure */}
-            <div className="time-label">
-              {`${hour}:00`}
-            </div>
-
-            {/* Cellules pour chaque jour */}
+            <div className="time-label">{`${hour}:00`}</div>
             {days.map((day, dayIndex) => (
               <CalendarCell
                 key={`cell-${hour}-${dayIndex}`}
@@ -161,6 +194,7 @@ export default function Calendar({ events, onDropTask, onDeleteEvent, onMoveEven
                 events={events}
                 onDropTask={onDropTask}
                 onDeleteEvent={onDeleteEvent}
+                onAddClick={onAddEventRequest} // On passe la fonction de callback ici
               />
             ))}
           </div>

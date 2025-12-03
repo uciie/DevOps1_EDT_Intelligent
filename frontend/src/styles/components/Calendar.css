@@ -143,9 +143,11 @@
   transition: all var(--transition-fast);
 }
 
+/*
 .calendar-cell:hover {
   background: var(--primary-50);
 }
+*/
 
 .calendar-cell.drop-target {
   background: linear-gradient(135deg, var(--primary-100) 0%, var(--accent-100) 100%);
@@ -153,41 +155,51 @@
   animation: pulse 1s ease infinite;
 }
 
-.calendar-event {
+/* --- GHOST BUTTON / ADD EVENT OVERLAY --- */
+.ghost-button {
   position: absolute;
-  left: 2px;
-  right: 2px;
-  border-radius: var(--radius-md);
-  padding: var(--space-2);
-  cursor: move;
-  transition: all var(--transition-base);
-  overflow: hidden;
+  inset: 0; /* top:0, right:0, bottom:0, left:0 */
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0,0,0,0.02);
+  transition: opacity 0.2s;
+  border: none;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Afficher le bouton au survol de la cellule, mais pas s'il y a déjà des événements au dessus qui masquent */
+.calendar-cell:hover .ghost-button {
+  opacity: 1;
+}
+
+.ghost-icon {
+  font-size: 1.5rem;
+  color: #9ca3af;
+}
+
+/* Assurez-vous que les events passent au-dessus du bouton ghost */
+.calendar-event {
+  z-index: 10;
+  position: relative; /* Nécessaire pour le z-index */
+  /* Styles de base de l'événement */
   border-left: 3px solid;
-  box-shadow: var(--shadow-sm);
-}
-
-.calendar-event.priority-1 {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(5, 150, 105, 0.9) 100%);
-  border-left-color: var(--success);
-  color: white;
-}
-
-.calendar-event.priority-2 {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(217, 119, 6, 0.9) 100%);
-  border-left-color: var(--warning);
-  color: white;
-}
-
-.calendar-event.priority-3 {
-  background: linear-gradient(135deg, rgba(255, 136, 68, 0.9) 0%, rgba(204, 109, 54, 0.9) 100%);
-  border-left-color: var(--accent-500);
-  color: white;
+  margin: 1px;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
 }
 
 .calendar-event:hover {
   transform: scale(1.02);
   box-shadow: var(--shadow-md);
-  z-index: 5;
+  z-index: 20; /* Passe au dessus des autres au survol */
 }
 
 .event-title {

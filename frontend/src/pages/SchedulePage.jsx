@@ -28,7 +28,26 @@ function SchedulePage() {
         setCurrentUser(user);
         const userTasks = await getUserTasks(user.id);
         setTasks(userTasks || []);
-        setEvents([]);
+        
+        // CORRECTION ICI : On extrait les événements des tâches chargées
+        const loadedEvents = (userTasks || [])
+          .filter(task => task.event) // On garde seulement les tâches planifiées
+          .map(task => {
+            const startDate = new Date(task.event.startTime);
+            return {
+              id: task.event.id,
+              taskId: task.id,
+              title: task.title,
+              startTime: task.event.startTime,
+              endTime: task.event.endTime,
+              priority: task.priority,
+              // On calcule les propriétés requises par votre Calendar.jsx
+              day: startDate.toISOString().split('T')[0], // Format YYYY-MM-DD
+              hour: startDate.getHours()
+            };
+          });
+
+        setEvents(loadedEvents); // On met à jour l'état avec les événements existants
         
       } catch (err) {
         console.error("Erreur lors du chargement des données:", err);
