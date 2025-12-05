@@ -92,6 +92,11 @@
   min-height: 0;
 }
 
+/* Nouvelle classe pour remplacer le style inline "display: contents" */
+.calendar-hour-row {
+  display: contents;
+}
+
 .day-header {
   background: white;
   padding: var(--space-4);
@@ -141,24 +146,22 @@
   min-height: 60px;
   position: relative;
   transition: all var(--transition-fast);
+  /* Permet aux événements de déborder sur les heures suivantes */
+  overflow: visible !important;
+  padding: 0 !important;
+  border-right: 1px solid var(--neutral-200);
+  border-bottom: 1px solid var(--neutral-200);
 }
-
-/*
-.calendar-cell:hover {
-  background: var(--primary-50);
-}
-*/
 
 .calendar-cell.drop-target {
   background: linear-gradient(135deg, var(--primary-100) 0%, var(--accent-100) 100%);
-  border: 2px dashed var(--primary-500);
   animation: pulse 1s ease infinite;
 }
 
-/* --- GHOST BUTTON / ADD EVENT OVERLAY --- */
+/* --- GHOST BUTTON --- */
 .ghost-button {
   position: absolute;
-  inset: 0; /* top:0, right:0, bottom:0, left:0 */
+  inset: 0;
   width: 100%;
   height: 100%;
   opacity: 0;
@@ -169,10 +172,9 @@
   transition: opacity 0.2s;
   border: none;
   cursor: pointer;
-  z-index: 1;
+  z-index: 0; 
 }
 
-/* Afficher le bouton au survol de la cellule, mais pas s'il y a déjà des événements au dessus qui masquent */
 .calendar-cell:hover .ghost-button {
   opacity: 1;
 }
@@ -182,76 +184,129 @@
   color: #9ca3af;
 }
 
-/* Assurez-vous que les events passent au-dessus du bouton ghost */
-.calendar-event {
-  z-index: 10;
-  position: relative; /* Nécessaire pour le z-index */
-  /* Styles de base de l'événement */
-  border-left: 3px solid;
-  margin: 1px;
-  padding: 4px;
+/* --- STYLE BLOC PLEIN (EVENTS) --- */
+
+.calendar-event-block {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%; /* Prend toute la largeur */
+  
+  /* Style visuel de base */
+  padding: 4px 6px;
   border-radius: 4px;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  cursor: pointer;
+  
+  /* Mise en page interne */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 2px;
+  box-sizing: border-box;
+  overflow: hidden;
+  
+  /* Transitions et Superposition */
+  transition: transform 0.1s ease, box-shadow 0.1s;
+  z-index: 50; /* Valeur par défaut déplacée ici */
+  
+  /* Séparation visuelle fine */
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+}
+
+/* --- STYLE BLOC AVEC BARRE LATÉRALE --- */
+
+.calendar-event-block {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  
+  /* Style visuel : Fond clair et bordure gauche */
+  background-color: #EFF6FF; /* Fond bleu très clair */
+  border-left: 4px solid;    /* La couleur sera définie dans le JS */
+  border-radius: 4px;
+  
+  /* Padding et espacement */
+  padding: 4px 8px;
+  box-sizing: border-box;
+  
+  /* Ombre et curseur */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   cursor: pointer;
   overflow: hidden;
-  transition: all 0.2s ease;
+  
+  /* Transitions et Superposition */
+  transition: transform 0.1s ease, box-shadow 0.1s;
+  z-index: 50;
+  
+  /* Flex pour le contenu */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 2px;
+  
+  /* Séparation fine entre blocs */
+  border-bottom: 1px solid white;
 }
 
-.calendar-event:hover {
-  transform: scale(1.02);
-  box-shadow: var(--shadow-md);
-  z-index: 20; /* Passe au dessus des autres au survol */
+.calendar-event-block:hover {
+  transform: scale(1.01); /* Léger effet au survol */
+  z-index: 100 !important;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  background-color: #DBEAFE; /* Fond légèrement plus foncé au survol */
 }
 
-.event-title {
+/* Couleurs de texte sombres pour le fond clair */
+.event-block-title {
   font-weight: 700;
-  font-size: var(--text-sm);
+  font-size: 0.8rem;
+  line-height: 1.2;
+  color: #1E3A8A; /* Bleu foncé pour le titre */
+}
+
+.event-block-time {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #3B82F6; /* Bleu moyen pour l'heure */
+}
+
+.event-block-location {
+  font-size: 0.7rem;
+  font-style: italic;
+  color: #6B7280; /* Gris pour le lieu */
+  margin-top: auto;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.event-time {
-  font-size: var(--text-xs);
-  opacity: 0.9;
-  font-weight: 500;
-}
-
-.btn-delete-event {
-  background: rgba(255, 255, 255, 0.9);
+/* Bouton supprimer adapté au fond clair */
+.btn-delete-event-block {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: transparent;
   border: none;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
-  color: var(--error);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: #9CA3AF; /* Icône grise */
   cursor: pointer;
-  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--text-sm);
-  position: absolute;
-  top: var(--space-1);
-  right: var(--space-1);
+  font-size: 16px;
   opacity: 0;
+  transition: all 0.2s;
 }
 
-.calendar-event:hover .btn-delete-event {
+.calendar-event-block:hover .btn-delete-event-block {
   opacity: 1;
 }
 
-.btn-delete-event:hover {
-  background: var(--error);
-  color: white;
-  transform: scale(1.1);
-}
-
-@media (max-width: 968px) {
-  .calendar-header {
-    flex-direction: column;
-    gap: var(--space-4);
-  }
-
-  .calendar-grid {
-    grid-template-columns: 60px repeat(7, 1fr);
-  }
+.btn-delete-event-block:hover {
+  background: #E5E7EB; /* Fond gris au survol du bouton */
+  color: #EF4444; /* Icône rouge au survol */
 }
