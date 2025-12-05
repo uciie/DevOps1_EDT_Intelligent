@@ -6,7 +6,7 @@ import com.example.backend.model.Location;
 import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.UserRepository;
-import com.example.backend.service.EventService; // Import de l'interface
+import com.example.backend.service.EventService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,13 +15,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Implémentation du service pour la gestion des événements, incluant la recherche pour l'optimiseur.
+ * Implémentation du service pour la gestion des événements.
  */
 @Service
-public class EventServiceImpl implements EventService { // Implémente l'interface
+public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
-    private final UserRepository userRepository; // Ajouté par la branche 5512fe3
+    private final UserRepository userRepository;
 
     public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository) {
         this.eventRepository = eventRepository;
@@ -111,6 +111,7 @@ public class EventServiceImpl implements EventService { // Implémente l'interfa
         if (!eventRepository.existsById(id)) {
             throw new IllegalArgumentException("Event not found with id: " + id);
         }
+        // Grâce aux cascades ajoutées dans Event.java, ceci supprimera aussi la Location liée
         eventRepository.deleteById(id);
     }
 
