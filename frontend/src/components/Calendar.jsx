@@ -4,7 +4,7 @@ import { ITEM_TYPES } from './TodoList';
 import '../styles/components/Calendar.css';
 
 // Composant pour une cellule de calendrier qui peut recevoir des tâches
-function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick }) {
+function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick, onEditEvent }) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ITEM_TYPES.TASK,
     drop: (item) => {
@@ -43,10 +43,16 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick
         <div
           key={event.id}
           className="calendar-event"
+          title="Modifier l'évènement"
+          // Ajout du clic pour l'édition 
+          onClick={(e) => {
+            e.stopPropagation(); // Empêche de déclencher le onAddClick du parent (création)
+            onEditEvent(event);  // Passe l'objet event complet au parent pour modification
+          }}
           style={{ 
-            // Application de la couleur de catégorie si disponible (Doit rester inline car dynamique)
             borderLeftColor: event.color || '#3b82f6',
-            backgroundColor: event.color ? `${event.color}15` : '#eeffff' // Légère transparence
+            backgroundColor: event.color ? `${event.color}15` : '#eeffff',
+            cursor: 'pointer' // Indique que c'est cliquable
           }}
         >
           <div className="event-content">
@@ -73,7 +79,7 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick
   );
 }
 
-export default function Calendar({ events, onDropTask, onDeleteEvent, onAddEventRequest }) {
+export default function Calendar({ events, onDropTask, onDeleteEvent, onAddEventRequest, onEditEvent }) {
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     const day = today.getDay();
@@ -113,14 +119,13 @@ export default function Calendar({ events, onDropTask, onDeleteEvent, onAddEvent
     const minHour = Math.min(...hoursInWeek);
 
     // Optionnel : On peut ajouter une marge (padding) pour ne pas coller l'événement tout en haut
-    // Par exemple : Math.max(0, minHour - 1); -> commencer 1h avant le premier événement
     return minHour; 
   })();
 
   // Génère les heures de 'startHour' jusqu'à 23h (fin de journée)
-  // 24 - startHour donne le nombre d'heures restantes
   const hours = Array.from({ length: 24 - startHour }, (_, i) => i + startHour);
 
+  // Fonctions de navigation
   const goToPreviousWeek = () => {
     const newDate = new Date(currentWeekStart);
     newDate.setDate(currentWeekStart.getDate() - 7);
@@ -194,7 +199,8 @@ export default function Calendar({ events, onDropTask, onDeleteEvent, onAddEvent
                 events={events}
                 onDropTask={onDropTask}
                 onDeleteEvent={onDeleteEvent}
-                onAddClick={onAddEventRequest} // On passe la fonction de callback ici
+                onAddClick={onAddEventRequest} // Callback pour création (cellule vide)
+                onEditEvent={onEditEvent}      // Callback pour modification (event existant)
               />
             ))}
           </div>
