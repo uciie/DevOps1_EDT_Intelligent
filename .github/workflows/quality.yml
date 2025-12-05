@@ -1,0 +1,48 @@
+name: CI - Qualité (SonarCloud)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  sonar:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # Secrets nécessaires car Sonar relance les tests pour générer le rapport XML
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+      SONAR_USER_HOME: /home/runner/.sonar
+      GRADLE_USER_HOME: /home/runner/.gradle
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Important pour l'analyse précise
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Run Sonar Analysis
+        working-directory: ./backend
+        run: |
+          chmod +x gradlew
+          # Génère le rapport et l'envoie.
+          ./gradlew clean test jacocoTestReport sonar --info --no-daemon

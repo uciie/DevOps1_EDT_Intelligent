@@ -90,5 +90,8 @@ sonarqube {
         property "sonar.java.coveragePlugin", "jacoco"
         property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
         property "sonar.sourceEncoding", "UTF-8"
+
+        // Exclut tout le dossier build (où sont les rapports) et les fichiers HTML générés
+        property "sonar.exclusions", "**/build/**, **/reports/**, **/*.html"
     }
 }
