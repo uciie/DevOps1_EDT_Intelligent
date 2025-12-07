@@ -1,0 +1,35 @@
+name: CI - Couverture
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  coverage-check:
+    name: Verify Coverage Threshold
+    runs-on: ubuntu-latest
+    env:
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Check Coverage Verification
+        working-directory: ./backend
+        run: |
+          chmod +x gradlew
+          # Cette commande échoue si la couverture est < 70% (voir build.gradle)
+          ./gradlew jacocoTestReport jacocoTestCoverageVerification --no-daemon

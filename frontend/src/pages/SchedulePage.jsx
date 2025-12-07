@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import Calendar from '../components/Calendar';
 import TodoList from '../components/TodoList';
+import EventForm from '../components/form/EventForm';
 import { Event } from '../components/Event';
 import { getCurrentUser } from '../api/authApi';
 import { getUserTasks, createTask, updateTask, deleteTask, planifyTask } from '../api/taskApi';
+import { createEvent, getUserEvents, updateEvent, deleteEvent} from '../api/eventApi'; 
+
 import '../styles/pages/SchedulePage.css';
 
 function SchedulePage() {
@@ -12,6 +15,27 @@ function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [error, setError] = useState(null);
+
+  // États pour la modale
+  const [isEventFormOpen, setIsEventFormOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedHour, setSelectedHour] = useState(9); // Heure par défaut
+  
+  // --- NOUVEAU : État pour stocker l'événement à modifier ---
+  const [eventToEdit, setEventToEdit] = useState(null);
+
+  // Ajoute les champs 'day' et 'hour' nécessaires au composant Calendar
+  const formatEventForCalendar = (evt) => {
+    if (!evt || !evt.startTime) return evt;
+    const date = new Date(evt.startTime);
+    return {
+      ...evt,
+      day: date.toISOString(), // Utilisé pour comparer les jours
+      hour: date.getHours(),   // Utilisé pour placer dans la grille horaire
+      // Assure qu'on a toujours un texte à afficher (Backend utilise 'summary', Task utilise 'title')
+      summary: evt.summary || evt.title || "Sans titre"
+    };
+  };
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -26,9 +50,47 @@ function SchedulePage() {
         }
         
         setCurrentUser(user);
-        const userTasks = await getUserTasks(user.id);
-        setTasks(userTasks || []);
-        setEvents([]);
+        
+        // --- 1. CHARGEMENT DES TÂCHES (Pour la TodoList à gauche) ---
+        const rawTasksData = await getUserTasks(user.id);
+        
+        // Normalisation de la liste des tâches (gestion des formats Page, Data, Array)
+        let tasksArray = [];
+        if (Array.isArray(rawTasksData)) {
+            tasksArray = rawTasksData;
+        } else if (rawTasksData && Array.isArray(rawTasksData.data)) {
+            tasksArray = rawTasksData.data;
+        } else if (rawTasksData && Array.isArray(rawTasksData.content)) {
+            tasksArray = rawTasksData.content;
+        } else {
+            tasksArray = [];
+        }
+        setTasks(tasksArray);
+        
+        // --- 2. CHARGEMENT DES ÉVÉNEMENTS (Pour le Calendrier) ---
+        // C'est ici la correction majeure : on appelle directement la table 'event'
+        const rawEventsData = await getUserEvents(user.id);
+        
+        const loadedEvents = (rawEventsData || []).map(evt => {
+            // Sécurisation de la date
+            const startDate = new Date(evt.startTime);
+            
+            return {
+              ...evt, // On garde toutes les propriétés (id, color, location...)
+              
+              // Normalisation du titre (le backend envoie souvent 'summary')
+              title: evt.summary || evt.title || "Sans titre",
+              
+              // Propriétés calculées requises par Calendar.jsx
+              day: startDate.toISOString().split('T')[0], // format YYYY-MM-DD
+              hour: startDate.getHours(),
+              
+              // On s'assure que taskId est présent (si l'event est lié à une tâche)
+              taskId: evt.taskId || (evt.task ? evt.task.id : null)
+            };
+        });
+
+        setEvents(loadedEvents);
         
       } catch (err) {
         console.error("Erreur lors du chargement des données:", err);
@@ -63,34 +125,47 @@ function SchedulePage() {
   const handleEditTask = async (taskId, editData) => {
     try {
       const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
+      if (!task) return; // Tâche non trouvée
 
-      const updatedTask = {
+      // Préparation de l'objet à envoyer au backend
+      const taskToUpdate = {
         ...task,
         title: editData.title,
+        // IMPORTANT : On envoie la durée sous les deux noms possibles pour être sûr
+        // que le Backend Java le reconnaisse (souvent 'duration' ou 'durationMinutes')
+        estimatedDuration: editData.durationMinutes, 
+        duration: editData.durationMinutes,       
         durationMinutes: editData.durationMinutes,
         priority: editData.priority
       };
+      console.log('Task initiale:', task);
+      console.log('Mise à jour de la tâche avec:', taskToUpdate);
+      // 1. On attend la réponse du serveur (la tâche sauvegardée en BDD)
+      const savedTask = await updateTask(taskId, taskToUpdate);
+      console.log('Tâche sauvegardée par le serveur:', savedTask);
+      // 2. On met à jour l'état local avec la version CONFIRMÉE par le serveur
+      // Si savedTask est undefined (erreur api), l'affichage ne changera pas,
+      // ce qui vous alertera qu'il y a un souci.
+      if (savedTask) {
+        setTasks(tasks.map(t => t.id === taskId ? savedTask : t));
 
-      await updateTask(taskId, updatedTask);
-      setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
+        // Mettre à jour l'événement associé si la tâche est planifiée
+        if (task.scheduledTime) {
+          const relatedEvent = events.find(e => e.taskId === taskId);
+          if (relatedEvent) {
+            const startTime = new Date(task.scheduledTime);
+            const endTime = new Date(startTime);
+            endTime.setMinutes(endTime.getMinutes() + editData.durationMinutes);
 
-      // Mettre à jour l'événement associé si la tâche est planifiée
-      if (task.scheduledTime) {
-        const relatedEvent = events.find(e => e.taskId === taskId);
-        if (relatedEvent) {
-          const startTime = new Date(task.scheduledTime);
-          const endTime = new Date(startTime);
-          endTime.setMinutes(endTime.getMinutes() + editData.durationMinutes);
+            const updatedEvent = {
+              ...relatedEvent,
+              title: editData.title,
+              endTime: endTime.toISOString(),
+              priority: editData.priority
+            };
 
-          const updatedEvent = {
-            ...relatedEvent,
-            title: editData.title,
-            endTime: endTime.toISOString(),
-            priority: editData.priority
-          };
-
-          setEvents(events.map(e => e.id === relatedEvent.id ? updatedEvent : e));
+            setEvents(events.map(e => e.id === relatedEvent.id ? updatedEvent : e));
+          }
         }
       }
     } catch (err) {
@@ -130,22 +205,22 @@ function SchedulePage() {
   };
 
 const handleDropTaskOnCalendar = async (taskId, day, hour) => {
-    try {
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
 
-      // 1. Ne pas calculer startTime et endTime.
+      // 1. Ne pas calculer startTime et endTime.
       // Le paramètre 'day' est souvent nécessaire pour le frontend pour savoir quel jour l'utilisateur regarde.
       // Cependant, nous allons ignorer l'heure et la date précises du drop pour le backend.
       
       // 2. Appeler le service backend 'planifyTask' avec NULL pour déclencher la logique First-Fit.
-      // NOTE: Assurez-vous que planifyTask dans taskApi.js gère le passage de null (voir étape 1 ci-dessous).
-      const plannedTask = await planifyTask(taskId, null, null); // <== CLÉ DE LA CORRECTION
+      // NOTE: Assurez-vous que planifyTask dans taskApi.js gère le passage de null (voir étape 1 ci-dessous).
+      const plannedTask = await planifyTask(taskId, null, null); // <== CLÉ DE LA CORRECTION
 
       // 3. Mettre à jour les états locaux avec la réponse du backend
       
       // La Task mise à jour
-      setTasks(tasks.map(t => t.id === taskId ? plannedTask : t));
+      setTasks(tasks.map(t => t.id === taskId ? plannedTask : t));
 
       // L'Event créé (doit contenir les dates calculées par le First-Fit)
       if (!plannedTask.event) {
@@ -167,18 +242,90 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
       
       // Ajout du nouvel événement au calendrier
       setEvents([...events, newEvent]);
-      
-    } catch (err) {
-      console.error("Erreur lors de la planification automatique de la tâche:", err);
-      setError("Impossible de planifier la tâche automatiquement");
-    }
-  };
+      
+    } catch (err) {
+      console.error("Erreur lors de la planification automatique de la tâche:", err);
+      setError("Impossible de planifier la tâche automatiquement");
+    }
+  };
 
-  const handleDeleteEvent = (eventId) => {
+  // --- GESTION DES ÉVÉNEMENTS ---
+
+  // --- LOGIQUE D'OUVERTURE DU FORMULAIRE ---
+
+  // Cas 1: Clic dans une cellule vide (Création)
+  const handleCellClick = (day, hour) => {
+      setEventToEdit(null); // Mode création : pas d'événement à éditer
+      setSelectedDate(day);
+      setSelectedHour(hour);
+      setIsEventFormOpen(true);
+    };
+
+  // Cas 2: Clic sur un événement existant (Modification)
+  const handleOpenEditModal = (event) => {
+      setEventToEdit(event); // Mode édition : on stocke l'event
+      setSelectedDate(null); // Pas besoin, l'event a déjà ses dates
+      setIsEventFormOpen(true);
+  };
+
+  // Callback pour sauvegarder depuis le formulaire
+  const handleSaveEvent = async (eventData) => {
+    try {
+      if (eventToEdit) {
+        // --- LOGIQUE DE MODIFICATION ---
+        const eventId = eventToEdit.id;
+        
+        // Fusionner l'ancien événement avec les nouvelles données du formulaire
+        const updatedEventPayload = {
+          ...eventToEdit,
+          ...eventData, 
+        };
+
+        const savedEvent = await updateEvent(eventId, updatedEventPayload);
+        
+        // Formater pour l'affichage calendrier
+        const formattedEvent = formatEventForCalendar(savedEvent);
+        formattedEvent.color = eventData.color || eventToEdit.color;
+
+        // Mise à jour de la liste
+        setEvents(events.map(e => e.id === eventId ? formattedEvent : e));
+
+      } else {
+        // --- LOGIQUE DE CRÉATION (Existante) ---
+        // eventData vient de EventForm, contient déjà { summary, startTime, endTime, location, etc. }
+        const newEventPayload = {
+          ...eventData,
+          userId: currentUser.id,
+        };
+        
+        const createdEvent = await createEvent(newEventPayload);
+        const formattedEvent = formatEventForCalendar(createdEvent);
+        
+        // On ajoute les infos de couleur pour l'affichage immédiat
+        formattedEvent.color = eventData.color; 
+
+        setEvents(prev => [...prev, formattedEvent]);
+      }
+
+      // Fermeture et nettoyage
+      setIsEventFormOpen(false);
+      setEventToEdit(null);
+      
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde de l'événement:", error);
+      setError("Impossible de sauvegarder l'événement");
+    }
+  };
+
+  const handleDeleteEvent = async (eventId) => {
     try {
       const event = events.find(e => e.id === eventId);
       if (!event) return;
 
+      // 2. Appel API pour supprimer l'événement en base de données
+      await deleteEvent(eventId);
+
+      // 3. Gestion de la tâche associée (si elle existe)
       if (event.taskId) {
         const task = tasks.find(t => t.id === event.taskId);
         if (task) {
@@ -186,12 +333,15 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
             ...task,
             scheduledTime: null
           };
-          updateTask(event.taskId, updatedTask);
+          // attendre la mise à jour de la tâche 
+          await updateTask(event.taskId, updatedTask);
           setTasks(tasks.map(t => t.id === event.taskId ? updatedTask : t));
         }
       }
 
+      // 4. Mise à jour de l'affichage (État local)
       setEvents(events.filter(e => e.id !== eventId));
+
     } catch (err) {
       console.error("Erreur lors de la suppression de l'événement:", err);
       setError("Impossible de supprimer l'événement");
@@ -233,6 +383,22 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
     } catch (err) {
       console.error("Erreur lors du déplacement de l'événement:", err);
       setError("Impossible de déplacer l'événement");
+    }
+  };
+
+  const handleEditEvent = async (eventId, editData) => {
+    try {
+      const event = events.find(e => e.id === eventId);
+      if (!event) return;
+      const updatedEvent = {
+        ...event,
+        ...editData
+      };
+      const savedEvent = await updateEvent(eventId, updatedEvent);
+      setEvents(events.map(e => e.id === eventId ? savedEvent : e));
+    } catch (err) {
+      console.error("Erreur lors de la modification de l'événement:", err);
+      setError("Impossible de modifier l'événement");
     }
   };
 
@@ -280,10 +446,6 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
             </p>
           </div>
 
-          {/* Composant Event aligné à droite */}
-          <div className="welcome-event-action">
-            <Event />
-          </div>
         </div>
       )}
 
@@ -305,10 +467,25 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
             onDropTask={handleDropTaskOnCalendar}
             onDeleteEvent={handleDeleteEvent}
             onMoveEvent={handleMoveEvent}
+            onAddEventRequest={handleCellClick} 
+            // On passe la nouvelle fonction d'ouverture ici
+            onEditEvent={handleOpenEditModal}
           />
         </main>
       </div>
-
+      {/* La Modale */}
+      <EventForm 
+        isOpen={isEventFormOpen}
+        onClose={() => {
+            setIsEventFormOpen(false);
+            setEventToEdit(null); // Reset de l'event à la fermeture
+        }}
+        onSave={handleSaveEvent}
+        initialDate={selectedDate}
+        initialHour={selectedHour}
+        // IMPORTANT : On passe l'événement à modifier pour pré-remplir le formulaire
+        initialData={eventToEdit} 
+      />
       {error && (
         <div className="notification notification-error">
           <span className="notification-icon">⚠️</span>

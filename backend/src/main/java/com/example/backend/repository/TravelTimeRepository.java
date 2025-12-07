@@ -1,5 +1,6 @@
 package com.example.backend.repository;
 
+import com.example.backend.model.Event;
 import com.example.backend.model.TravelTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -30,10 +31,18 @@ public interface TravelTimeRepository extends JpaRepository<TravelTime, Long> {
     );
     
     /**
-     * Trouve le temps de trajet vers un événement spécifique.
+     * Trouve les temps de trajet arrivant à un événement spécifique.
      *
-     * @param eventId l'ID de l'événement de destination
-     * @return le temps de trajet ou null
+     * @param toEvent l'événement d'arrivée
+     * @return liste des temps de trajet
      */
-    TravelTime findByToEvent_Id(Long eventId);
+    List<TravelTime> findByToEvent(Event toEvent);
+
+    /**
+     * Trouve les temps de trajet partant d'un événement spécifique.
+     *
+     * @param fromEvent l'événement de départ
+     * @return liste des temps de trajet
+     */
+    List<TravelTime> findByFromEvent(Event fromEvent);
 }

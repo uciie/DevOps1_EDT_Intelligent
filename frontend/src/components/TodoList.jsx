@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import '../styles/components/TodoList.css';
 
@@ -13,6 +13,15 @@ function DraggableTask({ task, onToggle, onDelete, onEdit, isEditing, onStartEdi
     durationMinutes: task.durationMinutes || task.duration || 30,
     priority: task.priority || 2
   });
+
+  //met à jour le formulaire si la tâche change (par exemple après une modif externe ou un rechargement)
+  useEffect(() => {
+    setEditData({
+      title: task.title,
+      durationMinutes: task.durationMinutes || task.duration || 30,
+      priority: task.priority || 2
+    });
+  }, [task]);
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: ITEM_TYPES.TASK,
@@ -39,6 +48,7 @@ function DraggableTask({ task, onToggle, onDelete, onEdit, isEditing, onStartEdi
   // Si la tâche est en mode édition, afficher le formulaire
   if (isEditing) {
     return (
+      
       <li className="task-item task-editing">
         <form className="task-edit-form" onSubmit={handleEditSubmit}>
           <input
@@ -67,9 +77,9 @@ function DraggableTask({ task, onToggle, onDelete, onEdit, isEditing, onStartEdi
                 value={editData.priority}
                 onChange={(e) => setEditData({ ...editData, priority: parseInt(e.target.value) })}
               >
-                <option value="1">🟢 Basse</option>
+                <option value="3">🟢 Basse</option>
                 <option value="2">🟡 Moyenne</option>
-                <option value="3">🔴 Haute</option>
+                <option value="1">🔴 Haute</option>
               </select>
             </label>
           </div>
@@ -221,9 +231,9 @@ export default function TodoList({ tasks = [], completedTasks = [], onAddTask, o
                 value={newTask.priority}
                 onChange={(e) => setNewTask({ ...newTask, priority: parseInt(e.target.value) })}
               >
-                <option value="1">🟢 Basse</option>
+                <option value="3">🟢 Basse</option>
                 <option value="2">🟡 Moyenne</option>
-                <option value="3">🔴 Haute</option>
+                <option value="1">🔴 Haute</option>
               </select>
             </label>
           </div>

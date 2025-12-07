@@ -1,0 +1,59 @@
+.places-autocomplete-container {
+  position: relative; /* Important pour positionner la liste en absolu */
+  width: 100%;
+}
+
+.places-suggestions-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000; /* Doit être au-dessus du reste */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.places-suggestion-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  flex-direction: column;
+  transition: background-color 0.15s;
+}
+
+.places-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.places-suggestion-item:hover {
+  background-color: #f9fafb;
+}
+
+.places-main-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.places-secondary-text {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Scrollbar fine pour la liste */
+.places-suggestions-list::-webkit-scrollbar {
+  width: 6px;
+}
+.places-suggestions-list::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 3px;
+}

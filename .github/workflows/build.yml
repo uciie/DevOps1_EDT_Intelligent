@@ -1,4 +1,4 @@
-name: CI - Build (Backend + Frontend)
+name: CI - Build
 
 on:
   push:
@@ -6,74 +6,38 @@ on:
   pull_request:
     branches: [ "main" ]
 
-
 jobs:
   build:
+    name: Build Project
     runs-on: ubuntu-latest
-
-    env:
-      # Variables globales
-      APP_ENV: dev
-      APP_PORT: 8080
-
-      # Base de données Neon (pas de conteneur local)
-      DB_HOST: ${{ secrets.DB_HOST }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      DB_NAME: neondb
-      DB_SSLMODE: require
-      DB_CHANNELBINDING: require
-
-      # React
-      FRONTEND_PORT: 5173
-      VITE_API_URL: http://localhost:8080/api
-      BACKEND_URL: http://localhost:8080
-
-      # Token SonarCloud
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_USER_HOME: ~/.sonar
-
-      # Google Maps API Key
-      GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-
     steps:
-      # ----------------------
-      # 1. Checkout du code
-      # ----------------------
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # ----------------------
-      # 2. Setup Java (backend)
-      # ----------------------
+      # --- BACKEND ---
       - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
+          cache: gradle
 
-      # ----------------------
-      # 3. Build du backend
-      # ----------------------
-      - name: Build backend with Gradle
+      - name: Assemble Backend
         working-directory: ./backend
         run: |
           chmod +x gradlew
-          ./gradlew clean assemble -x test --no-daemon --refresh-dependencies
+          ./gradlew assemble -x test --no-daemon
 
-      # ----------------------
-      # 4. Setup Node (frontend)
-      # ----------------------
-      - name: Setup Node.js
+      # --- FRONTEND ---
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ./frontend/package-lock.json
 
-      # ----------------------
-      # 5. Build du frontend
-      # ----------------------
-      - name: Build frontend 
+      - name: Build Frontend
         working-directory: ./frontend
         run: |
-          npm install
+          npm ci
           npm run build

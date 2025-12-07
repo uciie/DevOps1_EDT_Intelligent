@@ -1,15 +1,11 @@
 package com.example.backend.model;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import java.util.List;
 
 /**
  * Représente un événement dans le calendrier.
@@ -25,7 +21,8 @@ public class Event {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    // OneToOne avec Cascade pour supprimer la location liée automatiquement
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "location_id")
     private Location location;
 
@@ -36,22 +33,22 @@ public class Event {
     @JsonBackReference("userEvents")
     private User user;
 
-    @OneToOne
-    @JoinColumn(name = "task_id", nullable = true)
-    //@JsonManagedReference("taskEvent")
+    @OneToOne(mappedBy = "event", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JsonIgnoreProperties("event")
-    
-    private Task task; // ✅ une tâche associée (facultative)
+    private Task task; 
+        @OneToMany(mappedBy = "fromEvent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TravelTime> departures;
 
-    public Event(String summary, LocalDateTime startTime, LocalDateTime endTime) {
-    this.summary = summary;
-    this.startTime = startTime;
-    this.endTime = endTime;
-    }
-
-
+    @OneToMany(mappedBy = "toEvent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TravelTime> arrivals;
 
     public Event() {}
+
+    public Event(String summary, LocalDateTime startTime, LocalDateTime endTime) {
+        this.summary = summary;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
 
     public Event(String summary, LocalDateTime startTime, LocalDateTime endTime, User user) {
         this.summary = summary;
@@ -126,7 +123,14 @@ public class Event {
     public void setLocation(Location location) {
         this.location = location;
     }
+    
+    public Task getTask() {
+        return task;
+    }
 
+    public void setTask(Task task) {
+        this.task = task;
+    }
 
     // --- Méthodes standard ---
 
@@ -141,5 +145,14 @@ public class Event {
         if (obj == null || getClass() != obj.getClass()) return false;
         Event event = (Event) obj;
         return id != null ? id.equals(event.id) : event.id == null;
+    }
+
+    @PreRemove
+    private void preRemove() {
+        // Si une tâche est liée, on coupe le lien (setEvent(null))
+        // pour que la tâche reste en base de données avec event_id = NULL.
+        if (task != null) {
+            task.setEvent(null);
+        }
     }
 }

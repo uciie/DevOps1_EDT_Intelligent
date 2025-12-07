@@ -1,12 +1,13 @@
 package com.example.backend.controller;
 
 import com.example.backend.model.Event;
-import com.example.backend.model.Location; // CONSERVÉ DE 5512fe3
+import com.example.backend.model.Location;
 import com.example.backend.service.EventService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime; // CONSERVÉ DE 5512fe3
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -15,7 +16,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/api/events")
-@CrossOrigin(origins = "http://localhost:5173") // CONSERVÉ DE 5512fe3
+@CrossOrigin(origins = "http://localhost:5173")
 public class EventController {
 
     private final EventService eventService;
@@ -35,8 +36,6 @@ public class EventController {
         List<Event> events = eventService.getEventsByUserId(userId);
         return ResponseEntity.ok(events);
     }
-    // NOTA: Le bloc HEAD utilisait @GetMapping("/user/{userId}") et la version distante aussi. 
-    // J'ai conservé la version distante qui est plus complète (Javadoc et nom de méthode getEventsByUser).
 
     /**
      * Récupère les événements d'un utilisateur dans une période donnée.
@@ -64,9 +63,13 @@ public class EventController {
      * @return l'événement trouvé
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Event> getEventById(@PathVariable Long id) {
-        Event event = eventService.getEventById(id);
-        return ResponseEntity.ok(event);
+    public ResponseEntity<?> getEventById(@PathVariable Long id) {
+        try {
+            Event event = eventService.getEventById(id);
+            return ResponseEntity.ok(event);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     /**
@@ -103,9 +106,18 @@ public class EventController {
      * @return confirmation de suppression
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteEvent(@PathVariable Long id) {
-        eventService.deleteEvent(id);
-        return ResponseEntity.ok("Événement supprimé avec succès");
+    public ResponseEntity<?> deleteEvent(@PathVariable Long id) {
+        try {
+            eventService.deleteEvent(id);
+            return ResponseEntity.ok("Événement supprimé avec succès");
+        } catch (IllegalArgumentException e) {
+            // L'événement n'existe pas (404)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            // Erreur Base de données ou autre (500)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur lors de la suppression : " + e.getMessage());
+        }
     }
 
     /**
@@ -159,7 +171,6 @@ public class EventController {
 
         /**
          * Convertit ce LocationRequest en objet Location.
-         *
          * @return un objet Location ou null si les données sont insuffisantes
          */
         public Location toLocation() {
