@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Calendar from '../components/Calendar';
 import TodoList from '../components/TodoList';
 import EventForm from '../components/form/EventForm';
+import Notification from '../components/Notification'; // Ajout de l'import
 import { Event } from '../components/Event';
 import { getCurrentUser } from '../api/authApi';
 import { getUserTasks, createTask, updateTask, deleteTask, planifyTask } from '../api/taskApi';
@@ -14,7 +15,10 @@ function SchedulePage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
-  const [error, setError] = useState(null);
+  
+  // Correction : Séparation des erreurs de page (blocantes) et des notifications (temporaires)
+  const [pageError, setPageError] = useState(null);
+  const [notification, setNotification] = useState(null); // { message, type: 'success'|'error' }
 
   // États pour la modale
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
@@ -23,6 +27,11 @@ function SchedulePage() {
   
   // --- NOUVEAU : État pour stocker l'événement à modifier ---
   const [eventToEdit, setEventToEdit] = useState(null);
+
+  // Helper pour afficher une notification
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+  };
 
   // Ajoute les champs 'day' et 'hour' nécessaires au composant Calendar
   const formatEventForCalendar = (evt) => {
@@ -41,11 +50,11 @@ function SchedulePage() {
     const loadUserData = async () => {
       try {
         setLoading(true);
-        setError(null);
+        setPageError(null);
         
         const user = getCurrentUser();
         if (!user) {
-          setError("Utilisateur non connecté");
+          setPageError("Utilisateur non connecté");
           return;
         }
         
@@ -94,7 +103,7 @@ function SchedulePage() {
         
       } catch (err) {
         console.error("Erreur lors du chargement des données:", err);
-        setError("Impossible de charger vos données");
+        setPageError("Impossible de charger vos données");
       } finally {
         setLoading(false);
       }
@@ -114,10 +123,11 @@ function SchedulePage() {
       
       const createdTask = await createTask(newTask);
       setTasks([...tasks, createdTask]);
+      showNotification("Tâche ajoutée avec succès !", "success"); // Notification succès
       return createdTask;
     } catch (err) {
       console.error("Erreur lors de l'ajout de la tâche:", err);
-      setError("Impossible d'ajouter la tâche");
+      showNotification("Impossible d'ajouter la tâche", "error"); // Notification erreur
       throw err;
     }
   };
@@ -167,10 +177,11 @@ function SchedulePage() {
             setEvents(events.map(e => e.id === relatedEvent.id ? updatedEvent : e));
           }
         }
+        showNotification("Tâche modifiée !", "success");
       }
     } catch (err) {
       console.error("Erreur lors de la modification de la tâche:", err);
-      setError("Impossible de modifier la tâche");
+      showNotification("Impossible de modifier la tâche", "error");
       throw err;
     }
   };
@@ -189,7 +200,7 @@ function SchedulePage() {
       setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
     } catch (err) {
       console.error("Erreur lors de la mise à jour de la tâche:", err);
-      setError("Impossible de mettre à jour la tâche");
+      showNotification("Impossible de mettre à jour la tâche", "error");
     }
   };
 
@@ -198,9 +209,10 @@ function SchedulePage() {
       await deleteTask(taskId);
       setTasks(tasks.filter(t => t.id !== taskId));
       setEvents(events.filter(e => e.taskId !== taskId));
+      showNotification("Tâche supprimée", "success");
     } catch (err) {
       console.error("Erreur lors de la suppression de la tâche:", err);
-      setError("Impossible de supprimer la tâche");
+      showNotification("Impossible de supprimer la tâche", "error");
     }
   };
 
@@ -242,10 +254,11 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
       
       // Ajout du nouvel événement au calendrier
       setEvents([...events, newEvent]);
+      showNotification("Tâche planifiée automatiquement !", "success");
       
     } catch (err) {
       console.error("Erreur lors de la planification automatique de la tâche:", err);
-      setError("Impossible de planifier la tâche automatiquement");
+      showNotification("Impossible de planifier la tâche automatiquement", "error");
     }
   };
 
@@ -289,6 +302,7 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
 
         // Mise à jour de la liste
         setEvents(events.map(e => e.id === eventId ? formattedEvent : e));
+        showNotification("Événement modifié !", "success");
 
       } else {
         // --- LOGIQUE DE CRÉATION (Existante) ---
@@ -305,6 +319,7 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
         formattedEvent.color = eventData.color; 
 
         setEvents(prev => [...prev, formattedEvent]);
+        showNotification("Événement créé avec succès !", "success");
       }
 
       // Fermeture et nettoyage
@@ -317,10 +332,10 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
       // On vérifie si le backend nous a envoyé un message spécifique (ex: 400 Bad Request)
       if (error.response && error.response.data) {
         // Affiche le message textuel renvoyé par le backend, "Impossible d'arriver à l'heure..."
-        setError(error.response.data); 
+        showNotification(error.response.data, "error"); 
       } else {
         // Fallback pour les autres erreurs (ex: serveur éteint)
-        setError("Impossible de sauvegarder l'événement (Erreur inconnue)");
+        showNotification("Impossible de sauvegarder l'événement (Erreur inconnue)", "error");
       }
     }
   };
@@ -349,10 +364,11 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
 
       // 4. Mise à jour de l'affichage (État local)
       setEvents(events.filter(e => e.id !== eventId));
+      showNotification("Événement supprimé", "success");
 
     } catch (err) {
       console.error("Erreur lors de la suppression de l'événement:", err);
-      setError("Impossible de supprimer l'événement");
+      showNotification("Impossible de supprimer l'événement", "error");
     }
   };
 
@@ -390,7 +406,7 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
       
     } catch (err) {
       console.error("Erreur lors du déplacement de l'événement:", err);
-      setError("Impossible de déplacer l'événement");
+      showNotification("Impossible de déplacer l'événement", "error");
     }
   };
 
@@ -404,9 +420,10 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
       };
       const savedEvent = await updateEvent(eventId, updatedEvent);
       setEvents(events.map(e => e.id === eventId ? savedEvent : e));
+      showNotification("Événement modifié", "success");
     } catch (err) {
       console.error("Erreur lors de la modification de l'événement:", err);
-      setError("Impossible de modifier l'événement");
+      showNotification("Impossible de modifier l'événement", "error");
     }
   };
 
@@ -421,13 +438,14 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
     );
   }
 
-  if (error) {
+  // Utilisation de pageError pour les erreurs bloquantes
+  if (pageError) {
     return (
       <div className="schedule-page">
         <div className="error-container">
           <div className="error-icon">⚠️</div>
           <h2>Oups !</h2>
-          <p>{error}</p>
+          <p>{pageError}</p>
           <button 
             className="btn-retry"
             onClick={() => window.location.reload()}
@@ -494,18 +512,13 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
         // IMPORTANT : On passe l'événement à modifier pour pré-remplir le formulaire
         initialData={eventToEdit} 
       />
-      {error && (
-        <div className="notification notification-error">
-          <span className="notification-icon">⚠️</span>
-          <span className="notification-message">{error}</span>
-          <button 
-            className="notification-close"
-            onClick={() => setError(null)}
-          >
-            ×
-          </button>
-        </div>
-      )}
+      
+      {/* Affichage des notifications (succès ou erreur d'action) */}
+      <Notification 
+        message={notification?.message} 
+        type={notification?.type} 
+        onClose={() => setNotification(null)} 
+      />
     </div>
   );
 }

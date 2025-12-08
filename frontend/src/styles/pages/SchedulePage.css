@@ -182,7 +182,10 @@
   background: white;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
-  z-index: var(--z-modal);
+  
+  /* CORRECTION ICI : z-index augmenté à 3000 pour passer au-dessus de la modale (qui est à 2000) */
+  z-index: 3000; 
+  
   animation: slideInRight 0.3s ease;
   min-width: 320px;
   max-width: 480px;
