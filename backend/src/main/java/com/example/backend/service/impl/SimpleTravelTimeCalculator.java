@@ -11,14 +11,16 @@ import org.springframework.stereotype.Component;
  * Utilise des vitesses moyennes pour estimer le temps.
  */
 @Component
-@Profile("!test & !external-api") // Ne pas créer ce bean pendant les tests (utiliser TestConfig)
+@Profile("!test & !external-api") // Ne pas créer ce bean pendant les tests unitaires purs (utiliser TestConfig)
 public class SimpleTravelTimeCalculator implements TravelTimeCalculator {
 
-    // Vitesses moyennes en km/h
+    // Vitesses moyennes en km/h (Ville)
     private static final double WALKING_SPEED = 5.0;
     private static final double CYCLING_SPEED = 15.0;
-    private static final double DRIVING_SPEED = 40.0; // En ville
-    private static final double TRANSIT_SPEED = 25.0;
+    private static final double DRIVING_SPEED_CITY = 30.0;
+    private static final double DRIVING_SPEED_HIGHWAY = 90.0; // Vitesse moyenne sur longue distance
+    private static final double TRANSIT_SPEED_CITY = 20.0;
+    private static final double TRANSIT_SPEED_HIGHWAY = 100.0; // TGV / Train moyenne
 
     @Override
     public int calculateTravelTime(Location from, Location to, TransportMode mode) {
@@ -30,13 +32,8 @@ public class SimpleTravelTimeCalculator implements TravelTimeCalculator {
         // Calcul de la distance avec la formule de Haversine
         double distanceKm = calculateDistance(from, to);
 
-        // Choix de la vitesse selon le mode
-        double speed = switch (mode) {
-            case WALKING -> WALKING_SPEED;
-            case CYCLING -> CYCLING_SPEED;
-            case DRIVING -> DRIVING_SPEED;
-            case TRANSIT -> TRANSIT_SPEED;
-        };
+        // Choix de la vitesse selon le mode et la distance
+        double speed = getSpeed(mode, distanceKm);
 
         // Calcul du temps en minutes (distance / vitesse * 60)
         int travelTimeMinutes = (int) Math.ceil((distanceKm / speed) * 60);
@@ -45,12 +42,20 @@ public class SimpleTravelTimeCalculator implements TravelTimeCalculator {
         return Math.max(travelTimeMinutes, 5);
     }
 
+    private double getSpeed(TransportMode mode, double distanceKm) {
+        // Si longue distance (> 50km), on suppose autoroute ou train
+        boolean isLongDistance = distanceKm > 50.0;
+
+        return switch (mode) {
+            case WALKING -> WALKING_SPEED;
+            case CYCLING -> CYCLING_SPEED;
+            case DRIVING -> isLongDistance ? DRIVING_SPEED_HIGHWAY : DRIVING_SPEED_CITY;
+            case TRANSIT -> isLongDistance ? TRANSIT_SPEED_HIGHWAY : TRANSIT_SPEED_CITY;
+        };
+    }
+
     /**
      * Calcule la distance entre deux lieux avec la formule de Haversine.
-     *
-     * @param from la localisation de départ
-     * @param to la localisation d'arrivée
-     * @return la distance en kilomètres
      */
     private double calculateDistance(Location from, Location to) {
         final int EARTH_RADIUS = 6371;

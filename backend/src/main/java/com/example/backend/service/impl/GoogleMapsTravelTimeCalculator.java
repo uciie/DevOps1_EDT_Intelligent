@@ -1,12 +1,14 @@
 package com.example.backend.service.impl;
 
 import com.example.backend.model.Location;
-import com.example.backend.model.TravelTime.TransportMode;
+import com.example.backend.model.TravelTime.TransportMode; 
 import com.example.backend.service.TravelTimeCalculator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.springframework.beans.factory.annotation.Autowired; // <--- Import nécessaire
+import java.net.URI;
+
+import org.springframework.beans.factory.annotation.Autowired; 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Profile;
@@ -42,7 +44,7 @@ public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
         this.fallbackCalculator = fallbackCalculator;
         this.mapper = mapper;
     }
-    
+
     @Override
     public int calculateTravelTime(Location from, Location to, TransportMode mode) {
 
@@ -52,50 +54,65 @@ public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
         }
 
         try {
-            String url = UriComponentsBuilder.fromHttpUrl(API_URL)
+            URI uri = UriComponentsBuilder.fromHttpUrl(API_URL)
                     .queryParam("origins", formatLocation(from))
                     .queryParam("destinations", formatLocation(to))
                     .queryParam("mode", mapTransportMode(mode))
                     .queryParam("region", "fr")
                     .queryParam("language", "fr")
                     .queryParam("key", apiKey)
-                    .encode()
-                    .toUriString();
+                    .build()
+                    .toUri();
 
             System.err.println("🌐 Calling Google API:");
             System.err.println("   From: " + formatLocation(from));
             System.err.println("   To:   " + formatLocation(to));
             System.err.println("   Mode: " + mapTransportMode(mode));
+            System.err.println("   URL:  " + uri);
 
-            String json = restTemplate.getForObject(url, String.class);
+            String json = restTemplate.getForObject(uri, String.class);
+
+            // --- AJOUT DEBUG ---
+            System.err.println("🔍 JSON REÇU DE GOOGLE :");
+            System.err.println(json); 
+            // -------------------
+
             JsonNode root = mapper.readTree(json);
 
             // Vérification statut global
             String status = root.path("status").asText();
             if (!"OK".equals(status)) {
-                logGlobalError(root);
+                logGlobalError(root); // Utilisation de la méthode helper définie plus bas
                 return fallbackCalculator.calculateTravelTime(from, to, mode);
             }
 
-            JsonNode elementNode = root
-                    .path("rows").path(0)
-                    .path("elements").path(0);
+            JsonNode rows = root.path("rows");
+            // Sécurité : on vérifie que rows n'est pas vide
+            if (rows.isEmpty() || rows.path(0).path("elements").isEmpty()) {
+                System.err.println("❌ Empty rows or elements");
+                return fallbackCalculator.calculateTravelTime(from, to, mode);
+            }
+
+            JsonNode elementNode = rows.path(0).path("elements").path(0);
 
             String elementStatus = elementNode.path("status").asText();
             if (!"OK".equals(elementStatus)) {
-                logElementError(elementStatus, elementNode);
+                logElementError(elementStatus, elementNode); // Utilisation de la méthode helper définie plus bas
                 return fallbackCalculator.calculateTravelTime(from, to, mode);
             }
 
-            // Durée
-            int seconds = elementNode.path("duration").path("value").asInt(-1);
-            if (seconds <= 0) {
+            // Récupération de la durée en SECONDES (champ 'value')
+            int durationInSeconds = elementNode.path("duration").path("value").asInt(-1);
+
+            if (durationInSeconds < 0) {
                 System.err.println("❌ Invalid duration — fallback");
                 return fallbackCalculator.calculateTravelTime(from, to, mode);
             }
 
-            int minutes = (int) Math.ceil(seconds / 60.0);
-            System.err.println("✅ Duration: " + seconds + "s ≈ " + minutes + " min");
+            // Conversion en minutes
+            int minutes = durationInSeconds / 60;
+
+            System.err.println("✅ Duration: " + minutes + " min (" + durationInSeconds + " sec)");
 
             return minutes;
 

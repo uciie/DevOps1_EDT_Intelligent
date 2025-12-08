@@ -11,6 +11,13 @@ const CATEGORIES = [
   { id: 'RENCONTRE', label: 'Rencontre', color: '#ef4444', subCategories: [] },
 ];
 
+const TRANSPORT_MODES = [
+  { id: 'DRIVING', label: 'Voiture 🚗' },
+  { id: 'TRANSIT', label: 'Transports 🚇' },
+  { id: 'WALKING', label: 'À pied 🚶' },
+  { id: 'CYCLING', label: 'Vélo 🚴' },
+];
+
 // Ajout de la prop initialData ici
 export default function EventForm({ isOpen, onClose, onSave, initialDate, initialHour, initialData }) {
   // Fonction utilitaire pour formater la date en 'YYYY-MM-DD' (format requis par l'input date)
@@ -24,6 +31,15 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
     return `${year}-${month}-${day}`;
   };
 
+  // Fonction utilitaire pour formater l'heure en 'HH:mm' pour l'input time
+  const formatTimeForInput = (date) => {
+    if (!date) return '09:00';
+    const d = new Date(date);
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
   const [formData, setFormData] = useState({
     summary: '',
     description: '',
@@ -31,8 +47,9 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
     category: 'TRAVAIL',
     subCategory: '',
     duration: 1,
-    hour: 9,
-    date: '' // Nouveau champ pour stocker la date sélectionnée
+    time: '09:00', // Modification : on stocke l'heure précise (HH:mm) au lieu de l'heure ronde (hour)
+    date: '', // Nouveau champ pour stocker la date sélectionnée
+    transportMode: 'DRIVING' // Valeur par défaut
   });
 
   // Initialisation des données à l'ouverture (Création OU Modification)
@@ -65,12 +82,19 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
           category: initialData.category || 'TRAVAIL', 
           subCategory: initialData.subCategory || '',
           date: formatDateForInput(startDate), // On extrait YYYY-MM-DD
-          hour: startDate.getHours(),          // On extrait l'heure
-          duration: durationCalc
+          time: formatTimeForInput(startDate), // On extrait HH:mm
+          duration: durationCalc,
+          transportMode: initialData.transportMode || 'DRIVING' // Récupération si existant
         });
 
       } else if (initialDate) {
         // --- CAS 2 : CRÉATION (Pas d'initialData, mais une date de clic) ---
+        
+        // Si une heure initiale est fournie (clic sur le calendrier), on la formate
+        const defaultTime = initialHour !== undefined 
+            ? `${String(initialHour).padStart(2, '0')}:00` 
+            : '09:00';
+
         setFormData(prev => ({
           ...prev,
           summary: '',
@@ -80,8 +104,9 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
           subCategory: '',
           // On initialise avec la date cliquée dans le calendrier
           date: formatDateForInput(initialDate),
-          hour: initialHour !== undefined ? initialHour : 9,
-          duration: 1
+          time: defaultTime,
+          duration: 1,
+          transportMode: 'DRIVING'
         }));
       }
     }
@@ -92,16 +117,16 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
   };
 
   const handleSave = () => {
-    // 1. Validation : On doit avoir une date
-    if (!formData.date) return;
+    // 1. Validation : On doit avoir une date et une heure
+    if (!formData.date || !formData.time) return;
 
-    // 2. On découpe la chaîne "YYYY-MM-DD" pour obtenir les nombres bruts
-    // Cela évite les interprétations automatiques de fuseau horaire par le navigateur
+    // 2. On découpe la chaîne "YYYY-MM-DD" et "HH:mm"
     const [year, month, day] = formData.date.split('-').map(Number);
+    const [hours, minutes] = formData.time.split(':').map(Number);
 
     // 3. On crée la date de DÉBUT en heure locale stricte
     // (Mois commence à 0 en JS, donc month - 1)
-    const startDateTime = new Date(year, month - 1, day, formData.hour, 0, 0);
+    const startDateTime = new Date(year, month - 1, day, hours, minutes, 0);
 
     // 4. On crée la date de FIN en ajoutant la durée
     const endDateTime = new Date(startDateTime);
@@ -133,7 +158,10 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
       
       category: formData.category,
       subCategory: formData.subCategory, // Ajout
-      color: selectedCategory ? selectedCategory.color : '#3b82f6'
+      color: selectedCategory ? selectedCategory.color : '#3b82f6',
+      
+      // Envoi du mode de transport seulement si une adresse est définie
+      transportMode: formData.address ? formData.transportMode : null 
     };
 
     onSave(eventPayload);
@@ -183,6 +211,23 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
             />
           </div>
 
+          {/* --- NOUVEAU : Sélection du mode de transport (Affichage conditionnel) --- */}
+          {formData.address && (
+            <div className="form-group" style={{ animation: 'fadeIn 0.3s ease' }}>
+              <label>Mode de transport (depuis l'événement précédent)</label>
+              <select
+                className="input-field"
+                value={formData.transportMode}
+                onChange={(e) => handleChange('transportMode', e.target.value)}
+                style={{ borderColor: '#667eea', backgroundColor: '#f0f9ff' }}
+              >
+                {TRANSPORT_MODES.map(mode => (
+                  <option key={mode.id} value={mode.id}>{mode.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Catégorie */}
           <div className="form-group">
             <label>Catégorie</label>
@@ -231,15 +276,14 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
             
             <div className="form-group">
               <label>Heure</label>
-              <select 
+              {/* REMPLACEMENT DU SELECT PAR UN INPUT TIME POUR SAISIE PRÉCISE */}
+              <input 
+                type="time" 
                 className="input-field"
-                value={formData.hour}
-                onChange={(e) => handleChange('hour', Number(e.target.value))}
-              >
-                {Array.from({ length: 24 }, (_, i) => (
-                  <option key={i} value={i}>{i}h00</option>
-                ))}
-              </select>
+                value={formData.time}
+                onChange={(e) => handleChange('time', e.target.value)}
+                required
+              />
             </div>
 
             <div className="form-group">

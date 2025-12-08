@@ -79,9 +79,14 @@ public class EventController {
      * @return l'événement créé avec les temps de trajet calculés
      */
     @PostMapping
-    public ResponseEntity<Event> createEvent(@RequestBody EventRequest eventRequest) {
-        Event createdEvent = eventService.createEvent(eventRequest);
-        return ResponseEntity.ok(createdEvent);
+    public ResponseEntity<?> createEvent(@RequestBody EventRequest eventRequest) {
+        try {
+            Event createdEvent = eventService.createEvent(eventRequest);
+            return ResponseEntity.ok(createdEvent);
+        } catch (IllegalArgumentException e) {
+            // Renvoie une erreur 400 si le trajet est impossible ou les données invalides
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     /**
@@ -129,6 +134,9 @@ public class EventController {
         private LocalDateTime endTime;
         private Long userId;
         private LocationRequest location;
+        
+        // NOUVEAU CHAMP pour le mode de transport
+        private String transportMode;
 
         // Getters et Setters
         public String getSummary() { return summary; }
@@ -145,6 +153,9 @@ public class EventController {
 
         public LocationRequest getLocation() { return location; }
         public void setLocation(LocationRequest location) { this.location = location; }
+
+        public String getTransportMode() { return transportMode; }
+        public void setTransportMode(String transportMode) { this.transportMode = transportMode; }
     }
 
     /**

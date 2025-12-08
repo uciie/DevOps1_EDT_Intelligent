@@ -18,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import java.net.URI;
+
 @ExtendWith(MockitoExtension.class)
 class GoogleMapsTravelTimeCalculatorTest {
 
@@ -81,8 +83,7 @@ class GoogleMapsTravelTimeCalculatorTest {
                 ]
             }
         """;
-        when(restTemplate.getForObject(anyString(), eq(String.class))).thenReturn(jsonResponse);
-
+        when(restTemplate.getForObject(any(URI.class), eq(String.class))).thenReturn(jsonResponse);
         // When
         int result = googleCalculator.calculateTravelTime(from, to, TransportMode.DRIVING);
 

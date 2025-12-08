@@ -166,4 +166,17 @@ public class TravelTimeService {
 
         return EARTH_RADIUS * c;
     }
+
+    /**
+     * Estime la durée du trajet entre deux localisations selon un mode de transport, sans sauvegarder en BDD.
+     *
+     * @param from la localisation de départ
+     * @param to la localisation d'arrivée
+     * @param mode le mode de transport
+     * @return la durée estimée en minutes
+     */
+    public int estimateDuration(Location from, Location to, TransportMode mode) {
+        if (from == null || to == null) return 0;
+        return travelTimeCalculator.calculateTravelTime(from, to, mode);
+    }
 }

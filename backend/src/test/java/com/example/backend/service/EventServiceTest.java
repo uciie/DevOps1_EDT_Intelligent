@@ -33,6 +33,10 @@ public class EventServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    // --- CORRECTION : Ajout du mock manquant pour le constructeur ---
+    @Mock
+    private TravelTimeService travelTimeService;
+
     @InjectMocks
     private EventServiceImpl eventService;
 
@@ -53,6 +57,7 @@ public class EventServiceTest {
         eventRequest.setStartTime(LocalDateTime.now());
         eventRequest.setEndTime(LocalDateTime.now().plusHours(1));
         eventRequest.setUserId(1L);
+        // Par défaut, transportMode est null, donc la logique de trajet ne s'active pas dans les tests existants
     }
 
     @Test

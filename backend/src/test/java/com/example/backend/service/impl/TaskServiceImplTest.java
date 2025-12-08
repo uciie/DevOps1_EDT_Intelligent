@@ -5,6 +5,7 @@ import com.example.backend.model.Task;
 import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.TaskRepository;
+import com.example.backend.repository.UserRepository; 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,7 +21,9 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
 
 @ExtendWith(MockitoExtension.class)
 class TaskServiceImplTest {
@@ -30,6 +33,9 @@ class TaskServiceImplTest {
 
     @Mock
     private EventRepository eventRepository;
+
+    @Mock
+    private UserRepository userRepository; // Mock ajouté
 
     @InjectMocks
     private TaskServiceImpl taskService;
@@ -67,6 +73,8 @@ class TaskServiceImplTest {
     @Test
     void testCreateTask() {
         // Given
+        // On doit mocker la recherche de l'utilisateur
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(taskRepository.save(any(Task.class))).thenReturn(task);
 
         // When
@@ -74,7 +82,18 @@ class TaskServiceImplTest {
 
         // Then
         assertFalse(created.isDone()); // Vérifie que done est forcé à false
+        verify(userRepository).findById(1L); // Vérifie l'appel
         verify(taskRepository).save(task);
+    }
+
+    @Test
+    void testCreateTask_UserNotFound() {
+        // Test du cas d'erreur
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            taskService.createTask(task, 99L);
+        });
     }
 
     @Test

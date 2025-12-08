@@ -313,7 +313,15 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
       
     } catch (error) {
       console.error("Erreur lors de la sauvegarde de l'événement:", error);
-      setError("Impossible de sauvegarder l'événement");
+      
+      // On vérifie si le backend nous a envoyé un message spécifique (ex: 400 Bad Request)
+      if (error.response && error.response.data) {
+        // Affiche le message textuel renvoyé par le backend, "Impossible d'arriver à l'heure..."
+        setError(error.response.data); 
+      } else {
+        // Fallback pour les autres erreurs (ex: serveur éteint)
+        setError("Impossible de sauvegarder l'événement (Erreur inconnue)");
+      }
     }
   };
 

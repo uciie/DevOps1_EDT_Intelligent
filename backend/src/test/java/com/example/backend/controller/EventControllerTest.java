@@ -89,7 +89,6 @@ class EventControllerTest {
         // Given
         List<Event> events = Arrays.asList(testEvent);
         
-        // Le contrôleur convertit les Strings en LocalDateTime, donc on utilise any(LocalDateTime.class)
         when(eventService.getEventsByUserIdAndPeriod(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
                 .thenReturn(events);
 
@@ -101,7 +100,6 @@ class EventControllerTest {
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].summary").value("Réunion client"));
 
-        // CORRECTION 3 : Vérifier l'appel à la bonne méthode
         verify(eventService, times(1)).getEventsByUserIdAndPeriod(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class));
     }
 
@@ -125,12 +123,14 @@ class EventControllerTest {
         // Given
         when(eventService.createEvent(any())).thenReturn(testEvent);
 
+        // Mise à jour du JSON pour inclure le nouveau champ optionnel (transportMode) pour test
         String requestJson = """
             {
                 "summary": "Réunion client",
                 "startTime": "2025-11-25T09:00:00",
                 "endTime": "2025-11-25T10:00:00",
                 "userId": 1,
+                "transportMode": "DRIVING",
                 "location": {
                     "address": "5 Avenue Anatole France, 75007 Paris, France",
                     "latitude": 48.8584,
@@ -187,7 +187,6 @@ class EventControllerTest {
 
         // When & Then
         mockMvc.perform(delete("/api/events/1"))
-                // FIX: Controller returns 200 OK with text, not 204 No Content
                 .andExpect(status().isOk()); 
 
         verify(eventService, times(1)).deleteEvent(1L);
