@@ -174,6 +174,68 @@ public class EventServiceImpl implements EventService {
             }
         }
 
+        // --- VERIFICATION DE FAISABILITE AVANT SAUVEGARDE (AJOUT POUR UPDATE) ---
+        // Si l'utilisateur a spécifié un mode de transport et que l'événement a une localisation
+        if (eventRequest.getTransportMode() != null && event.getLocation() != null) {
+            
+            // 1. Récupérer les événements de l'utilisateur pour trouver le précédent
+            List<Event> userEvents = eventRepository.findByUser_IdOrderByStartTime(event.getUser().getId());
+            
+            // 2. Trouver l'événement qui termine avant ou exactement au début de l'événement modifié
+            // IMPORTANT : On exclut l'événement lui-même (id) pour ne pas le comparer avec sa propre ancienne version en mémoire
+            Event previousEvent = userEvents.stream()
+                .filter(e -> !e.getId().equals(event.getId())) 
+                .filter(e -> e.getEndTime().isBefore(event.getStartTime()) || 
+                             e.getEndTime().isEqual(event.getStartTime()))
+                .max(Comparator.comparing(Event::getEndTime))
+                .orElse(null);
+
+            // 3. Si un événement précédent existe et a une localisation
+            if (previousEvent != null && previousEvent.getLocation() != null) {
+                try {
+                    // Conversion du String en Enum
+                    TravelTime.TransportMode mode = TravelTime.TransportMode.valueOf(eventRequest.getTransportMode());
+                    
+                    // A. Calculer le temps de trajet
+                    int durationMinutes = travelTimeCalculator.calculateTravelTime(
+                        previousEvent.getLocation(),
+                        event.getLocation(),
+                        mode
+                    );
+                    
+                    // B. Vérifier si on arrive à temps
+                    LocalDateTime departureTime = previousEvent.getEndTime();
+                    LocalDateTime estimatedArrival = departureTime.plusMinutes(durationMinutes);
+                    
+                    if (estimatedArrival.isAfter(event.getStartTime())) {
+                        throw new IllegalArgumentException(
+                            String.format("Impossible d'arriver à l'heure ! Fin de l'événement précédent : %s. " +
+                                          "Temps de trajet (%s) : %d min. Arrivée estimée : %s. " +
+                                          "Début de l'événement prévu : %s.",
+                                          departureTime.toLocalTime(),
+                                          mode,
+                                          durationMinutes,
+                                          estimatedArrival.toLocalTime(),
+                                          event.getStartTime().toLocalTime())
+                        );
+                    }
+                    
+                    // C. Si c'est faisable, on sauvegarde d'abord l'événement mis à jour
+                    Event savedEvent = eventRepository.save(event);
+                    
+                    // D. On met à jour (ou recrée) le lien de TravelTime
+                    // Note: Idéalement, on devrait supprimer l'ancien TravelTime s'il existe, 
+                    // mais ici createTravelTime en créera un nouveau valide.
+                    travelTimeService.createTravelTime(previousEvent, savedEvent, mode);
+                    
+                    return savedEvent;
+
+                } catch (java.lang.IllegalArgumentException e) {
+                    throw e; 
+                }
+            }
+        }
+
         return eventRepository.save(event);
     }
 
