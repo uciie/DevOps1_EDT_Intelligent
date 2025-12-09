@@ -26,6 +26,7 @@
   - [🧩 Installation et configuration](#-installation-et-configuration)
     - [1️⃣ Cloner le projet](#1️⃣-cloner-le-projet)
     - [2️⃣ Configuration Backend](#2️⃣-configuration-backend)
+    - [3️⃣ Configuration Frontend](#3️⃣-configuration-frontend)
   - [🚀 Lancement](#-lancement)
     - [Backend (API)](#backend-api)
     - [Frontend (Interface)](#frontend-interface)
@@ -69,7 +70,8 @@ Ce projet a été réalisé dans le cadre de notre cursus DevOps, avec pour obje
 Pour garantir la qualité et la maintenabilité du code, nous avons mis en place une chaîne DevOps complète :
 
 * **Gestion de version :** Git & GitHub (Branching model: Feature Branch Workflow).
-* **Intégration Continue (CI) :** * **GitHub Actions :** Compilation et exécution des tests unitaires et d'intégration à chaque push.
+* **Intégration Continue (CI) :**
+    * **GitHub Actions :** Compilation et exécution des tests unitaires et d'intégration à chaque push.
     * **Gradle :** Automatisation du build backend.
 * **Qualité du code (QA) :**
     * **SonarCloud :** Analyse statique du code, détection de bugs, "code smells" et suivi de la couverture de code.
@@ -84,7 +86,7 @@ Cette section détaille les technologies et librairies clés utilisées pour le 
 
 ### 🔧 Prérequis Système
 * **Java 21** (JDK) : Nécessaire pour le backend Spring Boot.
-* **Node.js 18+** : Nécessaire pour l'exécution du frontend React.
+* **Node.js 22** : Recommandé pour l'exécution du frontend React (utilisé en CI).
 * **PostgreSQL** : Base de données de production.
 
 ### ☕ Backend (Java / Spring Boot)
@@ -93,6 +95,7 @@ Le backend est construit avec **Spring Boot 3.5.6** et utilise **Gradle** pour l
 * **Framework & API :**
     * `spring-boot-starter-web` : Création des endpoints REST.
     * `spring-boot-starter-data-jpa` : Interaction avec la base de données.
+    * `spring-boot-starter-validation` : Validation des données entrantes.
     * `spring-dotenv` (v4.0.0) : Gestion des variables d'environnement (.env).
 * **Traitement de Données :**
     * `biweekly` (v0.6.8) : Parsing et manipulation des fichiers iCalendar (.ics).
@@ -116,11 +119,12 @@ Le frontend est une SPA (Single Page Application) développée avec **React 19**
 * **Interface & Calendrier :**
     * `react-big-calendar` (v1.19.4) : Composant d'affichage de l'emploi du temps.
     * `moment` (v2.30.1) : Manipulation des dates.
-    * `react-dnd` (v16.0.1) : Gestion du Drag & Drop pour les tâches.
+    * `react-dnd` (v16.0.1) & `react-dnd-html5-backend` : Gestion du Drag & Drop pour les tâches.
     * `@react-google-maps/api` (v2.20.7) : Intégration des cartes Google Maps.
 * **Tests & Linting :**
     * `vitest` (v3.2.4) : Framework de tests unitaires (compatible Jest).
     * `eslint` (v9.36.0) : Linter pour garantir la qualité du code JavaScript/React.
+
 ---
 
 ## 🧩 Installation et configuration
@@ -144,6 +148,15 @@ GOOGLE_MAPS_INTEGRATION_TESTS=true
 # Clé API : contacter l'équipe pour l'accès
 GOOGLE_MAPS_API_KEY=YOUR_KEY_HERE
 SPRING_PROFILES=external-api
+```
+
+### 3️⃣ Configuration Frontend
+
+Ajouter le fichier `.env` dans le dossier `frontend` (ne pas le committer \!) :
+
+```properties
+# .env example
+VITE_GOOGLE_MAPS_API_KEY=YOUR_KEY_HERE # le même que celui du backend
 ```
 
 -----
