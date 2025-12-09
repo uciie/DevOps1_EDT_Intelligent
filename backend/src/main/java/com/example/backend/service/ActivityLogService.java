@@ -3,7 +3,7 @@ package com.example.backend.service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,28 +30,18 @@ public class ActivityLogService {
         return activityLogRepository.save(log);
     }
 
-    public Map<ActivityCategory, Long> getTotalTimeByActivityType(Long userId) {
-        List<ActivityLog> logs = activityLogRepository.findByUserId(userId);
-        Map<ActivityCategory, Long> timeByType = new HashMap<>();
-        for (ActivityLog log : logs) {
-            long minutes = Duration.between(log.getStartTime(), log.getEndTime()).toMinutes();
-            timeByType.put(log.getActivityType(), timeByType.getOrDefault(log.getActivityType(), 0L) + minutes);
-        }
-        return timeByType;
-    }
+
     public List<ActivityStatsDTO> getStats(Long userId, LocalDateTime start, LocalDateTime end) {
-        // 1. Récupérer les logs filtrés
         List<ActivityLog> logs = activityLogRepository.findByUserIdAndStartTimeBetween(userId, start, end);
 
-        // 2. Grouper par catégorie
         Map<ActivityCategory, List<ActivityLog>> groupedLogs = logs.stream()
             .collect(Collectors.groupingBy(ActivityLog::getActivityType));
 
-        // 3. Calculer les stats pour chaque catégorie
         List<ActivityStatsDTO> stats = new ArrayList<>();
         
-        // On parcourt toutes les catégories possibles pour avoir des zéros si aucune activité
         for (ActivityCategory category : ActivityCategory.values()) {
+            if (category == ActivityCategory.AUTRE && !groupedLogs.containsKey(category)) continue;
+
             List<ActivityLog> catLogs = groupedLogs.getOrDefault(category, Collections.emptyList());
             
             long count = catLogs.size();
