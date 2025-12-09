@@ -185,11 +185,14 @@ public class EventServiceImpl implements EventService {
         if (eventRequest.getEndTime() != null) {
             event.setEndTime(eventRequest.getEndTime());
         }
+        
+        // --- CORRECTION MAJEURE ICI ---
+        // Si un objet LocationRequest est fourni (même vide), on traite la mise à jour.
         if (eventRequest.getLocation() != null) {
             Location location = eventRequest.getLocation().toLocation();
-            if (location != null) {
-                event.setLocation(location);
-            }
+            // On assigne la location DIRECTEMENT. Si 'location' est null (car l'adresse était vide),
+            // cela supprimera correctement la location de l'événement.
+            event.setLocation(location);
         }
 
         // --- VERIFICATION DE FAISABILITE AVANT SAUVEGARDE (AJOUT POUR UPDATE) ---

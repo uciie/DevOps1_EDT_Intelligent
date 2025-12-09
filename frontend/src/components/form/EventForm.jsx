@@ -167,12 +167,14 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
       description: formData.description, // Ajout si le backend le supporte
       
       // --- CORRECTION : Envoi de l'objet complet LocationRequest ---
+      // MODIFICATION ICI : On envoie un objet avec adresse vide au lieu de null 
+      // pour que le backend interprète cela comme une suppression explicite.
       location: formData.address ? { 
         address: formData.address,
         latitude: formData.latitude,
         longitude: formData.longitude,
         name: formData.summary // On utilise le titre comme nom de lieu par défaut
-      } : null,
+      } : { address: '' },
       
       // UTILISATION DE LA NOUVELLE FONCTION AU LIEU DE toISOString()
       startTime: toLocalISOString(startDateTime), 
