@@ -93,6 +93,28 @@ public class TravelTimeService {
             mode
         );
 
+        // Appel de la méthode interne pour la sauvegarde
+        return saveTravelTimeInternal(fromEvent, toEvent, mode, durationMinutes);
+    }
+
+    /**
+     * Crée un temps de trajet avec une durée DÉJÀ connue (évite le recalcul).
+     * C'est cette méthode que EventService doit appeler.
+     */
+    @Transactional
+    public TravelTime createTravelTimeWithDuration(Event fromEvent, Event toEvent, TransportMode mode, int durationMinutes) {
+        return saveTravelTimeInternal(fromEvent, toEvent, mode, durationMinutes);
+    }
+
+    /**
+     * Méthode interne pour factoriser la création et la sauvegarde du TravelTime.
+     */
+    private TravelTime saveTravelTimeInternal(Event fromEvent, Event toEvent, TransportMode mode, int durationMinutes) {
+        // Vérifie que les deux événements ont une localisation (sécurité supplémentaire)
+        if (fromEvent.getLocation() == null || toEvent.getLocation() == null) {
+            throw new IllegalArgumentException("Les événements doivent avoir une localisation");
+        }
+
         // Le trajet commence à la fin de l'événement précédent
         LocalDateTime travelStartTime = fromEvent.getEndTime();
 

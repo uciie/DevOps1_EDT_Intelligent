@@ -71,7 +71,7 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick
             {event.location && (
                <div className="event-block-location">
                  {typeof event.location === 'object' 
-                   ? (event.location.name || event.location.address || "") 
+                   ? (event.location.address || "") 
                    : event.location}
                </div>
             )}

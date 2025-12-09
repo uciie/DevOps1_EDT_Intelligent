@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Contrôleur REST pour la gestion des événements.
@@ -126,6 +127,24 @@ public class EventController {
     }
 
     /**
+     * Recalcule tous les temps de trajet pour un utilisateur donné selon le mode choisi.
+     * C'est utile quand l'utilisateur change de préférence (Google Maps vs Simple).
+     */
+    @PostMapping("/recalculate")
+    public ResponseEntity<?> recalculateTravelTimes(
+            @RequestParam Long userId,
+            @RequestParam Boolean useGoogleMaps) {
+        try {
+            eventService.recalculateAllTravelTimes(userId, useGoogleMaps);
+            return ResponseEntity.ok(Map.of("message", "Temps de trajets recalculés avec succès"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur lors du recalcul : " + e.getMessage());
+        }
+    }
+
+    /**
      * DTO pour la création/modification d'événements.
      */
     public static class EventRequest {
@@ -137,6 +156,9 @@ public class EventController {
         
         // NOUVEAU CHAMP pour le mode de transport
         private String transportMode;
+        
+        // MODIFICATION : Ajout du champ pour la préférence utilisateur
+        private Boolean useGoogleMaps;
 
         // Getters et Setters
         public String getSummary() { return summary; }
@@ -156,6 +178,9 @@ public class EventController {
 
         public String getTransportMode() { return transportMode; }
         public void setTransportMode(String transportMode) { this.transportMode = transportMode; }
+
+        public Boolean getUseGoogleMaps() { return useGoogleMaps; }
+        public void setUseGoogleMaps(Boolean useGoogleMaps) { this.useGoogleMaps = useGoogleMaps; }
     }
 
     /**

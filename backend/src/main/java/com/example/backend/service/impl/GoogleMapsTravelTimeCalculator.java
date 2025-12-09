@@ -11,6 +11,7 @@ import java.net.URI;
 import org.springframework.beans.factory.annotation.Autowired; 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -19,6 +20,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 @Profile("external-api")
+@Primary
 public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
 
     @Value("${google.maps.api.key:}")

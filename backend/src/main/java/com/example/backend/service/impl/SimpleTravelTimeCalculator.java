@@ -3,7 +3,6 @@ package com.example.backend.service.impl;
 import com.example.backend.model.Location;
 import com.example.backend.model.TravelTime.TransportMode;
 import com.example.backend.service.TravelTimeCalculator;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Component;
  * Utilise des vitesses moyennes pour estimer le temps.
  */
 @Component
-@Profile("!test & !external-api") // Ne pas créer ce bean pendant les tests unitaires purs (utiliser TestConfig)
+//@Profile("!test & !external-api") // Ne pas créer ce bean pendant les tests unitaires purs (utiliser TestConfig)
 public class SimpleTravelTimeCalculator implements TravelTimeCalculator {
 
     // Vitesses moyennes en km/h (Ville)
@@ -24,6 +23,7 @@ public class SimpleTravelTimeCalculator implements TravelTimeCalculator {
 
     @Override
     public int calculateTravelTime(Location from, Location to, TransportMode mode) {
+        System.out.println("⚠️  Using SimpleTravelTimeCalculator (fallback).");
         if (!from.hasCoordinates() || !to.hasCoordinates()) {
             // Par défaut, on estime 15 minutes si pas de coordonnées
             return 15;

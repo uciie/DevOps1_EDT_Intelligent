@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import java.util.Optional;
+
 @Repository
 public interface TravelTimeRepository extends JpaRepository<TravelTime, Long> {
     
@@ -44,5 +46,5 @@ public interface TravelTimeRepository extends JpaRepository<TravelTime, Long> {
      * @param fromEvent l'événement de départ
      * @return liste des temps de trajet
      */
-    List<TravelTime> findByFromEvent(Event fromEvent);
+    Optional<TravelTime> findByFromEventAndToEvent(Event fromEvent, Event toEvent);
 }

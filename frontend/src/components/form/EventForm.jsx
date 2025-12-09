@@ -44,6 +44,10 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
     summary: '',
     description: '',
     address: '',
+    // --- CORRECTION : Ajout des champs latitude et longitude ---
+    latitude: null,
+    longitude: null,
+    // -----------------------------------------------------------
     category: 'TRAVAIL',
     subCategory: '',
     duration: 1,
@@ -68,16 +72,25 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
 
         // Gestion de l'adresse : le backend peut renvoyer un objet ou une string
         let addressVal = '';
+        let latVal = null;
+        let lngVal = null;
+
         if (initialData.location) {
-            addressVal = typeof initialData.location === 'object' 
-                ? initialData.location.address 
-                : initialData.location;
+            if (typeof initialData.location === 'object') {
+                addressVal = initialData.location.address;
+                latVal = initialData.location.latitude;
+                lngVal = initialData.location.longitude;
+            } else {
+                addressVal = initialData.location;
+            }
         }
 
         setFormData({
           summary: initialData.summary || initialData.title || '',
           description: initialData.description || '',
           address: addressVal,
+          latitude: latVal,   // Récupération
+          longitude: lngVal,  // Récupération
           // Si l'événement a une catégorie stockée, on l'utilise, sinon défaut
           category: initialData.category || 'TRAVAIL', 
           subCategory: initialData.subCategory || '',
@@ -100,6 +113,8 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
           summary: '',
           description: '',
           address: '',
+          latitude: null,  // Reset
+          longitude: null, // Reset
           category: 'TRAVAIL',
           subCategory: '',
           // On initialise avec la date cliquée dans le calendrier
@@ -150,7 +165,14 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
     const eventPayload = {
       summary: formData.summary,
       description: formData.description, // Ajout si le backend le supporte
-      location: formData.address ? { address: formData.address } : null,
+      
+      // --- CORRECTION : Envoi de l'objet complet LocationRequest ---
+      location: formData.address ? { 
+        address: formData.address,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
+        name: formData.summary // On utilise le titre comme nom de lieu par défaut
+      } : null,
       
       // UTILISATION DE LA NOUVELLE FONCTION AU LIEU DE toISOString()
       startTime: toLocalISOString(startDateTime), 
@@ -203,10 +225,24 @@ export default function EventForm({ isOpen, onClose, onSave, initialDate, initia
             <GooglePlacesAutocomplete
               value={formData.address}
               onChange={(val) => {
-                // Si l'utilisateur clique sur une suggestion, val est un objet { address, lat, lng }
-                // Sinon (saisie manuelle), val est une string.
-                const addressText = (val && typeof val === 'object') ? val.address : val;
-                handleChange('address', addressText);
+                // --- CORRECTION : Gestion de l'objet retourné par l'autocomplete ---
+                if (val && typeof val === 'object') {
+                   // Si c'est un objet (sélection dans la liste)
+                   setFormData(prev => ({
+                     ...prev,
+                     address: val.address,
+                     latitude: val.lat,
+                     longitude: val.lng
+                   }));
+                } else {
+                   // Si c'est du texte (saisie manuelle) -> Pas de GPS, donc le backend forcera Google Maps
+                   setFormData(prev => ({
+                     ...prev,
+                     address: val,
+                     latitude: null,
+                     longitude: null
+                   }));
+                }
               }}
             />
           </div>

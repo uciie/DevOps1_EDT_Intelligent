@@ -6,11 +6,13 @@ import com.example.backend.model.Location;
 import com.example.backend.model.TravelTime;
 import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
+import com.example.backend.repository.TravelTimeRepository;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.service.EventService;
-import com.example.backend.service.TravelTimeCalculator; // Import du calculateur
-import com.example.backend.service.TravelTimeService; // Import du service de persistance
+import com.example.backend.service.TravelTimeCalculator;
+import com.example.backend.service.TravelTimeService;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,18 +28,37 @@ public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
-    private final TravelTimeService travelTimeService; 
-    private final TravelTimeCalculator travelTimeCalculator;
+    private final TravelTimeService travelTimeService;
+    private final TravelTimeRepository travelTimeRepository; // Ajout pour accès direct si besoin
+    
+    // On garde le calculateur principal (qui sera Google si activé, sinon Simple par défaut)
+    private final TravelTimeCalculator primaryCalculator;
+    // On injecte explicitement le calculateur simple pour le fallback forcé
+    private final TravelTimeCalculator simpleCalculator;
 
     // Injection des dépendances nécessaires
     public EventServiceImpl(EventRepository eventRepository, 
                             UserRepository userRepository,
                             TravelTimeService travelTimeService,
-                            TravelTimeCalculator travelTimeCalculator) {
+                            TravelTimeRepository travelTimeRepository,
+                            TravelTimeCalculator primaryCalculator,
+                            @Qualifier("simpleTravelTimeCalculator") TravelTimeCalculator simpleCalculator) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.travelTimeService = travelTimeService;
-        this.travelTimeCalculator = travelTimeCalculator;
+        this.travelTimeRepository = travelTimeRepository;
+        this.primaryCalculator = primaryCalculator;
+        this.simpleCalculator = simpleCalculator;
+    }
+
+    // --- Helper pour choisir le calculateur ---
+    private TravelTimeCalculator getCalculator(Boolean useGoogleMaps) {
+        // Si l'utilisateur demande explicitement NON (false), on utilise le simple.
+        // Si null ou true, on utilise le primary (qui est Google si le profil est actif, sinon Simple)
+        if (Boolean.FALSE.equals(useGoogleMaps)) {
+            return simpleCalculator;
+        }
+        return primaryCalculator;
     }
 
     // --- Implémentation des méthodes ---
@@ -47,13 +68,9 @@ public class EventServiceImpl implements EventService {
      */
     @Override
     public List<Event> getEventsByUserId(Long userId) {
-        // Utilisation de la méthode JpaRepository triée (méthode de votre branche HEAD)
         return eventRepository.findByUser_IdOrderByStartTime(userId);
     }
 
-    /**
-     * Récupère un événement par son ID (logique de 5512fe3).
-     */
     @Override
     public Event getEventById(Long id) {
         return eventRepository.findById(id)
@@ -84,8 +101,7 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        // --- VERIFICATION DE FAISABILITE AVANT SAUVEGARDE ---
-        // Si l'utilisateur a spécifié un mode de transport et que l'événement a une localisation
+        // --- VERIFICATION DE FAISABILITE ---
         if (eventRequest.getTransportMode() != null && event.getLocation() != null) {
             
             // 1. Récupérer les événements de l'utilisateur pour trouver le précédent
@@ -103,9 +119,9 @@ public class EventServiceImpl implements EventService {
                 try {
                     // Conversion du String en Enum
                     TravelTime.TransportMode mode = TravelTime.TransportMode.valueOf(eventRequest.getTransportMode());
-                    
-                    // A. Calculer le temps de trajet SANS le créer tout de suite
-                    int durationMinutes = travelTimeCalculator.calculateTravelTime(
+                    TravelTimeCalculator calculator = getCalculator(eventRequest.getUseGoogleMaps());
+
+                    int durationMinutes = calculator.calculateTravelTime(
                         previousEvent.getLocation(),
                         event.getLocation(),
                         mode
@@ -134,8 +150,10 @@ public class EventServiceImpl implements EventService {
                     // C. Si c'est faisable, on sauvegarde l'événement
                     Event savedEvent = eventRepository.save(event);
                     
-                    // D. Et on crée le TravelTime en base pour la persistance
-                    travelTimeService.createTravelTime(previousEvent, savedEvent, mode);
+                    // On force la création avec la durée calculée pour être cohérent
+                    // (Ici on utilise une méthode interne ou on met à jour manuellement si createTravelTime recalcule)
+                    // Pour simplifier, on suppose que createTravelTime fait le job, mais pour le RECALCUL global, on sera plus explicite.
+                    travelTimeService.createTravelTimeWithDuration(previousEvent, savedEvent, mode, durationMinutes);
                     
                     return savedEvent;
 
@@ -151,7 +169,7 @@ public class EventServiceImpl implements EventService {
     }
 
     /**
-     * Met à jour un événement existant (logique de 5512fe3).
+     * Met à jour un événement existant.
      */
     @Override
     @Transactional
@@ -192,47 +210,24 @@ public class EventServiceImpl implements EventService {
 
             // 3. Si un événement précédent existe et a une localisation
             if (previousEvent != null && previousEvent.getLocation() != null) {
-                try {
-                    // Conversion du String en Enum
-                    TravelTime.TransportMode mode = TravelTime.TransportMode.valueOf(eventRequest.getTransportMode());
-                    
-                    // A. Calculer le temps de trajet
-                    int durationMinutes = travelTimeCalculator.calculateTravelTime(
-                        previousEvent.getLocation(),
-                        event.getLocation(),
-                        mode
-                    );
-                    
-                    // B. Vérifier si on arrive à temps
-                    LocalDateTime departureTime = previousEvent.getEndTime();
-                    LocalDateTime estimatedArrival = departureTime.plusMinutes(durationMinutes);
-                    
-                    if (estimatedArrival.isAfter(event.getStartTime())) {
-                        throw new IllegalArgumentException(
-                            String.format("Impossible d'arriver à l'heure ! Fin de l'événement précédent : %s. " +
-                                          "Temps de trajet (%s) : %d min. Arrivée estimée : %s. " +
-                                          "Début de l'événement prévu : %s.",
-                                          departureTime.toLocalTime(),
-                                          mode,
-                                          durationMinutes,
-                                          estimatedArrival.toLocalTime(),
-                                          event.getStartTime().toLocalTime())
-                        );
-                    }
-                    
-                    // C. Si c'est faisable, on sauvegarde d'abord l'événement mis à jour
-                    Event savedEvent = eventRepository.save(event);
-                    
-                    // D. On met à jour (ou recrée) le lien de TravelTime
-                    // Note: Idéalement, on devrait supprimer l'ancien TravelTime s'il existe, 
-                    // mais ici createTravelTime en créera un nouveau valide.
-                    travelTimeService.createTravelTime(previousEvent, savedEvent, mode);
-                    
-                    return savedEvent;
+                TravelTime.TransportMode mode = TravelTime.TransportMode.valueOf(eventRequest.getTransportMode());
+                TravelTimeCalculator calculator = getCalculator(eventRequest.getUseGoogleMaps());
 
-                } catch (java.lang.IllegalArgumentException e) {
-                    throw e; 
+                int durationMinutes = calculator.calculateTravelTime(
+                    previousEvent.getLocation(),
+                    event.getLocation(),
+                    mode
+                );
+                
+                LocalDateTime estimatedArrival = previousEvent.getEndTime().plusMinutes(durationMinutes);
+                
+                if (estimatedArrival.isAfter(event.getStartTime())) {
+                    throw new IllegalArgumentException("Impossible d'arriver à l'heure (trajet de " + durationMinutes + " min).");
                 }
+                
+                Event savedEvent = eventRepository.save(event);
+                travelTimeService.createTravelTimeWithDuration(previousEvent, savedEvent, mode, durationMinutes);
+                return savedEvent;
             }
         }
 
@@ -257,7 +252,61 @@ public class EventServiceImpl implements EventService {
      */
     @Override
     public List<Event> getEventsByUserIdAndPeriod(Long userId, LocalDateTime start, LocalDateTime end) {
-        // Utilisation de la méthode JpaRepository (méthode de 5512fe3)
         return eventRepository.findByUser_IdAndStartTimeBetween(userId, start, end);
+    }
+
+    /**
+     * Recalcule tous les temps de trajets pour les événements futurs d'un utilisateur.
+     * Cette méthode est appelée lors du changement de configuration (Google vs Simple).
+     */
+    @Override
+    @Transactional
+    public void recalculateAllTravelTimes(Long userId, Boolean useGoogleMaps) {
+        // 1. Récupérer tous les événements de l'utilisateur triés
+        List<Event> events = eventRepository.findByUser_IdOrderByStartTime(userId);
+        
+        if (events.isEmpty()) return;
+
+        // Choix du calculateur
+        TravelTimeCalculator calculator = getCalculator(useGoogleMaps);
+
+        // 2. Parcourir les événements pour trouver les paires consécutives
+        for (int i = 0; i < events.size() - 1; i++) {
+            Event current = events.get(i);
+            Event next = events.get(i + 1);
+
+            try {
+                // On vérifie que les objets Location ne sont pas nulls
+                if (current.getLocation() != null && next.getLocation() != null) {
+                    
+                    TravelTime existingTt = travelTimeRepository.findByFromEventAndToEvent(current, next)
+                            .orElse(null);
+
+                    // --- CORRECTION 500 : GESTION DU MODE NULL ---
+                    TravelTime.TransportMode mode = TravelTime.TransportMode.DRIVING; // Valeur par défaut
+                    
+                    // Si un trajet existe mais que son mode est corrompu (null), on garde DRIVING
+                    if (existingTt != null && existingTt.getMode() != null) {
+                        mode = existingTt.getMode();
+                    }
+
+                    // Calcul du temps (protégé par le try-catch autour)
+                    int newDuration = calculator.calculateTravelTime(current.getLocation(), next.getLocation(), mode);
+
+                    if (existingTt != null) {
+                        existingTt.setDurationMinutes(newDuration);
+                        travelTimeRepository.save(existingTt);
+                    } else {
+                        // Optionnel : Si vous vouliez créer les liens manquants, ce serait ici.
+                        // Pour l'instant on ne touche qu'aux existants comme demandé.
+                    }
+                }
+            } catch (Exception e) {
+                //--- LOG L'ERREUR AU LIEU DE PLANTER TOUT LE SERVEUR ---
+                System.err.println("ERREUR NON BLOQUANTE lors du recalcul event " + current.getId() + " -> " + next.getId());
+                System.err.println("Cause : " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 }
