@@ -3,6 +3,7 @@ package com.example.backend.model.TypesDevenements;
 import java.time.LocalDateTime;
 import com.example.backend.model.Event;
 import com.example.backend.model.User;
+import com.example.backend.repository.GeneralUserRepository;
 
 public class EtudeEvent extends Event{  
     
@@ -21,4 +22,5 @@ public class EtudeEvent extends Event{
         return this.etudeType;
     }
     
+
 }
