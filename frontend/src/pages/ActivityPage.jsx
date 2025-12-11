@@ -15,27 +15,32 @@ const CATEGORY_LABELS = {
 
 export default function ActivityStatsPage() {
   const [stats, setStats] = useState([]);
-  const [loading, setLoading] = useState(false); // État de chargement
-  const [hasSearched, setHasSearched] = useState(false); // Pour savoir si on a déjà cherché
+  const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   
-  // Filtres
+  // --- ÉTATS DE SÉLECTION (BROUILLON) ---
+  // Ces états changent quand l'utilisateur clique, mais n'affectent pas encore l'affichage des résultats
   const [period, setPeriod] = useState('7days'); 
-  const [selectedCategories, setSelectedCategories] = useState([]); 
+  const [draftCategories, setDraftCategories] = useState([]); // Remplace selectedCategories pour l'UI
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
+
+  // --- ÉTAT APPLIQUÉ (POUR L'AFFICHAGE) ---
+  // C'est ce filtre qui sera utilisé pour filtrer la liste des résultats
+  const [appliedCategories, setAppliedCategories] = useState([]);
   
   const currentUser = getCurrentUser();
 
-  // Chargement initial (optionnel, vous pouvez le retirer si vous voulez que la page soit vide au début)
+  // Chargement initial (optionnel : charge les 7 derniers jours par défaut sans filtre)
   useEffect(() => {
     if (currentUser) {
-      fetchStats();
+      handleSearch(); 
     }
-    // Note : On ne met PAS 'period' ou 'selectedCategories' ici pour éviter l'auto-refresh
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]); 
 
   const toggleCategory = (catKey) => {
-    setSelectedCategories(prev => {
+    setDraftCategories(prev => {
       if (prev.includes(catKey)) return prev.filter(k => k !== catKey);
       return [...prev, catKey];
     });
@@ -66,20 +71,23 @@ export default function ActivityStatsPage() {
     };
   };
 
-  const fetchStats = async () => {
+  // Fonction déclenchée UNIQUEMENT par le bouton
+  const handleSearch = async () => {
     const dates = getDatesFromPeriod();
     if (!dates) return;
 
     setLoading(true);
     setHasSearched(true);
+    
+    // 1. On "fige" les catégories sélectionnées dans l'état appliqué
+    setAppliedCategories([...draftCategories]);
+
     try {
-      // Appel API (Backend mis à jour avec le DTO)
+      // 2. On lance la requête
       const data = await getActivityStats(currentUser.id, dates.start, dates.end);
-      
-      // Tri par durée totale décroissante
       setStats(data.sort((a, b) => b.totalMinutes - a.totalMinutes));
     } catch (error) {
-      console.error("Erreur lors de la récupération des stats:", error);
+      console.error("Erreur stats:", error);
     } finally {
       setLoading(false);
     }
@@ -92,20 +100,19 @@ export default function ActivityStatsPage() {
     return `${m} min`;
   };
 
-  // Filtrage côté client pour l'affichage
-  const displayedStats = selectedCategories.length === 0 
+  // Filtrage basé sur les catégories "Appliquées" (et non celles en cours de sélection)
+  const displayedStats = appliedCategories.length === 0 
     ? stats 
-    : stats.filter(s => selectedCategories.includes(s.category));
+    : stats.filter(s => appliedCategories.includes(s.category));
 
   return (
     <div className="activity-page container">
       <h1>📈 Analyse de vos activités</h1>
       
-      {/* --- Zone de Filtres --- */}
       <div className="filters-container">
         
         <div className="filters-grid-layout">
-          {/* Colonne 1 : Période */}
+          {/* Période */}
           <div className="filters-card">
             <h3>📅 Période</h3>
             <div className="period-buttons">
@@ -123,12 +130,13 @@ export default function ActivityStatsPage() {
             )}
           </div>
 
-          {/* Colonne 2 : Activités */}
+          {/* Activités (Sélection multiple) */}
           <div className="filters-card">
-            <h3>🏷️ Activités</h3>
+            <h3>🏷️ Filtrer par activité</h3>
             <div className="categories-filter">
               {Object.entries(CATEGORY_LABELS).map(([key, info]) => {
-                const isSelected = selectedCategories.includes(key);
+                // On utilise draftCategories pour l'affichage des boutons (feedback visuel immédiat de la sélection)
+                const isSelected = draftCategories.includes(key);
                 return (
                   <button
                     key={key}
@@ -144,22 +152,22 @@ export default function ActivityStatsPage() {
                   </button>
                 );
               })}
-              {selectedCategories.length > 0 && (
-                <button className="category-chip clear" onClick={() => setSelectedCategories([])}>✕</button>
+              {draftCategories.length > 0 && (
+                <button className="category-chip clear" onClick={() => setDraftCategories([])}>✕</button>
               )}
             </div>
           </div>
         </div>
 
-        {/* --- BOUTON DE VALIDATION --- */}
+        {/* Bouton de Validation */}
         <div className="search-action">
-          <button className="btn-search" onClick={fetchStats} disabled={loading}>
-            {loading ? 'Chargement...' : '🔍 Afficher les statistiques'}
+          <button className="btn-search" onClick={handleSearch} disabled={loading}>
+            {loading ? 'Chargement...' : '✅ Confirmer la sélection et Afficher'}
           </button>
         </div>
       </div>
 
-      {/* --- Grille des Résultats --- */}
+      {/* Résultats */}
       {loading ? (
         <div className="loading-state">
           <div className="spinner"></div>
@@ -170,8 +178,8 @@ export default function ActivityStatsPage() {
           {displayedStats.map((stat) => {
             const info = CATEGORY_LABELS[stat.category] || { label: stat.category, color: '#ccc' };
             
-            // On cache si vide ET qu'on n'a pas spécifiquement demandé cette catégorie
-            if (stat.count === 0 && !selectedCategories.includes(stat.category)) return null;
+            // Masquer les stats à 0 si on n'a pas explicitement demandé cette catégorie
+            if (stat.count === 0 && !appliedCategories.includes(stat.category)) return null;
 
             return (
               <div key={stat.category} className="stat-card" style={{ borderTop: `4px solid ${info.color}` }}>
@@ -197,10 +205,10 @@ export default function ActivityStatsPage() {
             );
           })}
           
-          {hasSearched && displayedStats.every(s => s.count === 0) && (
+          {hasSearched && displayedStats.length === 0 && (
             <div className="no-data">
               <span className="no-data-icon">📭</span>
-              <p>Aucune activité trouvée pour cette période.</p>
+              <p>Aucune activité ne correspond à votre sélection.</p>
             </div>
           )}
         </div>
