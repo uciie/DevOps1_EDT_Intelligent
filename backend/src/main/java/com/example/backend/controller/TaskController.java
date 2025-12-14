@@ -23,6 +23,12 @@ public class TaskController {
         return ResponseEntity.ok(taskService.getTasksByUserId(userId));
     }
 
+    // Récupère les tâches que l'utilisateur a déléguées à d'autres
+    @GetMapping("/user/{userId}/delegated")
+    public ResponseEntity<List<Task>> getDelegatedTasks(@PathVariable Long userId) {
+        return ResponseEntity.ok(taskService.getDelegatedTasks(userId));
+    }
+
     @PostMapping("/user/{userId}")
     public ResponseEntity<Task> createTaskForUser(
             @PathVariable Long userId, // Capture l'ID depuis l'URL
@@ -32,9 +38,15 @@ public class TaskController {
         return ResponseEntity.ok(taskService.createTask(task, userId));
     }
 
+    // MISE À JOUR : On ajoute le userId pour vérifier les droits (RM-03)
+    // Exemple d'appel : PUT /api/tasks/12?userId=5
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task task) {
-        return ResponseEntity.ok(taskService.updateTask(id, task));
+    public ResponseEntity<Task> updateTask(
+            @PathVariable Long id, 
+            @RequestBody Task task,
+            @RequestParam Long userId // Obligatoire pour savoir QUI modifie
+    ) {
+        return ResponseEntity.ok(taskService.updateTask(id, task, userId));
     }
 
     @DeleteMapping("/{id}")
