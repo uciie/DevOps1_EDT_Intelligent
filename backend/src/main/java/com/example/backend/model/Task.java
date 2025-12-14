@@ -3,6 +3,7 @@ package com.example.backend.model;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
 
@@ -36,6 +37,17 @@ public class Task {
     @JoinColumn(name = "event_id", nullable = true)
     private Event event;
 
+    // L'utilisateur qui doit FAIRE la tâche
+    @ManyToOne
+    @JoinColumn(name = "assignee_id")
+    private User assignee;
+
+    // Le contexte du projet (Optionnel mais recommandé par vos specs)
+    @ManyToOne
+    @JoinColumn(name = "team_id")
+    @JsonIgnore // Pour éviter de charger toute l'équipe avec chaque tâche
+    private Team team;
+
     public Task() {
 
     }
@@ -56,6 +68,18 @@ public class Task {
         this.done = done;
         this.user = user;
         this.event = event;
+    }
+
+    // Mettez à jour vos constructeurs pour inclure assignee et team si nécessaire
+    // Exemple de mise à jour d'un constructeur :
+    public Task(String title, int estimatedDuration, int priority, boolean done, User creator, User assignee, Team team) {
+        this.title = title;
+        this.estimatedDuration = estimatedDuration;
+        this.priority = priority;
+        this.done = done;
+        this.user = creator;
+        this.assignee = assignee != null ? assignee : creator; // Par défaut (RM-02), l'assigné est le créateur
+        this.team = team;
     }
 
     public Long getId() {
@@ -122,7 +146,19 @@ public class Task {
         this.event = event;
     }
 
+    public User getAssignee() { return assignee; }
     
+    public void setAssignee(User assignee) { this.assignee = assignee; }
+    
+    public Team getTeam() { return team; }
+    
+    public void setTeam(Team team) { this.team = team; }
+
+    // Helper pour savoir si la tâche est déléguée (RM-04)
+    @JsonIgnore
+    public boolean isDelegated() {
+        return this.assignee != null && !this.assignee.equals(this.user);
+    }
 
     public boolean isLate() {
         return late;
