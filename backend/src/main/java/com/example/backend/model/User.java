@@ -31,6 +31,10 @@ public class User {
     @JsonManagedReference("userTasks")
     private List<Task> tasks;
 
+    @ManyToMany(mappedBy = "members")
+    @JsonIgnore // Important pour éviter les boucles infinies lors de la sérialisation JSON
+    private List<Team> teams;
+
     /**
      * Constructeur par défaut.
      */
@@ -81,4 +85,8 @@ public class User {
 
     public List<Task> getTasks() { return tasks; }
     public void setTasks(List<Task> tasks) { this.tasks = tasks; }
+
+    // Ajoutez les getters/setters pour teams
+    public List<Team> getTeams() { return teams; }
+    public void setTeams(List<Team> teams) { this.teams = teams; }
 }
