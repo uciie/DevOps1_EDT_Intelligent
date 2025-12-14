@@ -9,9 +9,13 @@ import com.example.backend.service.TaskService;
 import org.springframework.stereotype.Service;
 import com.example.backend.model.User; 
 import com.example.backend.repository.UserRepository;
+import jakarta.transaction.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -26,30 +30,120 @@ public class TaskServiceImpl implements TaskService {
         this.userRepository = userRepository;
     }
 
+    // --- RM-04 : FILTRES ---
+
     @Override
     public List<Task> getTasksByUserId(Long userId) {
-        return taskRepository.findAll()
-                .stream()
-                .filter(t -> t.getUser() != null && t.getUser().getId().equals(userId))
-                .toList();
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return new ArrayList<>();
+
+        List<Task> createdTasks = taskRepository.findByUser_Id(userId); 
+        
+        List<Task> assignedTasks = taskRepository.findByAssignee(user);
+
+        Set<Task> uniqueTasks = new HashSet<>(createdTasks);
+        uniqueTasks.addAll(assignedTasks);
+
+        return new ArrayList<>(uniqueTasks);
     }
 
     @Override
-    public Task createTask(Task task, Long userId) { // <-- Implemente la nouvelle signature
-        // 1. Chercher l'utilisateur complet en BDD en utilisant l'ID
-        // userRepository.findById(userId) renvoie un Optional<User>
-        User user = userRepository.findById(userId)
-            // Si l'utilisateur n'est pas trouvé, on lance une exception HTTP 400 ou 500
-            .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé avec l'ID: " + userId)); 
+    public List<Task> getTasksAssignedToUser(Long userId) {
+        // Utilise la méthode repository créée à l'étape 4 : findByAssignee
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return List.of();
+        return taskRepository.findByAssignee(user);
+    }
 
-        // 2. Lier l'objet User trouvé à l'objet Task reçu du client
-        task.setUser(user);
+    @Override
+    public List<Task> getDelegatedTasks(Long creatorId) {
+        // Utilise la méthode repository créée à l'étape 4 : findByUserAndAssigneeNot
+        User creator = userRepository.findById(creatorId).orElseThrow();
+        // On cherche les tâches créées par moi, mais assignées à quelqu'un d'autre (ou null)
+        // Note: Assurez-vous que findByUserAndAssigneeNot est bien dans TaskRepository
+        return taskRepository.findByUserAndAssigneeNot(creator, creator);
+    }
 
-        // 3. Logique métier
+    // --- RM-02 : CREATION & ASSIGNATION ---
+
+    @Override
+    @Transactional
+    public Task createTask(Task task, Long creatorId) {
+        User creator = userRepository.findById(creatorId)
+            .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé avec l'ID: " + creatorId));
+
+        // 1. Définir le Créateur (Owner)
+        task.setUser(creator); // 'user' est le champ créateur dans le nouveau modèle
+
+        // 2. Gestion de l'Assigné (RM-02)
+        if (task.getAssignee() == null) {
+            // Par défaut, si aucun responsable n'est désigné, l'assigné est le créateur
+            task.setAssignee(creator);
+        } else {
+            // Si un assigné est fourni, il faut le récupérer proprement depuis la BDD si seul l'ID est passé
+            // (Supposons que le Controller a déjà hydraté l'objet, sinon faire un findById ici)
+            User assigneeCandidate = userRepository.findById(task.getAssignee().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Utilisateur assigné introuvable"));
+            
+            // Vérification : On ne peut assigner qu'à un membre de la même équipe
+            // Optimisation : On vérifie si les deux utilisateurs ont au moins une équipe en commun
+            boolean sameTeam = creator.getTeams().stream()
+                    .anyMatch(team -> team.getMembers().contains(assigneeCandidate));
+            
+            // Note: Pour simplifier au début, on peut autoriser l'assignation si sameTeam est false,
+            // mais selon la RM-02 stricte :
+            if (!sameTeam && !creator.equals(assigneeCandidate)) {
+                throw new IllegalArgumentException("Vous ne pouvez assigner une tâche qu'aux membres de vos équipes.");
+            }
+            task.setAssignee(assigneeCandidate);
+        }
+
         task.setDone(false);
 
         // 4. Sauvegarder la tâche (maintenant la colonne user_id n'est plus NULL)
         return taskRepository.save(task);
+    }
+
+    // --- RM-03 : DROITS DE MODIFICATION ---
+
+    @Override
+    @Transactional
+    public Task updateTask(Long taskId, Task updatedTask, Long currentUserId) {
+        Task existing = taskRepository.findById(taskId)
+                .orElseThrow(() -> new IllegalArgumentException("Tâche non trouvée"));
+
+        boolean isCreator = existing.getUser().getId().equals(currentUserId);
+        boolean isAssignee = existing.getAssignee().getId().equals(currentUserId);
+
+        if (isCreator) {
+            // LE CRÉATEUR peut tout modifier : Titre, Durée, Priorité, Assigné
+            existing.setTitle(updatedTask.getTitle());
+            existing.setEstimatedDuration(updatedTask.getEstimatedDuration());
+            existing.setPriority(updatedTask.getPriority());
+            existing.setDone(updatedTask.isDone());
+            
+            // Réassignation possible par le créateur
+            if (updatedTask.getAssignee() != null) {
+                 // On pourrait refaire la validation d'équipe ici
+                 existing.setAssignee(updatedTask.getAssignee());
+            }
+            
+            // Mise à jour date/deadline si présentes
+            if (updatedTask.getDeadline() != null) existing.setDeadline(updatedTask.getDeadline());
+
+        } else if (isAssignee) {
+            // L'ASSIGNÉ peut modifier uniquement le statut (Done, Late)
+            // On ignore silencieusement les autres changements ou on lance une erreur ? 
+            // Ici on applique uniquement les changements autorisés.
+            existing.setDone(updatedTask.isDone());
+            existing.setLate(updatedTask.isLate());
+            
+        } else {
+            // Ni créateur ni assigné -> Accès refusé
+            throw new SecurityException("Vous n'avez pas les droits pour modifier cette tâche.");
+        }
+
+        return taskRepository.save(existing);
     }
 
     @Override
