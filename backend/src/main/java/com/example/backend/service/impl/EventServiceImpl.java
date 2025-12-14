@@ -312,4 +312,43 @@ public class EventServiceImpl implements EventService {
             }
         }
     }
+
+    /**
+     * RM-05 : Consultation du calendrier partagé (Lecture Seule)
+     */
+    @Override
+    public List<Event> getTeammateEvents(Long requesterId, Long targetUserId) {
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur requérant introuvable"));
+        
+        User target = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur cible introuvable"));
+
+        // 1. Vérification de sécurité : Sont-ils dans la même équipe ?
+        // On regarde l'intersection des listes d'équipes
+        boolean sharedTeam = requester.getTeams().stream()
+                .anyMatch(team -> target.getTeams().contains(team));
+
+        if (!sharedTeam) {
+            throw new SecurityException("Accès refusé : Vous n'êtes pas dans la même équipe que cet utilisateur.");
+        }
+
+        // 2. Récupération des événements
+        List<Event> events = eventRepository.findByUser_IdOrderByStartTime(targetUserId);
+
+        // 3. (Optionnel) Confidentialité : Masquer les détails privés
+        // Si vous voulez implémenter le mode "Occupé" seulement :
+        /*
+        return events.stream().map(e -> {
+            Event publicView = new Event();
+            publicView.setStartTime(e.getStartTime());
+            publicView.setEndTime(e.getEndTime());
+            publicView.setSummary("Occupé"); // Masque le titre réel
+            return publicView;
+        }).toList();
+        */
+
+        // Pour l'instant, on retourne tout (transparence d'équipe)
+        return events;
+    }
 }
