@@ -35,4 +35,8 @@ public interface EventService {
      * @param useGoogleMaps true pour Google Maps, false pour calcul simple
      */
     void recalculateAllTravelTimes(Long userId, Boolean useGoogleMaps);
+
+    // Lire le calendrier d'un coéquipier
+    // requesterId = celui qui veut voir, targetUserId = celui qu'on regarde
+    List<Event> getTeammateEvents(Long requesterId, Long targetUserId);
 }
