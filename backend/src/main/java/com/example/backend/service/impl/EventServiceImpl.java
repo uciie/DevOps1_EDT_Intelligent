@@ -1,6 +1,7 @@
 package com.example.backend.service.impl;
 
 import com.example.backend.controller.EventController.EventRequest;
+import com.example.backend.model.ActivityCategory;
 import com.example.backend.model.Event;
 import com.example.backend.model.Location;
 import com.example.backend.model.TravelTime;
@@ -75,6 +76,16 @@ public class EventServiceImpl implements EventService {
                 eventRequest.getEndTime(),
                 user
         );
+        if (eventRequest.getCategory() != null) {
+        try {
+            event.setCategory(ActivityCategory.valueOf(eventRequest.getCategory()));
+        } catch (IllegalArgumentException e) {
+            // Gérer le cas où la catégorie n'existe pas ou mettre une valeur par défaut
+            event.setCategory(ActivityCategory.AUTRE);
+        }
+        } else {
+            event.setCategory(ActivityCategory.AUTRE); // Valeur par défaut
+        }
 
         // Ajouter la localisation si fournie
         if (eventRequest.getLocation() != null) {
