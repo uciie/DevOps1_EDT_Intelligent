@@ -2,25 +2,36 @@ package com.example.backend.service;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 
+import com.example.backend.dto.ActivityStatsDTO;
 import com.example.backend.model.ActivityCategory;
-import com.example.backend.model.ActivityLog; // Import de l'Enum
+import com.example.backend.model.ActivityLog;
+import com.example.backend.model.Event;
+import com.example.backend.model.User;
 import com.example.backend.repository.ActivityLogRepository;
+import com.example.backend.repository.EventRepository;
 
 class ActivityLogServiceTest {
+
     @Mock
     private ActivityLogRepository activityLogRepository;
+    
+    @Mock
+    private EventRepository eventRepository;
 
     @InjectMocks
     private ActivityLogService activityLogService;
@@ -31,55 +42,81 @@ class ActivityLogServiceTest {
     }
 
     @Test
-    void testRecordActivity() {
-        // Arrange
-        ActivityLog log = new ActivityLog();
-        log.setUserId(1L);
-        log.setActivityType(ActivityCategory.TRAVAIL); // Utilisation de l'Enum
-        log.setStartTime(LocalDateTime.now().minusHours(1));
-        log.setEndTime(LocalDateTime.now());
+    void testGetStats_IncludeCalendarEvents() {
+        // ARRANGE
+        LocalDateTime start = LocalDateTime.now().minusDays(7);
+        LocalDateTime end = LocalDateTime.now();
+        Long userId = 1L;
+
+        // 1. Simuler un Event du calendrier (ex: 2h de Travail)
+        Event workEvent = new Event();
+        workEvent.setStartTime(LocalDateTime.now().minusHours(2));
+        workEvent.setEndTime(LocalDateTime.now());
+        workEvent.setCategory(ActivityCategory.TRAVAIL);
+        workEvent.setUser(new User()); 
         
-        when(activityLogRepository.save(any(ActivityLog.class))).thenReturn(log);
+        // 2. Simuler un Log manuel (ex: 1h de Sport)
+        ActivityLog sportLog = new ActivityLog();
+        sportLog.setStartTime(LocalDateTime.now().minusHours(1));
+        sportLog.setEndTime(LocalDateTime.now());
+        sportLog.setActivityType(ActivityCategory.SPORT);
+        sportLog.setUserId(userId);
 
-        // Act
-        // On passe l'Enum ActivityCategory.TRAVAIL au lieu de "work"
-        ActivityLog saved = activityLogService.recordActivity(
-            1L, 
-            ActivityCategory.TRAVAIL, 
-            null, 
-            log.getStartTime(), 
-            log.getEndTime()
-        );
+        // Configuration des Mocks
+        when(eventRepository.findByUser_IdAndStartTimeBetween(eq(userId), any(), any()))
+            .thenReturn(Arrays.asList(workEvent));
+            
+        when(activityLogRepository.findByUserIdAndStartTimeBetween(eq(userId), any(), any()))
+            .thenReturn(Arrays.asList(sportLog));
 
-        // Assert
-        assertEquals(ActivityCategory.TRAVAIL, saved.getActivityType());
-        assertEquals(1L, saved.getUserId());
+        // ACT
+        List<ActivityStatsDTO> stats = activityLogService.getStats(userId, start, end);
+
+        // ASSERT
+        assertNotNull(stats);
+        assertFalse(stats.isEmpty());
+
+        // Vérifier le Travail (doit être ~120 min)
+        ActivityStatsDTO workStat = stats.stream()
+            .filter(s -> s.getCategory() == ActivityCategory.TRAVAIL)
+            .findFirst().orElse(null);
+        
+        assertNotNull(workStat, "La catégorie TRAVAIL doit être présente");
+        assertEquals(120, workStat.getTotalMinutes(), "Le temps de travail doit être de 120 min (venant du calendrier)");
+
+        // Vérifier le Sport (doit être ~60 min)
+        ActivityStatsDTO sportStat = stats.stream()
+            .filter(s -> s.getCategory() == ActivityCategory.SPORT)
+            .findFirst().orElse(null);
+            
+        assertEquals(60, sportStat.getTotalMinutes(), "Le temps de sport doit être de 60 min (venant des logs)");
     }
 
     @Test
-    void testGetTotalTimeByActivityType() {
-        // Arrange
-        ActivityLog log1 = new ActivityLog();
-        log1.setUserId(1L);
-        log1.setActivityType(ActivityCategory.TRAVAIL); // "work" -> TRAVAIL
-        log1.setStartTime(LocalDateTime.now().minusHours(2));
-        log1.setEndTime(LocalDateTime.now().minusHours(1)); // Durée : 1h (60 min)
+    void testGetStats_HandleNullCategorySafely() {
+        // Test pour vérifier que l'erreur 500 ne se produit pas si la catégorie est null
+        
+        Event eventWithoutCat = new Event();
+        eventWithoutCat.setStartTime(LocalDateTime.now().minusMinutes(30));
+        eventWithoutCat.setEndTime(LocalDateTime.now());
+        eventWithoutCat.setCategory(null); // Catégorie manquante !
 
-        ActivityLog log2 = new ActivityLog();
-        log2.setUserId(1L);
-        log2.setActivityType(ActivityCategory.ETUDE); // "course" -> ETUDE
-        log2.setStartTime(LocalDateTime.now().minusHours(1));
-        log2.setEndTime(LocalDateTime.now()); // Durée : 1h (60 min)
+        when(eventRepository.findByUser_IdAndStartTimeBetween(any(), any(), any()))
+            .thenReturn(Arrays.asList(eventWithoutCat));
+            
+        when(activityLogRepository.findByUserIdAndStartTimeBetween(any(), any(), any()))
+            .thenReturn(Collections.emptyList());
 
-        List<ActivityLog> logs = Arrays.asList(log1, log2);
-        when(activityLogRepository.findByUserId(1L)).thenReturn(logs);
+        // ACT
+        List<ActivityStatsDTO> stats = activityLogService.getStats(1L, LocalDateTime.now(), LocalDateTime.now());
 
-        // Act
-        // La map retournée utilise maintenant ActivityCategory comme clé
-        Map<ActivityCategory, Long> stats = activityLogService.getTotalTimeByActivityType(1L);
-
-        // Assert
-        assertEquals(60L, stats.get(ActivityCategory.TRAVAIL));
-        assertEquals(60L, stats.get(ActivityCategory.ETUDE));
+        // ASSERT
+        // Cela ne doit pas lancer d'exception
+        // Et l'événement doit être compté dans "AUTRE"
+        ActivityStatsDTO autreStat = stats.stream()
+            .filter(s -> s.getCategory() == ActivityCategory.AUTRE)
+            .findFirst().orElseThrow();
+            
+        assertEquals(30, autreStat.getTotalMinutes());
     }
 }
