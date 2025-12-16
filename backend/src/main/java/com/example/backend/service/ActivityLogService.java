@@ -3,10 +3,8 @@ package com.example.backend.service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,11 +12,15 @@ import org.springframework.stereotype.Service;
 import com.example.backend.dto.ActivityStatsDTO;
 import com.example.backend.model.ActivityCategory;
 import com.example.backend.model.ActivityLog;
+import com.example.backend.model.Event;
 import com.example.backend.repository.ActivityLogRepository;
+import com.example.backend.repository.EventRepository;
 @Service
 public class ActivityLogService {
     @Autowired
     private ActivityLogRepository activityLogRepository;
+
+    private EventRepository eventRepository;
 
     public ActivityLog recordActivity(Long userId, ActivityCategory activityType, Long eventId, java.time.LocalDateTime startTime, java.time.LocalDateTime endTime) {
         ActivityLog log = new ActivityLog();
@@ -26,32 +28,59 @@ public class ActivityLogService {
         log.setActivityType(activityType);
         log.setEventId(eventId);
         log.setStartTime(startTime);
-        log.setEndTime(endTime);
+        log.setEndTime(endTime);    
         return activityLogRepository.save(log);
     }
 
 
     public List<ActivityStatsDTO> getStats(Long userId, LocalDateTime start, LocalDateTime end) {
+        // 1. Récupérer les logs dédiés (si vous utilisez le chronomètre manuel)
         List<ActivityLog> logs = activityLogRepository.findByUserIdAndStartTimeBetween(userId, start, end);
 
-        Map<ActivityCategory, List<ActivityLog>> groupedLogs = logs.stream()
-            .collect(Collectors.groupingBy(ActivityLog::getActivityType));
+        // 2. Récupérer les événements du calendrier
+        List<Event> events = eventRepository.findByUser_IdAndStartTimeBetween(userId, start, end);
 
-        List<ActivityStatsDTO> stats = new ArrayList<>();
-        
-        for (ActivityCategory category : ActivityCategory.values()) {
-            if (category == ActivityCategory.AUTRE && !groupedLogs.containsKey(category)) continue;
+        // 3. Fusionner les deux sources de données pour le calcul
+        // On crée une map pour sommer les durées par catégorie
+        Map<ActivityCategory, Long> statsMap = new java.util.HashMap<>();
+        Map<ActivityCategory, Long> countMap = new java.util.HashMap<>();
 
-            List<ActivityLog> catLogs = groupedLogs.getOrDefault(category, Collections.emptyList());
+        // Initialiser la map avec toutes les catégories à 0
+        for (ActivityCategory cat : ActivityCategory.values()) {
+            statsMap.put(cat, 0L);
+            countMap.put(cat, 0L);
+        }
+
+        // Traiter les ActivityLogs
+        for (ActivityLog log : logs) {
+            long minutes = Duration.between(log.getStartTime(), log.getEndTime()).toMinutes();
+            ActivityCategory cat = log.getActivityType();
+            statsMap.put(cat, statsMap.get(cat) + minutes);
+            countMap.put(cat, countMap.get(cat) + 1);
+        }
+
+        // Traiter les Events (Ceux de votre calendrier !)
+        for (Event event : events) {
+            // On utilise la catégorie de l'event (ou AUTRE si null)
+            ActivityCategory cat = event.getCategory() != null ? event.getCategory() : ActivityCategory.AUTRE;
             
-            long count = catLogs.size();
-            long totalMinutes = catLogs.stream()
-                .mapToLong(log -> Duration.between(log.getStartTime(), log.getEndTime()).toMinutes())
-                .sum();
+            long minutes = Duration.between(event.getStartTime(), event.getEndTime()).toMinutes();
+            statsMap.put(cat, statsMap.get(cat) + minutes);
+            countMap.put(cat, countMap.get(cat) + 1);
+        }
 
-            stats.add(new ActivityStatsDTO(category, count, totalMinutes));
+        // 4. Convertir en DTO pour le frontend
+        List<ActivityStatsDTO> result = new ArrayList<>();
+        for (ActivityCategory cat : ActivityCategory.values()) {
+            long totalMinutes = statsMap.get(cat);
+            long count = countMap.get(cat);
+            
+            // On n'ajoute à la liste que s'il y a des données (sauf si vous voulez afficher les 0)
+            if (count > 0) {
+                result.add(new ActivityStatsDTO(cat, count, totalMinutes));
+            }
         }
         
-        return stats;
+        return result;
     }
 }

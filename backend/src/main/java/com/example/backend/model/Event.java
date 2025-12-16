@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,7 +18,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PreRemove;
-
 /**
  * Représente un événement dans le calendrier.
  */
@@ -30,6 +31,9 @@ public class Event {
     private String summary;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+
+    @Enumerated(EnumType.STRING)
+    private ActivityCategory category;
 
     // OneToOne avec Cascade pour supprimer la location liée automatiquement
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
@@ -141,6 +145,12 @@ public class Event {
     public void setTask(Task task) {
         this.task = task;
     }
+    public ActivityCategory getCategory() {
+        return category;
+    }
+    public void setCategory(ActivityCategory category) {
+        this.category = category;
+    }
 
     // --- Méthodes standard ---
 
@@ -165,4 +175,6 @@ public class Event {
             task.setEvent(null);
         }
     }
+
+
 }

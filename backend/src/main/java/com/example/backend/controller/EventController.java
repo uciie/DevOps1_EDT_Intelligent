@@ -1,14 +1,24 @@
 package com.example.backend.controller;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.backend.model.Event;
 import com.example.backend.model.Location;
 import com.example.backend.service.EventService;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * Contrôleur REST pour la gestion des événements.
@@ -135,6 +145,7 @@ public class EventController {
         private Long userId;
         private LocationRequest location;
         
+        private String category;
         // NOUVEAU CHAMP pour le mode de transport
         private String transportMode;
 
@@ -156,6 +167,9 @@ public class EventController {
 
         public String getTransportMode() { return transportMode; }
         public void setTransportMode(String transportMode) { this.transportMode = transportMode; }
+
+        public String getCategory() {return category;}
+        public void setCategory(String category){this.category = category;}
     }
 
     /**
