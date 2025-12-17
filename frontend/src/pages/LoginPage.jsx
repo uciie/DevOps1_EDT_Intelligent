@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { loginUser } from "../api/authApi";
 import "../styles/pages/LoginPage.css";
 
-function LoginPage() {
+function LoginPage({ onLogin }) {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,6 +26,12 @@ function LoginPage() {
 
       // Stockage de l'utilisateur connecté
       localStorage.setItem("currentUser", JSON.stringify(user));
+
+      // CORRECTION ICI : On informe App.jsx que l'utilisateur est connecté
+      // Cela permet de mettre à jour la navbar instantanément sans recharger la page
+      if (onLogin) {
+        onLogin(user);
+      }
 
       // Redirection vers l'emploi du temps
       navigate("/schedule", { replace: true });

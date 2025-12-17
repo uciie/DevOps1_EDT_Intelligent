@@ -27,4 +27,12 @@ public interface EventService {
 
     // Méthode de recherche par période (Ajoutée par 5512fe3)
     List<Event> getEventsByUserIdAndPeriod(Long userId, LocalDateTime start, LocalDateTime end);
+
+    /**
+     * Recalcule les temps de trajet pour tous les événements d'un utilisateur
+     * selon le mode de calcul spécifié.
+     * @param userId ID de l'utilisateur
+     * @param useGoogleMaps true pour Google Maps, false pour calcul simple
+     */
+    void recalculateAllTravelTimes(Long userId, Boolean useGoogleMaps);
 }

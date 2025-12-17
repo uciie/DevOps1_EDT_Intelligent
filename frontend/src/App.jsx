@@ -8,6 +8,7 @@ import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import SchedulePage from "./pages/SchedulePage";
 import ActivityPage from "./pages/ActivityPage";
+import SetupPage from "./pages/SetupPage"; // Import de la nouvelle page
 import { getCurrentUser, logoutUser } from "./api/authApi";
 import PrivateRoute from "./components/PrivateRoute";
 import "./styles/App.css";
@@ -44,6 +45,7 @@ function App() {
                 <>
                 <Link to="/schedule" className="nav-link">Mon Emploi du Temps</Link>
                 <Link to="/activity" className="nav-link">Activités</Link> 
+                  <Link to="/setup" className="nav-link">Configuration</Link>
                 </>
               )}
               <Link to="/about" className="nav-link">À propos</Link>
@@ -77,6 +79,8 @@ function App() {
               <Route path="/login" element={<LoginPage onLogin={(user) => setCurrentUser(user)} />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/about" element={<About />} />
+              
+              {/* Routes protégées */}
               <Route
                 path="/schedule"
                 element={
@@ -93,6 +97,14 @@ function App() {
                   </PrivateRoute>
                 }
               />
+                path="/setup"
+                element={
+                  <PrivateRoute>
+                    <SetupPage />
+                  </PrivateRoute>
+                }
+              />
+              
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>

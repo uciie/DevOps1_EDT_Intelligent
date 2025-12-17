@@ -33,6 +33,13 @@ function SchedulePage() {
     setNotification({ message, type });
   };
 
+  // Helper pour récupérer la préférence de transport
+  const getGoogleMapsPreference = () => {
+    const pref = localStorage.getItem("useGoogleMaps");
+    // Par défaut true si non défini
+    return pref !== null ? JSON.parse(pref) : true;
+  };
+
   // Ajoute les champs 'day' et 'hour' nécessaires au composant Calendar
   const formatEventForCalendar = (evt) => {
     if (!evt || !evt.startTime) return evt;
@@ -284,6 +291,9 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
   // Callback pour sauvegarder depuis le formulaire
   const handleSaveEvent = async (eventData) => {
     try {
+      // Récupération de la préférence depuis le localStorage
+      const useGoogleMaps = getGoogleMapsPreference();
+
       if (eventToEdit) {
         // --- LOGIQUE DE MODIFICATION ---
         const eventId = eventToEdit.id;
@@ -294,7 +304,8 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
           ...eventData, 
         };
 
-        const savedEvent = await updateEvent(eventId, updatedEventPayload);
+        // On passe la préférence via l'API (qui a été mise à jour)
+        const savedEvent = await updateEvent(eventId, updatedEventPayload, useGoogleMaps);
         
         // Formater pour l'affichage calendrier
         const formattedEvent = formatEventForCalendar(savedEvent);
@@ -312,7 +323,8 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
           userId: currentUser.id,
         };
         
-        const createdEvent = await createEvent(newEventPayload);
+        // On passe la préférence
+        const createdEvent = await createEvent(newEventPayload, useGoogleMaps);
         const formattedEvent = formatEventForCalendar(createdEvent);
         
         // On ajoute les infos de couleur pour l'affichage immédiat
@@ -418,7 +430,10 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
         ...event,
         ...editData
       };
-      const savedEvent = await updateEvent(eventId, updatedEvent);
+      // On utilise aussi la préférence stockée pour l'édition rapide
+      const useGoogleMaps = getGoogleMapsPreference();
+      const savedEvent = await updateEvent(eventId, updatedEvent, useGoogleMaps);
+      
       setEvents(events.map(e => e.id === eventId ? savedEvent : e));
       showNotification("Événement modifié", "success");
     } catch (err) {
@@ -471,7 +486,6 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
               Organisez votre emploi du temps de manière intelligente
             </p>
           </div>
-
         </div>
       )}
 
