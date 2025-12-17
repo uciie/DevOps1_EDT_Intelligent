@@ -60,7 +60,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public Set<User> getTeamMembers(Long teamId) {
+    public Set<Long> getTeamMembers(Long teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Équipe introuvable"));
         return team.getMembers();

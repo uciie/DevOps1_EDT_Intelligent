@@ -1,7 +1,6 @@
 package com.example.backend.service;
 
 import com.example.backend.model.Team;
-import com.example.backend.model.User;
 import java.util.List;
 import java.util.Set;
 
@@ -16,5 +15,5 @@ public interface TeamService {
     List<Team> getTeamsByUserId(Long userId);
 
     // Récupérer les membres d'une équipe
-    Set<User> getTeamMembers(Long teamId);
+    Set<Long> getTeamMembers(Long teamId);
 }
