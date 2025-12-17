@@ -3,7 +3,8 @@ package com.example.backend.model;
 import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+//import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "teams")
@@ -46,7 +47,7 @@ public class Team {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public Set<User> getMembers() { return members; }
+    public Set<Long> getMembers() { return members.stream().map(user -> user.getId()).collect(Collectors.toSet()); }
     public void setMembers(Set<User> members) { this.members = members; }
     
     // Méthodes utilitaires pour ajouter/retirer des membres facilement
