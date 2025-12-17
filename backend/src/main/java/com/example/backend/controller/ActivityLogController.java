@@ -1,16 +1,19 @@
 package com.example.backend.controller;
 
 import java.time.LocalDateTime;
-import java.util.Map;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.backend.dto.ActivityStatsDTO;
 import com.example.backend.model.ActivityCategory;
 import com.example.backend.model.ActivityLog;
 import com.example.backend.service.ActivityLogService;
@@ -32,8 +35,16 @@ public class ActivityLogController {
     }
 
     @GetMapping("/stats/{userId}")
-    public Map<ActivityCategory, Long> getStats(@PathVariable Long userId) {
-        return activityLogService.getTotalTimeByActivityType(userId);
+    public List<ActivityStatsDTO> getStats(
+            @PathVariable Long userId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end) {
+        
+        // Par défaut : les 30 derniers jours si pas de dates fournies
+        if (start == null) start = LocalDateTime.now().minusDays(30);
+        if (end == null) end = LocalDateTime.now();
+
+        return activityLogService.getStats(userId, start, end);
     }
 
     public static class ActivityRecordRequest {
