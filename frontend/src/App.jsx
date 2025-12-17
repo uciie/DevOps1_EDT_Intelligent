@@ -7,6 +7,7 @@ import About from "./pages/About";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import SchedulePage from "./pages/SchedulePage";
+import ActivityPage from "./pages/ActivityPage";
 import SetupPage from "./pages/SetupPage"; // Import de la nouvelle page
 import { getCurrentUser, logoutUser } from "./api/authApi";
 import PrivateRoute from "./components/PrivateRoute";
@@ -42,7 +43,8 @@ function App() {
               <Link to="/" className="nav-link">Accueil</Link>
               {currentUser && (
                 <>
-                  <Link to="/schedule" className="nav-link">Mon Emploi du Temps</Link>
+                <Link to="/schedule" className="nav-link">Mon Emploi du Temps</Link>
+                <Link to="/activity" className="nav-link">Activités</Link> 
                   <Link to="/setup" className="nav-link">Configuration</Link>
                 </>
               )}
@@ -84,6 +86,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <SchedulePage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/activity"
+                element={
+                  <PrivateRoute>
+                    <ActivityPage />
                   </PrivateRoute>
                 }
               />
