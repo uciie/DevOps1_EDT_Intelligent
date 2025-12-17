@@ -116,4 +116,19 @@ public class UserController {
         
         return ResponseEntity.ok(simpleUsers);
     }
+
+    /**
+     * Récupère un utilisateur par son nom d'utilisateur.
+     *
+     * @param username le nom d'utilisateur de l'utilisateur à récupérer.
+     * @return une ResponseEntity contenant l'utilisateur ou une erreur si l'utilisateur n'est pas trouvé.
+     */    
+    @GetMapping("/username/{username}")
+    public ResponseEntity<User> getByUsername(@PathVariable String username) {
+        User user = userService.getUserByUsername(username);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        return ResponseEntity.ok(user);
+    }
 }
