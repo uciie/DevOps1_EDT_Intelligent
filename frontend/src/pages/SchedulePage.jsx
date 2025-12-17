@@ -2,20 +2,55 @@ import React, { useState, useEffect } from 'react';
 import Calendar from '../components/Calendar';
 import TodoList from '../components/TodoList';
 import EventForm from '../components/form/EventForm';
-import Notification from '../components/Notification'; // Ajout de l'import
-import { Event } from '../components/Event';
+import Notification from '../components/Notification';
 import { getCurrentUser } from '../api/authApi';
-import { getUserTasks, createTask, updateTask, deleteTask, planifyTask } from '../api/taskApi';
-import { createEvent, getUserEvents, updateEvent, deleteEvent} from '../api/eventApi'; 
+import { getUserId} from '../api/userApi';
+// AJOUT : getDelegatedTasks importé ici
+import { getUserTasks, getDelegatedTasks, createTask, updateTask, deleteTask, planifyTask } from '../api/taskApi';
+import { createEvent, getUserEvents, updateEvent, deleteEvent } from '../api/eventApi';
+import { getMyTeams, createTeam, addMemberToTeam } from '../api/teamApi';
 
 import '../styles/pages/SchedulePage.css';
+
+// Helper pour normaliser les données (gérer content, data ou array direct)
+const normalizeData = (response) => {
+    // 1. Cas : C'est déjà un tableau pur
+    if (Array.isArray(response)) {
+        return response;
+    }
+
+    // 2. Cas : Axios (response.data) qui contient directement un tableau
+    if (response && Array.isArray(response.data)) {
+        return response.data;
+    }
+
+    // 3. Cas : Spring Boot Pageable direct ({ content: [...] })
+    if (response && Array.isArray(response.content)) {
+        return response.content;
+    }
+
+    // 4. Cas : Axios + Spring Boot Pageable ({ data: { content: [...] } })
+    // C'est souvent celui-ci qui manque !
+    if (response && response.data && Array.isArray(response.data.content)) {
+        return response.data.content;
+    }
+    
+    // 5. Cas : Axios + Wrapper générique "data" ({ data: { data: [...] } })
+    if (response && response.data && Array.isArray(response.data.data)) {
+        return response.data.data;
+    }
+
+    // Si rien ne matche, on retourne un tableau vide pour éviter les crashs .map()
+    console.warn("Format de données non reconnu par normalizeData:", response);
+    return [];
+};
 
 function SchedulePage() {
   const [tasks, setTasks] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
-  
+
   // Correction : Séparation des erreurs de page (blocantes) et des notifications (temporaires)
   const [pageError, setPageError] = useState(null);
   const [notification, setNotification] = useState(null); // { message, type: 'success'|'error' }
@@ -24,9 +59,17 @@ function SchedulePage() {
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedHour, setSelectedHour] = useState(9); // Heure par défaut
-  
+
   // --- NOUVEAU : État pour stocker l'événement à modifier ---
   const [eventToEdit, setEventToEdit] = useState(null);
+
+  // --- NOUVEAU : États pour la Collaboration (Teams) ---
+  const [teams, setTeams] = useState([]); // Initialisé comme tableau vide
+  const [selectedTeam, setSelectedTeam] = useState(null); // Si null => Mode Personnel
+  const [showCreateTeam, setShowCreateTeam] = useState(false);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [inviteUsername, setInviteUsername] = useState('');
+
 
   // Helper pour afficher une notification
   const showNotification = (message, type = 'success') => {
@@ -58,56 +101,69 @@ function SchedulePage() {
       try {
         setLoading(true);
         setPageError(null);
-        
+
         const user = getCurrentUser();
         if (!user) {
           setPageError("Utilisateur non connecté");
           return;
         }
-        
+
         setCurrentUser(user);
+
+        // --- 1. CHARGEMENT DES DONNÉES UTILISATEUR (Tâches + Events) ---
+        // Note: Dans une version avancée, si selectedTeam est défini, 
+        // on pourrait appeler des endpoints spécifiques à l'équipe.
+        // Ici, on charge tout ce qui concerne l'user et on filtre côté client.
         
-        // --- 1. CHARGEMENT DES TÂCHES (Pour la TodoList à gauche) ---
-        const rawTasksData = await getUserTasks(user.id);
-        
-        // Normalisation de la liste des tâches (gestion des formats Page, Data, Array)
-        let tasksArray = [];
-        if (Array.isArray(rawTasksData)) {
-            tasksArray = rawTasksData;
-        } else if (rawTasksData && Array.isArray(rawTasksData.data)) {
-            tasksArray = rawTasksData.data;
-        } else if (rawTasksData && Array.isArray(rawTasksData.content)) {
-            tasksArray = rawTasksData.content;
-        } else {
-            tasksArray = [];
-        }
-        setTasks(tasksArray);
-        
-        // --- 2. CHARGEMENT DES ÉVÉNEMENTS (Pour le Calendrier) ---
-        // C'est ici la correction majeure : on appelle directement la table 'event'
+        // MODIFICATION : Chargement parallèle des tâches assignées ET déléguées
+        const [rawTasksResponse, rawDelegatedResponse] = await Promise.all([
+          getUserTasks(user.id),
+          getDelegatedTasks(user.id)
+        ]);
+
+        const myTasks = normalizeData(rawTasksResponse);
+        const delegatedTasks = normalizeData(rawDelegatedResponse);
+
+        // Fusionner les listes en évitant les doublons (via Map par ID)
+        const allTasksMap = new Map();
+        myTasks.forEach(t => allTasksMap.set(t.id, t));
+        delegatedTasks.forEach(t => allTasksMap.set(t.id, t));
+
+        // Convertir la Map en tableau pour le state
+        setTasks(Array.from(allTasksMap.values()));
+
+        // --- 2. CHARGEMENT DES ÉVÉNEMENTS ---
         const rawEventsData = await getUserEvents(user.id);
-        
-        const loadedEvents = (rawEventsData || []).map(evt => {
-            // Sécurisation de la date
-            const startDate = new Date(evt.startTime);
-            
-            return {
-              ...evt, // On garde toutes les propriétés (id, color, location...)
-              
-              // Normalisation du titre (le backend envoie souvent 'summary')
-              title: evt.summary || evt.title || "Sans titre",
-              
-              // Propriétés calculées requises par Calendar.jsx
-              day: startDate.toISOString().split('T')[0], // format YYYY-MM-DD
-              hour: startDate.getHours(),
-              
-              // On s'assure que taskId est présent (si l'event est lié à une tâche)
-              taskId: evt.taskId || (evt.task ? evt.task.id : null)
-            };
+        // On sécurise aussi les events au cas où
+        const eventsArray = Array.isArray(rawEventsData) ? rawEventsData : [];
+
+        const loadedEvents = eventsArray.map(evt => {
+          const startDate = new Date(evt.startTime);
+
+          return {
+            ...evt,
+            title: evt.summary || evt.title || "Sans titre",
+            day: startDate.toISOString().split('T')[0],
+            hour: startDate.getHours(),
+            taskId: evt.taskId || (evt.task ? evt.task.id : null)
+          };
         });
 
         setEvents(loadedEvents);
-        
+
+        // --- 3. CHARGEMENT DES ÉQUIPES ---
+        try {
+            const teamsResponse = await getMyTeams(user.id);
+            console.log("Équipes chargées :", teamsResponse);
+            // CORRECTION IMPORTANTE : Utilisation de normalizeData pour éviter l'erreur .map
+            const myTeams = normalizeData(teamsResponse);
+            console.log("Équipes normalisées :", myTeams);
+            setTeams(myTeams);
+        } catch (teamErr) {
+            console.warn("Impossible de charger les équipes", teamErr);
+            setTeams([]); // En cas d'erreur, on assure un tableau vide
+        }
+
       } catch (err) {
         console.error("Erreur lors du chargement des données:", err);
         setPageError("Impossible de charger vos données");
@@ -119,14 +175,65 @@ function SchedulePage() {
     loadUserData();
   }, []);
 
+  // --- GESTION DES ÉQUIPES ---
+  const handleCreateTeam = async () => {
+      if(!newTeamName.trim()) return;
+      try {
+          const newTeam = await createTeam(currentUser.id, { 
+              name: newTeamName, 
+              description: "Groupe créé via le frontend" 
+          });
+          // Sécurité : s'assurer que teams est bien un tableau avant le spread
+          setTeams([...(Array.isArray(teams) ? teams : []), newTeam]);
+          setNewTeamName('');
+          setShowCreateTeam(false);
+          showNotification(`Équipe "${newTeam.name}" créée !`, "success");
+      } catch (error) {
+          showNotification("Erreur création équipe", "error");
+      }
+  };
+
+  const handleInviteMember = async (teamId) => {
+      if(!inviteUsername.trim()) return;
+      try {
+          const userMemberId = await getUserId(inviteUsername);
+          // /api/teams/{teamId}/members?userId=
+          await addMemberToTeam(teamId, userMemberId);
+          showNotification(`Invitation envoyée à ${inviteUsername}`, "success");
+          setInviteUsername('');
+          
+          // Recharger les équipes pour mettre à jour la liste des membres localement
+          const updatedTeamsResponse = await getMyTeams(currentUser.id);
+          
+          // Normalisation ici aussi
+          let updatedTeams = normalizeData(updatedTeamsResponse);
+          
+          setTeams(updatedTeams);
+          
+          // Mettre à jour l'équipe sélectionnée si c'est celle en cours
+          if(selectedTeam && selectedTeam.id === teamId) {
+             const updatedCurrent = updatedTeams.find(t => t.id === teamId);
+             if(updatedCurrent) setSelectedTeam(updatedCurrent);
+          }
+      } catch (error) {
+          showNotification("Utilisateur introuvable ou erreur serveur", "error");
+      }
+  };
+
+
+  // --- GESTION DES TÂCHES (Modifiée pour supporter assignee et team) ---
+
   const handleAddTask = async (taskData) => {
     try {
+      // taskData contient déjà { title, priority, duration, assignee, team } venant de TodoList
       const newTask = {
         ...taskData,
         userId: currentUser.id,
         completed: false,
         scheduledTime: null
       };
+
+      console.log("Création de la tâche avec les données :", newTask);
       
       const createdTask = await createTask(newTask);
       setTasks([...tasks, createdTask]);
@@ -144,7 +251,6 @@ function SchedulePage() {
       const task = tasks.find(t => t.id === taskId);
       if (!task) return; // Tâche non trouvée
 
-      // Préparation de l'objet à envoyer au backend
       const taskToUpdate = {
         ...task,
         title: editData.title,
@@ -155,14 +261,8 @@ function SchedulePage() {
         durationMinutes: editData.durationMinutes,
         priority: editData.priority
       };
-      console.log('Task initiale:', task);
-      console.log('Mise à jour de la tâche avec:', taskToUpdate);
-      // 1. On attend la réponse du serveur (la tâche sauvegardée en BDD)
       const savedTask = await updateTask(taskId, taskToUpdate);
-      console.log('Tâche sauvegardée par le serveur:', savedTask);
-      // 2. On met à jour l'état local avec la version CONFIRMÉE par le serveur
-      // Si savedTask est undefined (erreur api), l'affichage ne changera pas,
-      // ce qui vous alertera qu'il y a un souci.
+      
       if (savedTask) {
         setTasks(tasks.map(t => t.id === taskId ? savedTask : t));
 
@@ -223,25 +323,16 @@ function SchedulePage() {
     }
   };
 
-const handleDropTaskOnCalendar = async (taskId, day, hour) => {
+  const handleDropTaskOnCalendar = async (taskId, day, hour) => {
     try {
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
 
-      // 1. Ne pas calculer startTime et endTime.
-      // Le paramètre 'day' est souvent nécessaire pour le frontend pour savoir quel jour l'utilisateur regarde.
-      // Cependant, nous allons ignorer l'heure et la date précises du drop pour le backend.
-      
-      // 2. Appeler le service backend 'planifyTask' avec NULL pour déclencher la logique First-Fit.
-      // NOTE: Assurez-vous que planifyTask dans taskApi.js gère le passage de null (voir étape 1 ci-dessous).
-      const plannedTask = await planifyTask(taskId, null, null); // <== CLÉ DE LA CORRECTION
+      // First-Fit logique backend
+      const plannedTask = await planifyTask(taskId, null, null); 
 
-      // 3. Mettre à jour les états locaux avec la réponse du backend
-      
-      // La Task mise à jour
       setTasks(tasks.map(t => t.id === taskId ? plannedTask : t));
 
-      // L'Event créé (doit contenir les dates calculées par le First-Fit)
       if (!plannedTask.event) {
           throw new Error("Le service de planification n'a pas retourné l'événement créé.");
       }
@@ -271,9 +362,6 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
 
   // --- GESTION DES ÉVÉNEMENTS ---
 
-  // --- LOGIQUE D'OUVERTURE DU FORMULAIRE ---
-
-  // Cas 1: Clic dans une cellule vide (Création)
   const handleCellClick = (day, hour) => {
       setEventToEdit(null); // Mode création : pas d'événement à éditer
       setSelectedDate(day);
@@ -281,72 +369,53 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
       setIsEventFormOpen(true);
     };
 
-  // Cas 2: Clic sur un événement existant (Modification)
   const handleOpenEditModal = (event) => {
       setEventToEdit(event); // Mode édition : on stocke l'event
       setSelectedDate(null); // Pas besoin, l'event a déjà ses dates
       setIsEventFormOpen(true);
   };
 
-  // Callback pour sauvegarder depuis le formulaire
   const handleSaveEvent = async (eventData) => {
     try {
-      // Récupération de la préférence depuis le localStorage
       const useGoogleMaps = getGoogleMapsPreference();
 
       if (eventToEdit) {
-        // --- LOGIQUE DE MODIFICATION ---
         const eventId = eventToEdit.id;
-        
-        // Fusionner l'ancien événement avec les nouvelles données du formulaire
         const updatedEventPayload = {
           ...eventToEdit,
-          ...eventData, 
+          ...eventData,
         };
 
-        // On passe la préférence via l'API (qui a été mise à jour)
         const savedEvent = await updateEvent(eventId, updatedEventPayload, useGoogleMaps);
-        
-        // Formater pour l'affichage calendrier
         const formattedEvent = formatEventForCalendar(savedEvent);
         formattedEvent.color = eventData.color || eventToEdit.color;
 
-        // Mise à jour de la liste
         setEvents(events.map(e => e.id === eventId ? formattedEvent : e));
         showNotification("Événement modifié !", "success");
 
       } else {
-        // --- LOGIQUE DE CRÉATION (Existante) ---
-        // eventData vient de EventForm, contient déjà { summary, startTime, endTime, location, etc. }
         const newEventPayload = {
           ...eventData,
           userId: currentUser.id,
+          // Si on est dans un contexte d'équipe, on pourrait lier l'event à l'équipe ici aussi
         };
-        
-        // On passe la préférence
+
         const createdEvent = await createEvent(newEventPayload, useGoogleMaps);
         const formattedEvent = formatEventForCalendar(createdEvent);
-        
-        // On ajoute les infos de couleur pour l'affichage immédiat
-        formattedEvent.color = eventData.color; 
+        formattedEvent.color = eventData.color;
 
         setEvents(prev => [...prev, formattedEvent]);
         showNotification("Événement créé avec succès !", "success");
       }
 
-      // Fermeture et nettoyage
       setIsEventFormOpen(false);
       setEventToEdit(null);
-      
+
     } catch (error) {
       console.error("Erreur lors de la sauvegarde de l'événement:", error);
-      
-      // On vérifie si le backend nous a envoyé un message spécifique (ex: 400 Bad Request)
       if (error.response && error.response.data) {
-        // Affiche le message textuel renvoyé par le backend, "Impossible d'arriver à l'heure..."
-        showNotification(error.response.data, "error"); 
+        showNotification(error.response.data, "error");
       } else {
-        // Fallback pour les autres erreurs (ex: serveur éteint)
         showNotification("Impossible de sauvegarder l'événement (Erreur inconnue)", "error");
       }
     }
@@ -357,10 +426,8 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
       const event = events.find(e => e.id === eventId);
       if (!event) return;
 
-      // 2. Appel API pour supprimer l'événement en base de données
       await deleteEvent(eventId);
 
-      // 3. Gestion de la tâche associée (si elle existe)
       if (event.taskId) {
         const task = tasks.find(t => t.id === event.taskId);
         if (task) {
@@ -368,13 +435,11 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
             ...task,
             scheduledTime: null
           };
-          // attendre la mise à jour de la tâche 
           await updateTask(event.taskId, updatedTask);
           setTasks(tasks.map(t => t.id === event.taskId ? updatedTask : t));
         }
       }
 
-      // 4. Mise à jour de l'affichage (État local)
       setEvents(events.filter(e => e.id !== eventId));
       showNotification("Événement supprimé", "success");
 
@@ -394,7 +459,7 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
 
       const startTime = new Date(newDay);
       startTime.setHours(newHour, 0, 0, 0);
-      
+
       const endTime = new Date(startTime);
       endTime.setMinutes(endTime.getMinutes() + (task.durationMinutes || 60));
 
@@ -412,126 +477,160 @@ const handleDropTaskOnCalendar = async (taskId, day, hour) => {
       };
 
       await updateTask(event.taskId, updatedTask);
-      
+
       setEvents(events.map(e => e.id === eventId ? updatedEvent : e));
       setTasks(tasks.map(t => t.id === event.taskId ? updatedTask : t));
-      
+
     } catch (err) {
       console.error("Erreur lors du déplacement de l'événement:", err);
       showNotification("Impossible de déplacer l'événement", "error");
     }
   };
-
-  const handleEditEvent = async (eventId, editData) => {
-    try {
-      const event = events.find(e => e.id === eventId);
-      if (!event) return;
-      const updatedEvent = {
-        ...event,
-        ...editData
-      };
-      // On utilise aussi la préférence stockée pour l'édition rapide
-      const useGoogleMaps = getGoogleMapsPreference();
-      const savedEvent = await updateEvent(eventId, updatedEvent, useGoogleMaps);
-      
-      setEvents(events.map(e => e.id === eventId ? savedEvent : e));
-      showNotification("Événement modifié", "success");
-    } catch (err) {
-      console.error("Erreur lors de la modification de l'événement:", err);
-      showNotification("Impossible de modifier l'événement", "error");
-    }
-  };
+  
+  // Utilisation de pageError pour les erreurs bloquantes
+  if (pageError) {
+      return (
+          <div className="schedule-page">
+              <div className="error-container">
+                  <h2>Oups !</h2>
+                  <p>{pageError}</p>
+                  <button onClick={() => window.location.reload()}>Réessayer</button>
+              </div>
+          </div>
+      );
+  }
 
   if (loading) {
     return (
       <div className="schedule-page">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Chargement de votre emploi du temps...</p>
-        </div>
+        <div className="loading-container"><div className="spinner"></div></div>
       </div>
     );
   }
 
-  // Utilisation de pageError pour les erreurs bloquantes
-  if (pageError) {
-    return (
-      <div className="schedule-page">
-        <div className="error-container">
-          <div className="error-icon">⚠️</div>
-          <h2>Oups !</h2>
-          <p>{pageError}</p>
-          <button 
-            className="btn-retry"
-            onClick={() => window.location.reload()}
-          >
-            Réessayer
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const unscheduledTasks = tasks.filter(t => !t.scheduledTime && !t.completed);
-  const completedTasks = tasks.filter(t => t.completed);
 
   return (
     <div className="schedule-page">
       {currentUser && (
         <div className="schedule-welcome">
-          {/* Conteneur pour le texte à gauche */}
           <div className="welcome-text">
             <h1>Bonjour, {currentUser.username} 👋</h1>
             <p className="welcome-subtitle">
-              Organisez votre emploi du temps de manière intelligente
+                {selectedTeam ? `Espace de travail : ${selectedTeam.name}` : "Votre espace personnel"}
             </p>
           </div>
         </div>
       )}
 
+      {/* Layout modifié : TodoList | Calendar | Teams */}
       <div className="schedule-content">
         <aside className="schedule-sidebar">
+          {/* Passage du contexte d'équipe et du currentUser pour gérer l'assignation */}
           <TodoList
-            tasks={unscheduledTasks}
-            completedTasks={completedTasks}
+            tasks={tasks} // On passe toutes les tâches, le filtrage se fera dans TodoList
             onAddTask={handleAddTask}
             onEditTask={handleEditTask}
             onToggleTask={handleToggleTask}
             onDeleteTask={handleDeleteTask}
+            contextTeam={selectedTeam}
+            currentUser={currentUser}
           />
         </aside>
 
         <main className="schedule-main">
+          {/* Calendar peut recevoir le contexte pour filtrer ou adapter l'affichage (ex: lecture seule des autres) */}
           <Calendar
-            events={events}
+            events={events} // Idem, on pourrait filtrer ici si nécessaire selon RM-05
             onDropTask={handleDropTaskOnCalendar}
             onDeleteEvent={handleDeleteEvent}
             onMoveEvent={handleMoveEvent}
-            onAddEventRequest={handleCellClick} 
-            // On passe la nouvelle fonction d'ouverture ici
+            onAddEventRequest={handleCellClick}
             onEditEvent={handleOpenEditModal}
+            contextTeam={selectedTeam} 
           />
         </main>
+
+        {/* --- NOUVEAU : Sidebar Droite pour les Équipes --- */}
+        <aside className="teams-sidebar">
+            <div className="teams-header">
+                <h3>👥 Équipes</h3>
+                <button 
+                    className="btn-add-team" 
+                    onClick={() => setShowCreateTeam(!showCreateTeam)}
+                    title="Créer une équipe"
+                >+</button>
+            </div>
+
+            {showCreateTeam && (
+                <div className="create-team-box">
+                    <input 
+                        type="text" 
+                        placeholder="Nom équipe..." 
+                        value={newTeamName}
+                        onChange={e => setNewTeamName(e.target.value)}
+                    />
+                    <button onClick={handleCreateTeam}>OK</button>
+                </div>
+            )}
+
+            <ul className="teams-list">
+                {/* Option pour revenir à la vue perso */}
+                <li 
+                    className={`team-item ${!selectedTeam ? 'active' : ''}`}
+                    onClick={() => setSelectedTeam(null)}
+                >
+                    <span className="team-icon">👤</span> Personnel
+                </li>
+
+                {/* CORRECTION : Vérification que teams est un tableau avant le map */}
+                {Array.isArray(teams) && teams.map(team => (
+                    <li key={team.id} className={`team-item ${selectedTeam?.id === team.id ? 'active' : ''}`}>
+                        <div className="team-info" onClick={() => setSelectedTeam(team)}>
+                            <span className="team-icon">🛡️</span> 
+                            <span className="team-name">{team.name}</span>
+                        </div>
+                        
+                        {/* Zone d'invitation visible seulement si l'équipe est active */}
+                        {selectedTeam?.id === team.id && (
+                            <div className="team-actions">
+                                <div className="invite-box">
+                                    <input 
+                                        type="text" 
+                                        placeholder="Inviter (username)"
+                                        value={inviteUsername}
+                                        onChange={e => setInviteUsername(e.target.value)}
+                                    />
+                                    <button onClick={() => handleInviteMember(team.id)}>Inviter</button>
+                                </div>
+                                <div className="members-list-mini">
+                                    <small>{team.members ? `${team.members.length} membres` : "Chargement..."}</small>
+                                </div>
+                            </div>
+                        )}
+                    </li>
+                ))}
+            </ul>
+        </aside>
       </div>
-      {/* La Modale */}
-      <EventForm 
+
+      {/* La Modale Événement */}
+      <EventForm
         isOpen={isEventFormOpen}
         onClose={() => {
-            setIsEventFormOpen(false);
-            setEventToEdit(null); // Reset de l'event à la fermeture
+          setIsEventFormOpen(false);
+          setEventToEdit(null);
         }}
         onSave={handleSaveEvent}
         initialDate={selectedDate}
         initialHour={selectedHour}
-        // IMPORTANT : On passe l'événement à modifier pour pré-remplir le formulaire
-        initialData={eventToEdit} 
+        initialData={eventToEdit}
       />
-      
-      {/* Affichage des notifications (succès ou erreur d'action) */}
-      <Notification 
-        message={notification?.message} 
-        type={notification?.type} 
-        onClose={() => setNotification(null)} 
+
+      {/* Notifications */}
+      <Notification
+        message={notification?.message}
+        type={notification?.type}
+        onClose={() => setNotification(null)}
       />
     </div>
   );

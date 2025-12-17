@@ -431,3 +431,56 @@
     justify-content: flex-end;
   }
 }
+
+/* Onglets de filtre */
+.task-filters {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+    padding: 0 5px;
+}
+
+.task-filters button {
+    flex: 1;
+    background: #f1f3f5;
+    border: none;
+    padding: 6px 2px;
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #495057;
+}
+
+.task-filters button.active {
+    background: #007bff;
+    color: white;
+    font-weight: bold;
+}
+
+/* Badge assignee */
+.assignee-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 8px;
+    display: inline-block;
+}
+
+.assignee-badge.me {
+    background: #d4edda;
+    color: #155724;
+}
+
+.assignee-badge.other {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Sélecteur assignation */
+.assign-select {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-top: 4px;
+}

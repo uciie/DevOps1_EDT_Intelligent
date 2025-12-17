@@ -9,3 +9,13 @@ export async function registerUser(userData) {
     throw error;
   }
 }
+
+export async function getUserId(username) {
+  try {
+    const response = await api.get(`/users/username/${username}`);
+    return response.data.id;
+  } catch (error) {
+    console.error("Erreur API getUserId :", error);
+    throw error;
+  }
+}

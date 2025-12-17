@@ -14,10 +14,25 @@ export async function getUserTasks(userId) {
 }
 
 /**
+ * Récupère les tâches que l'utilisateur a déléguées à d'autres
+ */
+export async function getDelegatedTasks(userId) {
+  try {
+    const response = await api.get(`/tasks/user/${userId}/delegated`);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des tâches déléguées:", error);
+    throw error;
+  }
+}
+
+/**
  * Crée une nouvelle tâche
+ * Note: taskData peut maintenant contenir { assignee: { username: ... }, team: { id: ... } }
  */
 export async function createTask(taskData) {
   try {
+    // On suppose que le backend gère userId soit dans l'URL soit dans le body
     const response = await api.post(`/tasks/user/${taskData.userId}`, taskData);
     return response.data;
   } catch (error) {
