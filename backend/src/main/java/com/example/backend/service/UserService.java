@@ -101,4 +101,14 @@ public class UserService {
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }
+
+    /**
+     * Récupère un utilisateur par son nom d'utilisateur
+     * 
+     * @param username le nom d'utilisateur
+     * @return l'utilisateur trouvé, ou null si non trouvé
+     */
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username).orElse(null);
+    }
 }

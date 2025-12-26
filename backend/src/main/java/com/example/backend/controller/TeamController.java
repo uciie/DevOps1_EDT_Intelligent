@@ -1,7 +1,6 @@
 package com.example.backend.controller;
 
 import com.example.backend.model.Team;
-import com.example.backend.model.User;
 import com.example.backend.service.TeamService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +42,7 @@ public class TeamController {
 
     // 4. Voir les membres d'une équipe (GET /api/teams/1/members)
     @GetMapping("/{teamId}/members")
-    public ResponseEntity<Set<User>> getTeamMembers(@PathVariable Long teamId) {
+    public ResponseEntity<Set<Long>> getTeamMembers(@PathVariable Long teamId) {
         return ResponseEntity.ok(teamService.getTeamMembers(teamId));
     }
 }
