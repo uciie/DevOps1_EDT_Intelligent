@@ -97,6 +97,7 @@ function App() {
                   </PrivateRoute>
                 }
               />
+              <Route
                 path="/setup"
                 element={
                   <PrivateRoute>
