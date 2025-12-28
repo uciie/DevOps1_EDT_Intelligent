@@ -19,5 +19,5 @@ public interface TeamService {
     // Récupérer les membres d'une équipe
     Set<User> getTeamMembers(Long teamId);
 
-
+    void removeMember(Long teamId, Long memberIdToRemove, Long requesterId);
 }

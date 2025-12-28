@@ -76,6 +76,7 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
+    @Transactional
     public List<Team> getTeamsByUserId(Long userId) {
         User user = userRepository.findById(userId).orElseThrow();
         return user.getTeams(); 

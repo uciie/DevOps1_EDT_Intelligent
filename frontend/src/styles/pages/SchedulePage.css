@@ -499,3 +499,77 @@
     border-radius: 3px;
     cursor: pointer;
 }
+
+.team-details-expanded {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--neutral-200);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.members-list-container {
+  margin-top: 15px;
+}
+
+.members-list-container h5 {
+  margin-bottom: 8px;
+  color: var(--neutral-600);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.members-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.member-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background-color: var(--neutral-50);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.member-row:hover {
+  background-color: var(--neutral-100);
+}
+
+.member-name {
+  font-weight: 500;
+  color: var(--neutral-800);
+}
+
+/* Bouton de suppression (croix rouge) */
+.btn-remove-member {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444; /* Rouge */
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.btn-remove-member:hover {
+  background-color: #fee2e2;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Animation d'apparition */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
