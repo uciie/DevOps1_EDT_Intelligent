@@ -25,3 +25,12 @@ export const addMemberToTeam = async (teamId, userId) => {
   });
   return response.data;
 };
+
+// Supprimer membre d'une équipe
+export const removeMemberFromTeam = async (teamId, memberId, requesterId) => {
+  // L'URL correspond au Controller : DELETE /api/teams/{id}/members/{userId}
+  const response = await api.delete(`/teams/${teamId}/members/${memberId}`, {
+    params: { requesterId } // On passe l'ID de l'admin en paramètre
+  });
+  return response.data;
+};

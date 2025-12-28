@@ -1,16 +1,17 @@
 package com.example.backend.service.impl;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.backend.model.Team;
 import com.example.backend.model.User;
 import com.example.backend.repository.TeamRepository;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.service.TeamService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class TeamServiceImpl implements TeamService {
@@ -29,11 +30,32 @@ public class TeamServiceImpl implements TeamService {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
 
-        Team team = new Team(name, description);
+        Team team = new Team(name, description, ownerId);
         // L'owner est automatiquement le premier membre
         team.addMember(owner);
         
         return teamRepository.save(team);
+    }
+    @Transactional
+    public void removeMember(Long teamId, Long memberIdToRemove, Long requesterId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new IllegalArgumentException("Équipe introuvable"));
+
+        // 1. Vérification de sécurité : Seul le chef d'équipe peut supprimer quelqu'un
+        if (!team.getOwnerId().equals(requesterId)) {
+            throw new SecurityException("Seul le chef d'équipe peut supprimer un membre.");
+        }
+
+        // 2. Empêcher le chef de se supprimer lui-même 
+        if (memberIdToRemove.equals(team.getOwnerId())) {
+             throw new IllegalArgumentException("Le chef d'équipe ne peut pas être supprimé de cette manière.");
+        }
+
+        User memberToRemove = userRepository.findById(memberIdToRemove)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
+
+        team.removeMember(memberToRemove); // Utilise la méthode utilitaire existante dans Team
+        teamRepository.save(team);
     }
 
     @Override
@@ -60,9 +82,11 @@ public class TeamServiceImpl implements TeamService {
     }
 
     @Override
-    public Set<Long> getTeamMembers(Long teamId) {
+    public Set<User> getTeamMembers(Long teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Équipe introuvable"));
+        
+        // Maintenant, team.getMembers() renvoie bien Set<User>, donc ça correspond !
         return team.getMembers();
     }
 }

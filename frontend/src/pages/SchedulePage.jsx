@@ -5,11 +5,9 @@ import EventForm from '../components/form/EventForm';
 import Notification from '../components/Notification';
 import { getCurrentUser } from '../api/authApi';
 import { getUserId} from '../api/userApi';
-// AJOUT : getDelegatedTasks importé ici
 import { getUserTasks, getDelegatedTasks, createTask, updateTask, deleteTask, planifyTask } from '../api/taskApi';
 import { createEvent, getUserEvents, updateEvent, deleteEvent } from '../api/eventApi';
-import { getMyTeams, createTeam, addMemberToTeam } from '../api/teamApi';
-
+import { getMyTeams, createTeam, addMemberToTeam, removeMemberFromTeam } from '../api/teamApi';
 import '../styles/pages/SchedulePage.css';
 
 // Helper pour normaliser les données (gérer content, data ou array direct)
@@ -174,7 +172,40 @@ function SchedulePage() {
 
     loadUserData();
   }, []);
-
+  // NOUVEAU : Fonction de suppression d'un membre
+  const handleRemoveMember = async (teamId, memberId) => {
+    if (!window.confirm("Voulez-vous vraiment retirer ce membre ?")) return;
+    
+    try {
+        await removeMemberFromTeam(teamId, memberId, currentUser.id);
+        
+        // Mise à jour locale de l'état pour éviter un rechargement complet
+        const updatedTeams = teams.map(t => {
+            if (t.id === teamId) {
+                // On filtre la liste des membres
+                return {
+                    ...t,
+                    members: t.members ? t.members.filter(m => m.id !== memberId) : []
+                };
+            }
+            return t;
+        });
+        
+        setTeams(updatedTeams);
+        
+        // Si l'équipe modifiée est celle actuellement affichée, on met à jour selectedTeam
+        if (selectedTeam && selectedTeam.id === teamId) {
+            setSelectedTeam(updatedTeams.find(t => t.id === teamId));
+        }
+        
+        showNotification("Membre retiré avec succès.", "success");
+    } catch (error) {
+        console.error("Erreur suppression membre:", error);
+        // On affiche le message d'erreur du backend si dispo (ex: "Seul le chef...")
+        const msg = error.response?.data || "Impossible de retirer le membre.";
+        showNotification(msg, "error");
+    }
+  };
   // --- GESTION DES ÉQUIPES ---
   const handleCreateTeam = async () => {
       if(!newTeamName.trim()) return;
@@ -522,12 +553,10 @@ function SchedulePage() {
         </div>
       )}
 
-      {/* Layout modifié : TodoList | Calendar | Teams */}
       <div className="schedule-content">
         <aside className="schedule-sidebar">
-          {/* Passage du contexte d'équipe et du currentUser pour gérer l'assignation */}
           <TodoList
-            tasks={tasks} // On passe toutes les tâches, le filtrage se fera dans TodoList
+            tasks={tasks} 
             onAddTask={handleAddTask}
             onEditTask={handleEditTask}
             onToggleTask={handleToggleTask}
@@ -538,9 +567,8 @@ function SchedulePage() {
         </aside>
 
         <main className="schedule-main">
-          {/* Calendar peut recevoir le contexte pour filtrer ou adapter l'affichage (ex: lecture seule des autres) */}
           <Calendar
-            events={events} // Idem, on pourrait filtrer ici si nécessaire selon RM-05
+            events={events} 
             onDropTask={handleDropTaskOnCalendar}
             onDeleteEvent={handleDeleteEvent}
             onMoveEvent={handleMoveEvent}
@@ -550,39 +578,24 @@ function SchedulePage() {
           />
         </main>
 
-        {/* --- NOUVEAU : Sidebar Droite pour les Équipes --- */}
         <aside className="teams-sidebar">
             <div className="teams-header">
                 <h3>👥 Équipes</h3>
-                <button 
-                    className="btn-add-team" 
-                    onClick={() => setShowCreateTeam(!showCreateTeam)}
-                    title="Créer une équipe"
-                >+</button>
+                <button className="btn-add-team" onClick={() => setShowCreateTeam(!showCreateTeam)} title="Créer une équipe">+</button>
             </div>
 
             {showCreateTeam && (
                 <div className="create-team-box">
-                    <input 
-                        type="text" 
-                        placeholder="Nom équipe..." 
-                        value={newTeamName}
-                        onChange={e => setNewTeamName(e.target.value)}
-                    />
+                    <input type="text" placeholder="Nom équipe..." value={newTeamName} onChange={e => setNewTeamName(e.target.value)} />
                     <button onClick={handleCreateTeam}>OK</button>
                 </div>
             )}
 
             <ul className="teams-list">
-                {/* Option pour revenir à la vue perso */}
-                <li 
-                    className={`team-item ${!selectedTeam ? 'active' : ''}`}
-                    onClick={() => setSelectedTeam(null)}
-                >
+                <li className={`team-item ${!selectedTeam ? 'active' : ''}`} onClick={() => setSelectedTeam(null)}>
                     <span className="team-icon">👤</span> Personnel
                 </li>
 
-                {/* CORRECTION : Vérification que teams est un tableau avant le map */}
                 {Array.isArray(teams) && teams.map(team => (
                     <li key={team.id} className={`team-item ${selectedTeam?.id === team.id ? 'active' : ''}`}>
                         <div className="team-info" onClick={() => setSelectedTeam(team)}>
@@ -590,9 +603,9 @@ function SchedulePage() {
                             <span className="team-name">{team.name}</span>
                         </div>
                         
-                        {/* Zone d'invitation visible seulement si l'équipe est active */}
+                        {/* MODIFICATION : AFFICHER LA LISTE DES MEMBRES SI L'ÉQUIPE EST SÉLECTIONNÉE */}
                         {selectedTeam?.id === team.id && (
-                            <div className="team-actions">
+                            <div className="team-details-expanded">
                                 <div className="invite-box">
                                     <input 
                                         type="text" 
@@ -602,8 +615,37 @@ function SchedulePage() {
                                     />
                                     <button onClick={() => handleInviteMember(team.id)}>Inviter</button>
                                 </div>
-                                <div className="members-list-mini">
-                                    <small>{team.members ? `${team.members.length} membres` : "Chargement..."}</small>
+                                
+                                <div className="members-list-container">
+                                    <h5>Membres :</h5>
+                                    <ul className="members-list">
+                                        {team.members && team.members.length > 0 ? (
+                                            team.members.map(member => (
+                                                <li key={member.id} className="member-row">
+                                                    <span className="member-name">
+                                                        {member.username} 
+                                                        {member.id === team.ownerId && " 👑"}
+                                                    </span>
+                                                    
+                                                    {/* BOUTON SUPPRIMER : Visible seulement si je suis le chef et que ce n'est pas moi */}
+                                                    {currentUser.id === team.ownerId && member.id !== currentUser.id && (
+                                                        <button 
+                                                            className="btn-remove-member"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation(); // Évite de re-cliquer sur l'équipe
+                                                                handleRemoveMember(team.id, member.id);
+                                                            }}
+                                                            title="Retirer ce membre"
+                                                        >
+                                                            ❌
+                                                        </button>
+                                                    )}
+                                                </li>
+                                            ))
+                                        ) : (
+                                            <li>Aucun membre</li>
+                                        )}
+                                    </ul>
                                 </div>
                             </div>
                         )}
@@ -613,25 +655,16 @@ function SchedulePage() {
         </aside>
       </div>
 
-      {/* La Modale Événement */}
       <EventForm
         isOpen={isEventFormOpen}
-        onClose={() => {
-          setIsEventFormOpen(false);
-          setEventToEdit(null);
-        }}
+        onClose={() => { setIsEventFormOpen(false); setEventToEdit(null); }}
         onSave={handleSaveEvent}
         initialDate={selectedDate}
         initialHour={selectedHour}
         initialData={eventToEdit}
       />
 
-      {/* Notifications */}
-      <Notification
-        message={notification?.message}
-        type={notification?.type}
-        onClose={() => setNotification(null)}
-      />
+      <Notification message={notification?.message} type={notification?.type} onClose={() => setNotification(null)} />
     </div>
   );
 }
