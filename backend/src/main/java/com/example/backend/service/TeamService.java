@@ -20,4 +20,6 @@ public interface TeamService {
     Set<User> getTeamMembers(Long teamId);
 
     void removeMember(Long teamId, Long memberIdToRemove, Long requesterId);
+
+    void deleteTeam(Long teamId, Long requesterId);
 }

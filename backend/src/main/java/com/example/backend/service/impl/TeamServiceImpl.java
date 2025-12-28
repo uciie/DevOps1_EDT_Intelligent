@@ -90,4 +90,21 @@ public class TeamServiceImpl implements TeamService {
         // Maintenant, team.getMembers() renvoie bien Set<User>, donc ça correspond !
         return team.getMembers();
     }
+
+    @Override
+    @Transactional
+    public void deleteTeam(Long teamId, Long requesterId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new IllegalArgumentException("Équipe introuvable"));
+
+        if (!team.getOwnerId().equals(requesterId)) {
+            throw new SecurityException("Seul le créateur peut supprimer l'équipe.");
+        }
+
+        // On nettoie les relations avant de supprimer pour éviter les erreurs de clé étrangère
+        team.getMembers().clear(); 
+        teamRepository.save(team);
+        
+        teamRepository.delete(team);
+    }
 }

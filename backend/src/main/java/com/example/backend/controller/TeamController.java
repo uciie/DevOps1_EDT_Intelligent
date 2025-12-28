@@ -27,7 +27,6 @@ public class TeamController {
         return ResponseEntity.ok(teamService.createTeam(team.getName(), team.getDescription(), userId));
     }
 
-    
     // 2. Ajouter un membre (POST /api/teams/1/members?userId=2)
     @PostMapping("/{teamId}/members")
     public ResponseEntity<Team> addMember(
@@ -47,25 +46,34 @@ public class TeamController {
     public ResponseEntity<Set<User>> getTeamMembers(@PathVariable Long teamId) {
         return ResponseEntity.ok(teamService.getTeamMembers(teamId));
     }
-    @Transactional
-    public void removeMember(Long teamId, Long memberIdToRemove, Long requesterId) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new IllegalArgumentException("Équipe introuvable"));
-
-        // 1. Vérification de sécurité : Seul le chef d'équipe peut supprimer quelqu'un
-        if (!team.getOwnerId().equals(requesterId)) {
-            throw new SecurityException("Seul le chef d'équipe peut supprimer un membre.");
+    // AJOUT : Endpoint pour supprimer un membre
+    // DELETE /api/teams/{teamId}/members/{memberId}?requesterId=...
+    @DeleteMapping("/{teamId}/members/{memberId}")
+    public ResponseEntity<?> removeMember(
+            @PathVariable Long teamId,
+            @PathVariable Long memberId,
+            @RequestParam Long requesterId) { // On passe l'ID de celui qui fait la demande
+        
+        try {
+            teamService.removeMember(teamId, memberId, requesterId);
+            return ResponseEntity.ok().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        // 2. Empêcher le chef de se supprimer lui-même (optionnel, selon ta logique)
-        if (memberIdToRemove.equals(team.getOwnerId())) {
-             throw new IllegalArgumentException("Le chef d'équipe ne peut pas être supprimé de cette manière.");
+    }
+    @DeleteMapping("/{teamId}")
+    public ResponseEntity<?> deleteTeam(
+            @PathVariable Long teamId,
+            @RequestParam Long requesterId) {
+        try {
+            teamService.deleteTeam(teamId, requesterId);
+            return ResponseEntity.ok().build();
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
         }
-
-        User memberToRemove = userRepository.findById(memberIdToRemove)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
-
-        team.removeMember(memberToRemove); // Utilise la méthode utilitaire existante dans Team
-        teamRepository.save(team);
     }
 }

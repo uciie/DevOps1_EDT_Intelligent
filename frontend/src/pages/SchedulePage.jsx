@@ -7,8 +7,7 @@ import { getCurrentUser } from '../api/authApi';
 import { getUserId} from '../api/userApi';
 import { getUserTasks, getDelegatedTasks, createTask, updateTask, deleteTask, planifyTask } from '../api/taskApi';
 import { createEvent, getUserEvents, updateEvent, deleteEvent } from '../api/eventApi';
-import { getMyTeams, createTeam, addMemberToTeam, removeMemberFromTeam } from '../api/teamApi';
-import '../styles/pages/SchedulePage.css';
+import { getMyTeams, createTeam, addMemberToTeam, removeMemberFromTeam, deleteTeam } from '../api/teamApi';import '../styles/pages/SchedulePage.css';
 
 // Helper pour normaliser les données (gérer content, data ou array direct)
 const normalizeData = (response) => {
@@ -518,6 +517,28 @@ function SchedulePage() {
     }
   };
   
+  // --- GESTION SUPPRESSION ÉQUIPE ---
+  const handleDeleteTeam = async (teamId) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette équipe définitivement ?")) return;
+
+    try {
+        await deleteTeam(teamId, currentUser.id);
+        
+        // Mise à jour locale
+        const updatedTeams = teams.filter(t => t.id !== teamId);
+        setTeams(updatedTeams);
+        
+        // Si on était sur cette équipe, on revient sur "Personnel"
+        if (selectedTeam && selectedTeam.id === teamId) {
+            setSelectedTeam(null);
+        }
+        
+        showNotification("Équipe supprimée.", "success");
+    } catch (error) {
+        console.error(error);
+        showNotification(error.response?.data || "Erreur suppression équipe", "error");
+    }
+  };
   // Utilisation de pageError pour les erreurs bloquantes
   if (pageError) {
       return (
@@ -599,8 +620,25 @@ function SchedulePage() {
                 {Array.isArray(teams) && teams.map(team => (
                     <li key={team.id} className={`team-item ${selectedTeam?.id === team.id ? 'active' : ''}`}>
                         <div className="team-info" onClick={() => setSelectedTeam(team)}>
-                            <span className="team-icon">🛡️</span> 
-                            <span className="team-name">{team.name}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                                <span className="team-icon">🛡️</span> 
+                                <span className="team-name">{team.name}</span>
+                            </div>
+
+                            {/* BOUTON SUPPRIMER L'ÉQUIPE (Visible uniquement pour le chef) */}
+                            {currentUser.id === team.ownerId && (
+                                <button 
+                                    className="btn-delete-team"
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Empêche la sélection de l'équipe au clic
+                                        handleDeleteTeam(team.id);
+                                    }}
+                                    title="Supprimer l'équipe"
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}
+                                >
+                                    🗑️
+                                </button>
+                            )}
                         </div>
                         
                         {/* MODIFICATION : AFFICHER LA LISTE DES MEMBRES SI L'ÉQUIPE EST SÉLECTIONNÉE */}

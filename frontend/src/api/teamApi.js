@@ -34,3 +34,11 @@ export const removeMemberFromTeam = async (teamId, memberId, requesterId) => {
   });
   return response.data;
 };
+
+// AJOUT : Supprimer une équipe
+export const deleteTeam = async (teamId, requesterId) => {
+  const response = await api.delete(`/teams/${teamId}`, {
+    params: { requesterId }
+  });
+  return response.data;
+};
