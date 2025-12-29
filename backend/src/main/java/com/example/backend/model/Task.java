@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.*;
 
@@ -40,6 +41,7 @@ public class Task {
     // L'utilisateur qui doit FAIRE la tâche
     @ManyToOne
     @JoinColumn(name = "assignee_id")
+    @JsonIgnoreProperties({"tasks", "events", "teams"})
     private User assignee;
 
     // Le contexte du projet (Optionnel mais recommandé par vos specs)

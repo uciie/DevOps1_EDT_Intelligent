@@ -64,14 +64,13 @@ public class TeamServiceImpl implements TeamService {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Équipe introuvable"));
 
-        Optional<User> newMember = userRepository.findById(userId); 
-        // Si elle n'existe pas, ajoutez : Optional<User> findById(Long id); dans UserRepository
-        
-        if (newMember == null) {
-             throw new IllegalArgumentException("Utilisateur " + userId + " introuvable");
-        }
+        // Récupérer directement l'utilisateur ou lancer l'exception
+        User newMember = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Utilisateur " + userId + " introuvable"));
 
-        team.addMember(newMember.orElseThrow(() -> new IllegalArgumentException("Utilisateur " + userId + " introuvable")));
+        // Ajouter le membre
+        team.addMember(newMember);
+        
         return teamRepository.save(team);
     }
 

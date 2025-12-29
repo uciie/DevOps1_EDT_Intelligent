@@ -11,33 +11,39 @@ import { getMyTeams, createTeam, addMemberToTeam, removeMemberFromTeam, deleteTe
 
 // Helper pour normaliser les données (gérer content, data ou array direct)
 const normalizeData = (response) => {
-    // 1. Cas : C'est déjà un tableau pur
+    // 0. Sécurité : si null/undefined
+    if (!response) return [];
+
+    // 1. Cas : Parfois Axios ou le backend renvoie une string JSON si le contenu est complexe
+    if (typeof response === 'string') {
+        try {
+            response = JSON.parse(response);
+        } catch (e) {
+            console.error("Erreur parsing JSON dans normalizeData:", e);
+            return [];
+        }
+    }
+
+    // 2. Cas : C'est un tableau pur
     if (Array.isArray(response)) {
         return response;
     }
 
-    // 2. Cas : Axios (response.data) qui contient directement un tableau
-    if (response && Array.isArray(response.data)) {
+    // 3. Cas : Axios (response.data)
+    if (response.data && Array.isArray(response.data)) {
         return response.data;
     }
 
-    // 3. Cas : Spring Boot Pageable direct ({ content: [...] })
-    if (response && Array.isArray(response.content)) {
+    // 4. Cas : Spring Boot Pageable ({ content: [...] })
+    if (response.content && Array.isArray(response.content)) {
         return response.content;
     }
 
-    // 4. Cas : Axios + Spring Boot Pageable ({ data: { content: [...] } })
-    // C'est souvent celui-ci qui manque !
-    if (response && response.data && Array.isArray(response.data.content)) {
+    // 5. Cas : Wrapper complexe
+    if (response.data && response.data.content && Array.isArray(response.data.content)) {
         return response.data.content;
     }
     
-    // 5. Cas : Axios + Wrapper générique "data" ({ data: { data: [...] } })
-    if (response && response.data && Array.isArray(response.data.data)) {
-        return response.data.data;
-    }
-
-    // Si rien ne matche, on retourne un tableau vide pour éviter les crashs .map()
     console.warn("Format de données non reconnu par normalizeData:", response);
     return [];
 };
