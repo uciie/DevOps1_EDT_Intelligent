@@ -65,4 +65,11 @@ public class TaskController {
         Task plannedTask = taskService.planifyTask(taskId, start, end);
         return ResponseEntity.ok(plannedTask);
     }
+    
+    //Récupérer les tâches d'une équipe spécifique
+    @GetMapping("/team/{teamId}")
+    public ResponseEntity<List<Task>> getTeamTasks(@PathVariable Long teamId) {
+        List<Task> tasks = taskService.getTasksByTeam(teamId);
+        return ResponseEntity.ok(tasks);
+    }
 }

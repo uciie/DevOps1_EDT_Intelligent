@@ -2,6 +2,7 @@ package com.example.backend.model;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -25,8 +26,14 @@ public class Task {
     private boolean late = false; 
 
     private String title;
+
+    
+    @JsonAlias("durationMinutes")
     private int estimatedDuration; // en minutes
+
     private int priority; // 1 = haute, 2 = moyenne, 3 = basse
+
+    @JsonAlias("completed")
     private boolean done;
 
     @ManyToOne
@@ -47,7 +54,7 @@ public class Task {
     // Le contexte du projet (Optionnel mais recommandé par vos specs)
     @ManyToOne
     @JoinColumn(name = "team_id")
-    @JsonIgnore // Pour éviter de charger toute l'équipe avec chaque tâche
+    @JsonIgnoreProperties({"members", "description"}) // On garde l'ID et le nom, on ignore les détails lourds
     private Team team;
 
     public Task() {

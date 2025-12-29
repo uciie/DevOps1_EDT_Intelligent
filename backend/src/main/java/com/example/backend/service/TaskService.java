@@ -29,4 +29,6 @@ public interface TaskService {
 
     // Planifier une tâche dans le calendrier (drag and drop)
     Task planifyTask(Long taskId, LocalDateTime start, LocalDateTime end);
+
+    List<Task> getTasksByTeam(Long teamId);
 }

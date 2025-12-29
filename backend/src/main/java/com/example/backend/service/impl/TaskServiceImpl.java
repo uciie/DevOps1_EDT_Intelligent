@@ -2,13 +2,14 @@ package com.example.backend.service.impl;
 
 import com.example.backend.model.Event;
 import com.example.backend.model.Task;
+import com.example.backend.model.Team; 
+import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.TaskRepository;
+import com.example.backend.repository.TeamRepository; 
 import com.example.backend.repository.UserRepository;
 import com.example.backend.service.TaskService;
 import org.springframework.stereotype.Service;
-import com.example.backend.model.User; 
-import com.example.backend.repository.UserRepository;
 import jakarta.transaction.Transactional;
 
 import java.time.LocalDateTime;
@@ -23,11 +24,20 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final TeamRepository teamRepository;
 
-    public TaskServiceImpl(TaskRepository taskRepository, EventRepository eventRepository,UserRepository userRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, EventRepository eventRepository, UserRepository userRepository, TeamRepository teamRepository) {
         this.taskRepository = taskRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
+        this.teamRepository = teamRepository;
+    }
+
+    
+    @Override
+    public List<Task> getTasksByTeam(Long teamId) {
+        // Cette méthode existe déjà dans votre TaskRepository (voir fichier fourni)
+        return taskRepository.findByTeamId(teamId);
     }
 
     // --- RM-04 : FILTRES ---
@@ -72,38 +82,49 @@ public class TaskServiceImpl implements TaskService {
         User creator = userRepository.findById(creatorId)
             .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé avec l'ID: " + creatorId));
 
-        // 1. Définir le Créateur (Owner)
-        task.setUser(creator); // 'user' est le champ créateur dans le nouveau modèle
+        task.setUser(creator);
 
-        // 2. Gestion de l'Assigné (RM-02)
+        // CORRECTIF : Déclaration de la variable ICI pour qu'elle soit visible dans toute la méthode
+        User assigneeCandidate; 
+
         if (task.getAssignee() == null) {
-            // Par défaut, si aucun responsable n'est désigné, l'assigné est le créateur
-            task.setAssignee(creator);
+            assigneeCandidate = creator;
         } else {
-            // Si un assigné est fourni, il faut le récupérer proprement depuis la BDD si seul l'ID est passé
-            // (Supposons que le Controller a déjà hydraté l'objet, sinon faire un findById ici)
-            User assigneeCandidate = userRepository.findById(task.getAssignee().getId())
+            // Récupération de l'utilisateur assigné depuis la BDD
+            assigneeCandidate = userRepository.findById(task.getAssignee().getId())
                     .orElseThrow(() -> new IllegalArgumentException("Utilisateur assigné introuvable"));
+        }
+        
+        // On affecte l'assigné validé à la tâche
+        task.setAssignee(assigneeCandidate);
+
+        // --- Gestion de l'Équipe ---
+        if (task.getTeam() != null && task.getTeam().getId() != null) {
+            Team team = teamRepository.findById(task.getTeam().getId())
+                    .orElseThrow(() -> new IllegalArgumentException("Équipe introuvable"));
             
-            // Vérification : On ne peut assigner qu'à un membre de la même équipe
-            // Optimisation : On vérifie si les deux utilisateurs ont au moins une équipe en commun
+            // On peut maintenant utiliser 'assigneeCandidate' ici sans erreur
+            boolean isMember = team.getMembers().contains(assigneeCandidate);
+            
+            // Vérification : l'assigné doit être membre ou propriétaire
+            if (!isMember && !assigneeCandidate.getId().equals(team.getOwnerId())) { 
+                 throw new IllegalArgumentException("L'utilisateur assigné ne fait pas partie de l'équipe sélectionnée.");
+            }
+            
+            task.setTeam(team); 
+        } else {
+            // Logique de repli : vérification d'équipe commune
             boolean sameTeam = creator.getTeams().stream()
-                    .anyMatch(team -> team.getMembers().contains(assigneeCandidate));
-            
-            // Note: Pour simplifier au début, on peut autoriser l'assignation si sameTeam est false,
-            // mais selon la RM-02 stricte :
+                    .anyMatch(t -> t.getMembers().contains(assigneeCandidate)); // 'assigneeCandidate' est visible ici
+
             if (!sameTeam && !creator.equals(assigneeCandidate)) {
                 throw new IllegalArgumentException("Vous ne pouvez assigner une tâche qu'aux membres de vos équipes.");
             }
-            task.setAssignee(assigneeCandidate);
         }
 
         task.setDone(false);
-
-        // 4. Sauvegarder la tâche (maintenant la colonne user_id n'est plus NULL)
         return taskRepository.save(task);
     }
-
     // --- RM-03 : DROITS DE MODIFICATION ---
 
     @Override
