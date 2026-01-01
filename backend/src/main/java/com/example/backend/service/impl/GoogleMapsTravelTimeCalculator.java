@@ -1,11 +1,5 @@
 package com.example.backend.service.impl;
 
-import com.example.backend.model.Location;
-import com.example.backend.model.TravelTime.TransportMode; 
-import com.example.backend.service.TravelTimeCalculator;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.net.URI;
 
 import org.springframework.beans.factory.annotation.Autowired; 
@@ -17,6 +11,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import com.example.backend.model.Location;
+import com.example.backend.model.TravelTime.TransportMode;
+import com.example.backend.service.TravelTimeCalculator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 @Profile("external-api")
@@ -32,7 +32,6 @@ public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
 
     private static final String API_URL = "https://maps.googleapis.com/maps/api/distancematrix/json";
 
-    // ✅ AJOUTEZ @Autowired ICI pour dire à Spring : "Utilise ce constructeur !"
     @Autowired
     public GoogleMapsTravelTimeCalculator(RestTemplateBuilder restTemplateBuilder) {
         this.restTemplate = restTemplateBuilder.build();
@@ -51,7 +50,7 @@ public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
     public int calculateTravelTime(Location from, Location to, TransportMode mode) {
 
         if (apiKey == null || apiKey.isBlank()) {
-            System.err.println("⚠️  No Google Maps API key — fallback calculator used.");
+            System.err.println("  No Google Maps API key — fallback calculator used.");
             return fallbackCalculator.calculateTravelTime(from, to, mode);
         }
 
@@ -66,7 +65,7 @@ public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
                     .build()
                     .toUri();
 
-            System.err.println("🌐 Calling Google API:");
+            System.err.println(" Calling Google API:");
             System.err.println("   From: " + formatLocation(from));
             System.err.println("   To:   " + formatLocation(to));
             System.err.println("   Mode: " + mapTransportMode(mode));
@@ -75,7 +74,7 @@ public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
             String json = restTemplate.getForObject(uri, String.class);
 
             // --- AJOUT DEBUG ---
-            System.err.println("🔍 JSON REÇU DE GOOGLE :");
+            System.err.println(" JSON REÇU DE GOOGLE :");
             System.err.println(json); 
             // -------------------
 
@@ -91,7 +90,7 @@ public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
             JsonNode rows = root.path("rows");
             // Sécurité : on vérifie que rows n'est pas vide
             if (rows.isEmpty() || rows.path(0).path("elements").isEmpty()) {
-                System.err.println("❌ Empty rows or elements");
+                System.err.println(" Empty rows or elements");
                 return fallbackCalculator.calculateTravelTime(from, to, mode);
             }
 
@@ -107,7 +106,7 @@ public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
             int durationInSeconds = elementNode.path("duration").path("value").asInt(-1);
 
             if (durationInSeconds < 0) {
-                System.err.println("❌ Invalid duration — fallback");
+                System.err.println(" Invalid duration — fallback");
                 return fallbackCalculator.calculateTravelTime(from, to, mode);
             }
 
@@ -130,7 +129,7 @@ public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
 
     private void logGlobalError(JsonNode root) {
         String status = root.path("status").asText();
-        System.err.println("❌ API error: " + status);
+        System.err.println(" API error: " + status);
 
         switch (status) {
             case "INVALID_REQUEST" -> System.err.println("   → Invalid parameters (origins/destinations).");
@@ -145,7 +144,7 @@ public class GoogleMapsTravelTimeCalculator implements TravelTimeCalculator {
     }
 
     private void logElementError(String status, JsonNode elementNode) {
-        System.err.println("❌ Element status: " + status);
+        System.err.println(" Element status: " + status);
         switch (status) {
             case "NOT_FOUND" -> System.err.println("   → Address could not be geocoded.");
             case "ZERO_RESULTS" -> System.err.println("   → No route found.");

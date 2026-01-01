@@ -33,8 +33,8 @@ public class ScheduleController {
      * @param eventId l'ID de l'événement annulé.
      * @return une ResponseEntity indiquant le succès de l'opération.
      */
-    @PostMapping("/reshuffle/{userId}") // <-- CORRECTION ICI
-    public ResponseEntity<String> reshuffle(@PathVariable Long userId) { // <-- CORRECTION ICI
+    @PostMapping("/reshuffle/{userId}") 
+    public ResponseEntity<String> reshuffle(@PathVariable Long userId) { 
         optimizerService.reshuffle(userId);
         return ResponseEntity.ok("Schedule updated successfully.");
     }

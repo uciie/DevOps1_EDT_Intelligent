@@ -1,9 +1,11 @@
 package com.example.backend.repository;
 
-import com.example.backend.model.Task;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import java.util.List;
+
+import com.example.backend.model.Task;
 import com.example.backend.model.User;
 
 @Repository

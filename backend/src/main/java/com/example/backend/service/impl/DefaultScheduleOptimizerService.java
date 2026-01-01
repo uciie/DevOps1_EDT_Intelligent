@@ -1,24 +1,18 @@
 package com.example.backend.service.impl;
 
-import com.example.backend.service.ScheduleOptimizerService;
-// CONSERVÉ DE 5512fe3 : Imports pour les services de localisation/stratégie qui pourraient être utilisés plus tard
-import com.example.backend.service.ScheduleOptimizerService;
-import com.example.backend.service.strategy.TaskSelectionStrategy;
-import com.example.backend.service.TravelTimeService;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
 
 import com.example.backend.model.Event;
 import com.example.backend.model.Task;
-import com.example.backend.model.TravelTime;
-import com.example.backend.model.TravelTime.TransportMode;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.TaskRepository;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.Comparator; // <-- CONSERVÉ DE HEAD pour le tri des tâches
-import java.util.List;
+import com.example.backend.service.ScheduleOptimizerService;
+import com.example.backend.service.TravelTimeService;
+import com.example.backend.service.strategy.TaskSelectionStrategy;
 
 /**
  * Service d'optimisation de l'emploi du temps avec gestion des temps de trajet.

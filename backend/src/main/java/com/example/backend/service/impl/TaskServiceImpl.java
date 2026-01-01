@@ -1,5 +1,13 @@
 package com.example.backend.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.springframework.stereotype.Service;
+
 import com.example.backend.model.Event;
 import com.example.backend.model.Task;
 import com.example.backend.model.Team; 
@@ -9,14 +17,8 @@ import com.example.backend.repository.TaskRepository;
 import com.example.backend.repository.TeamRepository; 
 import com.example.backend.repository.UserRepository;
 import com.example.backend.service.TaskService;
-import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import jakarta.transaction.Transactional;
 
 @Service
 public class TaskServiceImpl implements TaskService {
@@ -84,7 +86,6 @@ public class TaskServiceImpl implements TaskService {
 
         task.setUser(creator);
 
-        // CORRECTIF : Déclaration de la variable ICI pour qu'elle soit visible dans toute la méthode
         User assigneeCandidate; 
 
         if (task.getAssignee() == null) {
@@ -196,7 +197,7 @@ public Task planifyTask(Long taskId, LocalDateTime start, LocalDateTime end) {
         throw new IllegalStateException("Impossible de planifier une tâche sans utilisateur associé");
     }
 
-    // --- NOUVELLE LOGIQUE : ALLOCATION SIMPLE AU PREMIER TROU ---
+    // --- ALLOCATION SIMPLE AU PREMIER TROU ---
     if (start == null || end == null) {
         // 1. Définir la durée requise pour la tâche
         long durationMinutes = task.getEstimatedDuration(); 
