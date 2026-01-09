@@ -63,10 +63,10 @@ function SchedulePage() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedHour, setSelectedHour] = useState(9); // Heure par défaut
 
-  // --- NOUVEAU : État pour stocker l'événement à modifier ---
+  //État pour stocker l'événement à modifier ---
   const [eventToEdit, setEventToEdit] = useState(null);
 
-  // --- NOUVEAU : États pour la Collaboration (Teams) ---
+  //États pour la Collaboration (Teams) ---
   const [teams, setTeams] = useState([]); // Initialisé comme tableau vide
   const [selectedTeam, setSelectedTeam] = useState(null); // Si null => Mode Personnel
   const [showCreateTeam, setShowCreateTeam] = useState(false);
@@ -118,7 +118,7 @@ function SchedulePage() {
         // on pourrait appeler des endpoints spécifiques à l'équipe.
         // Ici, on charge tout ce qui concerne l'user et on filtre côté client.
         
-        // MODIFICATION : Chargement parallèle des tâches assignées ET déléguées
+        //Chargement parallèle des tâches assignées ET déléguées
         const [rawTasksResponse, rawDelegatedResponse] = await Promise.all([
           getUserTasks(user.id),
           getDelegatedTasks(user.id)
@@ -154,11 +154,11 @@ function SchedulePage() {
 
         setEvents(loadedEvents);
 
-        // --- 3. CHARGEMENT DES ÉQUIPES ---
+        // --- CHARGEMENT DES ÉQUIPES ---
         try {
             const teamsResponse = await getMyTeams(user.id);
             console.log("Équipes chargées :", teamsResponse);
-            // CORRECTION IMPORTANTE : Utilisation de normalizeData pour éviter l'erreur .map
+            //Utilisation de normalizeData pour éviter l'erreur .map
             const myTeams = normalizeData(teamsResponse);
             console.log("Équipes normalisées :", myTeams);
             setTeams(myTeams);
@@ -177,7 +177,7 @@ function SchedulePage() {
 
     loadUserData();
   }, []);
-  // NOUVEAU : Fonction de suppression d'un membre
+  //Fonction de suppression d'un membre
   const handleRemoveMember = async (teamId, memberId) => {
     if (!window.confirm("Voulez-vous vraiment retirer ce membre ?")) return;
     
@@ -257,7 +257,7 @@ function SchedulePage() {
   };
 
 
-  // --- GESTION DES TÂCHES (Modifiée pour supporter assignee et team) ---
+  // --- GESTION DES TÂCHES ---
 
   const handleAddTask = async (taskData) => {
     try {
@@ -647,7 +647,7 @@ function SchedulePage() {
                             )}
                         </div>
                         
-                        {/* MODIFICATION : AFFICHER LA LISTE DES MEMBRES SI L'ÉQUIPE EST SÉLECTIONNÉE */}
+                        {/* AFFICHER LA LISTE DES MEMBRES SI L'ÉQUIPE EST SÉLECTIONNÉE */}
                         {selectedTeam?.id === team.id && (
                             <div className="team-details-expanded">
                                 <div className="invite-box">
