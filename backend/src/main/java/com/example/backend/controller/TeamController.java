@@ -1,6 +1,7 @@
 package com.example.backend.controller;
 
 import com.example.backend.model.Team;
+import com.example.backend.model.TeamInvitation;
 import com.example.backend.model.User;
 import com.example.backend.service.TeamService;
 import org.springframework.http.ResponseEntity;
@@ -75,5 +76,22 @@ public class TeamController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @PostMapping("/{teamId}/invite/{userId}")
+    public ResponseEntity<?> inviteUser(@PathVariable Long teamId, @PathVariable Long userId) {
+        teamService.inviteMember(teamId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/invitations/pending/{userId}")
+    public List<TeamInvitation> getInvitations(@PathVariable Long userId) {
+        return teamService.getPendingInvitations(userId);
+    }
+
+    @PostMapping("/invitations/{invitationId}/respond")
+    public ResponseEntity<?> respond(@PathVariable Long invitationId, @RequestParam boolean accept) {
+        teamService.respondToInvitation(invitationId, accept);
+        return ResponseEntity.ok().build();
     }
 }

@@ -5,13 +5,25 @@ import java.util.Set;
 
 import com.example.backend.model.Team;
 import com.example.backend.model.User;
+import com.example.backend.model.TeamInvitation; // Import de la nouvelle entité
 
 public interface TeamService {
     // Créer une équipe
     Team createTeam(String name, String description, Long ownerId);
 
     // Ajouter un membre via son userId (RM-01)
+    // Note : Cette méthode peut être conservée pour un ajout forcé par l'admin 
+    // ou modifiée pour appeler en interne la logique d'invitation.
     Team addMemberByUserId(Long teamId, Long userId);
+
+    // Envoyer une invitation
+    void inviteMember(Long teamId, Long userId);
+
+    // Répondre à une invitation (Accepter/Refuser)
+    void respondToInvitation(Long invitationId, boolean accept);
+
+    // Récupérer les invitations en attente pour un utilisateur
+    List<TeamInvitation> getPendingInvitations(Long userId);
 
     // Récupérer les équipes d'un utilisateur
     List<Team> getTeamsByUserId(Long userId);
