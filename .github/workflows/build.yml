@@ -41,3 +41,24 @@ jobs:
         run: |
           npm ci
           npm run build
+    
+      # --- UML GENERATION ---
+      - name: Install Graphviz
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+        # Cette étape est cruciale car PlantUML utilise Graphviz (dot) 
+        # pour calculer la disposition des diagrammes de classes.
+
+      - name: Generate UML Diagram
+        run: |
+          cd backend
+          chmod +x gradlew
+          ./gradlew generateUML
+        # On exécute la tâche personnalisée définie dans votre build.gradle.
+
+      - name: Archive UML Diagram
+        uses: actions/upload-artifact@v4
+        with:
+          name: uml-diagram
+          path: uml/*.png
+        # Cela vous permet de télécharger le diagramme généré (.png) 
+        # directement depuis l'interface GitHub Actions après le build.
