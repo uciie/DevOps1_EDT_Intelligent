@@ -42,3 +42,18 @@ export const deleteTeam = async (teamId, requesterId) => {
   });
   return response.data;
 };
+
+// Inviter un utilisateur à rejoindre une équipe
+export const inviteToTeam = (teamId, userId) => {
+    return api.post(`/teams/${teamId}/invite/${userId}`);
+};
+
+// Récupérer les invitations en attente pour un utilisateur
+export const getPendingInvitations = (userId) => {
+    return api.get(`/teams/invitations/pending/${userId}`);
+};
+
+// Répondre à une invitation (accepter ou refuser)
+export const respondToInvitation = (invitationId, accept) => {
+    return api.post(`/teams/invitations/${invitationId}/respond?accept=${accept}`);
+};
