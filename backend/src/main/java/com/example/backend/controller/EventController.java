@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.backend.model.Event;
 import com.example.backend.model.Location;
 import com.example.backend.service.EventService;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Map;
 
 /**
