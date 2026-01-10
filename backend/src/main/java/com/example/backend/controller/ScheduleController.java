@@ -30,7 +30,7 @@ public class ScheduleController {
     /**
      * Réorganise l'emploi du temps en fonction d'un événement annulé.
      *
-     * @param eventId l'ID de l'événement annulé.
+     * @param userId l'ID de l'événement annulé.
      * @return une ResponseEntity indiquant le succès de l'opération.
      */
     @PostMapping("/reshuffle/{userId}") 

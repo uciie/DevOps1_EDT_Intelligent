@@ -19,15 +19,6 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
     Optional<Location> findByAddress(String address);
 
     /**
-     * Trouve une location par ses coordonnées géographiques.
-     * 
-     * @param latitude la latitude
-     * @param longitude la longitude
-     * @return la location si trouvée
-     */
-    Optional<Location> findByLatitudeAndLongitude(Double latitude, Double longitude);
-    
-    /**
      * Trouve une location par son nom.
      *
      * @param name le nom de la location

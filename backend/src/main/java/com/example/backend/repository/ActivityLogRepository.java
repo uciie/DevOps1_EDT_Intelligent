@@ -9,6 +9,5 @@ import org.springframework.stereotype.Repository;
 import com.example.backend.model.ActivityLog;
 @Repository
 public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> {
-    List<ActivityLog> findByUserId(Long userId);
     List<ActivityLog> findByUserIdAndStartTimeBetween(Long userId, LocalDateTime start, LocalDateTime end);
 }
