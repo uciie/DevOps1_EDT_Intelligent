@@ -17,6 +17,10 @@ public class TeamInvitation {
     @ManyToOne
     @JoinColumn(name = "invited_user_id")
     private User invitedUser;
+
+    @ManyToOne
+    @JoinColumn(name = "inviter_id")
+    private User inviter;
     
     @Enumerated(EnumType.STRING)
     private Status status; // PENDING, ACCEPTED, REJECTED
@@ -43,6 +47,14 @@ public class TeamInvitation {
 
     public void setInvitedUser(User invitedUser) {
         this.invitedUser = invitedUser;
+    }
+
+    public User getInviter() {
+        return inviter;
+    }
+
+    public void setInviter(User inviter) {
+        this.inviter = inviter;
     }
 
     public Status getStatus() {

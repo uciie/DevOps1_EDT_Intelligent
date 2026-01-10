@@ -17,7 +17,7 @@ public interface TeamService {
     Team addMemberByUserId(Long teamId, Long userId);
 
     // Envoyer une invitation
-    void inviteMember(Long teamId, Long userId);
+    void inviteMember(Long teamId, Long inviterId, Long invitedUserId);
 
     // Répondre à une invitation (Accepter/Refuser)
     void respondToInvitation(Long invitationId, boolean accept);

@@ -7,7 +7,8 @@ import { getCurrentUser } from '../api/authApi';
 import { getUserId} from '../api/userApi';
 import { getUserTasks, getDelegatedTasks, createTask, updateTask, deleteTask, planifyTask } from '../api/taskApi';
 import { createEvent, getUserEvents, updateEvent, deleteEvent } from '../api/eventApi';
-import { getMyTeams, createTeam, addMemberToTeam, removeMemberFromTeam, deleteTeam } from '../api/teamApi';import '../styles/pages/SchedulePage.css';
+import { getMyTeams, createTeam, inviteUserToTeam, removeMemberFromTeam, deleteTeam } from '../api/teamApi';
+import '../styles/pages/SchedulePage.css';
 
 // Helper pour normaliser les données (gérer content, data ou array direct)
 const normalizeData = (response) => {
@@ -233,24 +234,10 @@ function SchedulePage() {
       if(!inviteUsername.trim()) return;
       try {
           const userMemberId = await getUserId(inviteUsername);
-          // /api/teams/{teamId}/members?userId=
-          await addMemberToTeam(teamId, userMemberId);
+          await inviteUserToTeam(teamId, userMemberId, currentUser.id);
           showNotification(`Invitation envoyée à ${inviteUsername}`, "success");
           setInviteUsername('');
           
-          // Recharger les équipes pour mettre à jour la liste des membres localement
-          const updatedTeamsResponse = await getMyTeams(currentUser.id);
-          
-          // Normalisation ici aussi
-          let updatedTeams = normalizeData(updatedTeamsResponse);
-          
-          setTeams(updatedTeams);
-          
-          // Mettre à jour l'équipe sélectionnée si c'est celle en cours
-          if(selectedTeam && selectedTeam.id === teamId) {
-             const updatedCurrent = updatedTeams.find(t => t.id === teamId);
-             if(updatedCurrent) setSelectedTeam(updatedCurrent);
-          }
       } catch (error) {
           showNotification("Utilisateur introuvable ou erreur serveur", "error");
       }

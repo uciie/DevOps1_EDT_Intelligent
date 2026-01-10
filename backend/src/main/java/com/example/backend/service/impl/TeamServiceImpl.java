@@ -2,6 +2,7 @@ package com.example.backend.service.impl;
 
 import java.util.List;
 import java.util.Set;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,19 +45,31 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional
-    public void inviteMember(Long teamId, Long userId) {
+    public void inviteMember(Long teamId, Long inviterId, Long invitedUserId) {
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new IllegalArgumentException("Équipe introuvable"));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
-
-        // Création de l'invitation avec le statut PENDING
-        TeamInvitation invitation = new TeamInvitation();
-        invitation.setTeam(team);
-        invitation.setInvitedUser(user);
-        invitation.setStatus(TeamInvitation.Status.PENDING);
+                .orElseThrow(() -> new RuntimeException("Équipe non trouvée"));
         
-        invitationRepository.save(invitation);
+        // 2. Vérifier si une invitation en attente existe déjà
+        Optional<TeamInvitation> existingInvitation = invitationRepository
+                .findByTeamIdAndInvitedUserIdAndStatus(teamId, invitedUserId, TeamInvitation.Status.PENDING);
+
+        if (existingInvitation.isPresent()) {
+            // MISE À JOUR : On met à jour la date ou l'inviteur si nécessaire
+            TeamInvitation invitation = existingInvitation.get();
+            invitation.setInviter(userRepository.findById(inviterId)
+                    .orElseThrow(() -> new RuntimeException("Inviteur non trouvé")));
+            // Vous pouvez ajouter un champ 'updatedAt' si disponible dans votre modèle
+            invitationRepository.save(invitation);
+        }
+        else{
+            // 3. Sinon, créer une nouvelle invitation
+            TeamInvitation newInvitation = new TeamInvitation();
+            newInvitation.setTeam(team);
+            newInvitation.setInviter(userRepository.findById(inviterId).get());
+            newInvitation.setInvitedUser(userRepository.findById(invitedUserId).get());
+            newInvitation.setStatus(TeamInvitation.Status.PENDING);
+            invitationRepository.save(newInvitation);
+        }
     }
 
     @Override

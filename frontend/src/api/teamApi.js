@@ -17,12 +17,10 @@ export const createTeam = async (userId, teamData) => {
   return response.data;
 };
 
-// Ajouter un membre à une équipe
-// Suppose une route: POST /teams/{id}/members?userId=...
-export const addMemberToTeam = async (teamId, userId) => {
-  const response = await api.post(`/teams/${teamId}/members`, null, {
-    params: { userId }
-  });
+// Inviter un utilisateur à rejoindre une équipe
+// Suppose une route: POST /teams/{teamId}/invite/${invitedUserId}?inviterId={inviterId}
+export const inviteUserToTeam = async (teamId, invitedUserId, inviterId) => {
+  const response = await api.post(`/teams/${teamId}/invite/${invitedUserId}?inviterId=${inviterId}`);
   return response.data;
 };
 
@@ -41,11 +39,6 @@ export const deleteTeam = async (teamId, requesterId) => {
     params: { requesterId }
   });
   return response.data;
-};
-
-// Inviter un utilisateur à rejoindre une équipe
-export const inviteToTeam = (teamId, userId) => {
-    return api.post(`/teams/${teamId}/invite/${userId}`);
 };
 
 // Récupérer les invitations en attente pour un utilisateur

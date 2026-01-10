@@ -78,9 +78,16 @@ public class TeamController {
         }
     }
 
-    @PostMapping("/{teamId}/invite/{userId}")
-    public ResponseEntity<?> inviteUser(@PathVariable Long teamId, @PathVariable Long userId) {
-        teamService.inviteMember(teamId, userId);
+    @PostMapping("/{teamId}/invite/{invitedUserId}")
+    public ResponseEntity<TeamInvitation> inviteUser(
+            @PathVariable Long teamId,
+            @PathVariable Long invitedUserId,
+            @RequestParam Long inviterId) {
+        
+        // L'appel au service gérera soit la création, soit la mise à jour 
+        // si une invitation est déjà en attente.
+        teamService.inviteMember(teamId, inviterId, invitedUserId);
+        
         return ResponseEntity.ok().build();
     }
 
