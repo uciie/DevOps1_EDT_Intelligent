@@ -157,10 +157,10 @@ function SchedulePage() {
         // --- CHARGEMENT DES ÉQUIPES ---
         try {
             const teamsResponse = await getMyTeams(user.id);
-            console.log("Équipes chargées :", teamsResponse);
+            //console.log("Équipes chargées :", teamsResponse);
             //Utilisation de normalizeData pour éviter l'erreur .map
             const myTeams = normalizeData(teamsResponse);
-            console.log("Équipes normalisées :", myTeams);
+            //console.log("Équipes normalisées :", myTeams);
             setTeams(myTeams);
         } catch (teamErr) {
             console.warn("Impossible de charger les équipes", teamErr);

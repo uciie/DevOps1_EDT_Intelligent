@@ -9,16 +9,23 @@ import LoginPage from "./pages/LoginPage";
 import SchedulePage from "./pages/SchedulePage";
 import ActivityPage from "./pages/ActivityPage";
 import SetupPage from "./pages/SetupPage"; // Import de la nouvelle page
+import NotificationPage from "./pages/NotificationPage";
 import { getCurrentUser, logoutUser } from "./api/authApi";
+import { getPendingInvitations } from "./api/teamApi";
 import PrivateRoute from "./components/PrivateRoute";
 import "./styles/App.css";
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
+  const [notifCount, setNotifCount] = useState(0); // État pour le compteur
 
   useEffect(() => {
     const user = getCurrentUser();
     setCurrentUser(user);
+    // Charger le nombre d'invitations au démarrage
+    if (user) {
+      fetchNotifCount(user.id);
+    }
   }, []);
 
   const handleLogout = () => {
@@ -26,6 +33,17 @@ function App() {
     setCurrentUser(null);
     // Redirection optionnelle vers l'accueil après déconnexion
     window.location.href = '/'; 
+  };
+
+  // Fonction pour récupérer le nombre d'invitations en attente
+  const fetchNotifCount = async (userId) => {
+    try {
+      const res = await getPendingInvitations(userId);
+      const data = res.data || res;
+      setNotifCount(data.length);
+    } catch (e) {
+      console.error("Erreur badge", e);
+    }
   };
 
   return (
@@ -45,7 +63,10 @@ function App() {
                 <>
                 <Link to="/schedule" className="nav-link">Mon Emploi du Temps</Link>
                 <Link to="/activity" className="nav-link">Activités</Link> 
-                  <Link to="/setup" className="nav-link">Configuration</Link>
+                <Link to="/setup" className="nav-link">Configuration</Link>
+                <Link to="/notifications" className="nav-link">Notifications
+                  {notifCount > 0 && <span className="notif-badge">{notifCount}</span>}
+                </Link>
                 </>
               )}
               <Link to="/about" className="nav-link">À propos</Link>
@@ -79,6 +100,7 @@ function App() {
               <Route path="/login" element={<LoginPage onLogin={(user) => setCurrentUser(user)} />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/about" element={<About />} />
+              <Route path="/notifications" element={<NotificationPage />} />
               
               {/* Routes protégées */}
               <Route
@@ -105,7 +127,6 @@ function App() {
                   </PrivateRoute>
                 }
               />
-              
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>

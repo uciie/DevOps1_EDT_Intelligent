@@ -1,0 +1,57 @@
+@import '../variables.css';
+
+/* Variables directement extraites de a.html */
+:root {
+    --primary: #4f46e5;
+    --success: #10b981;
+    --danger: #ef4444;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --bg: #f1f5f9;
+}
+
+.notification-page-container {
+    width: 100%;
+    max-width: 800px; /* Augmenté pour une dimension plus large */
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.page-header {
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-text h1 {
+    font-size: 1.5rem;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.header-text p {
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.notification-content-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.btn-back {
+    background: none;
+    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-back:hover {
+    background-color: #f8fafc;
+}

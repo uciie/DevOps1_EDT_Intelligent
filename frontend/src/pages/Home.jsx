@@ -45,6 +45,12 @@ function Home() {
                 <Link to="/schedule" className="btn btn-primary">
                   📅 Voir mon emploi du temps
                 </Link>
+                
+                {/* Nouveau bouton vers la page de notifications */}
+                <Link to="/notifications" className="btn btn-info">
+                  🔔 Mes Invitations
+                </Link>
+
                 <button onClick={handleLogout} className="btn btn-secondary">
                   🚪 Se déconnecter
                 </button>
