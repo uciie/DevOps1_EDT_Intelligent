@@ -10,10 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.example.backend.model.Team;
 import com.example.backend.model.User;
+import com.example.backend.model.Task;
 import com.example.backend.model.TeamInvitation;
 import com.example.backend.repository.TeamRepository;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.repository.TeamInvitationRepository;
+import com.example.backend.repository.TaskRepository;
 import com.example.backend.service.TeamService;
 
 @Service
@@ -24,6 +26,9 @@ public class TeamServiceImpl implements TeamService {
     
     @Autowired
     private TeamInvitationRepository invitationRepository;
+
+    @Autowired
+    private TaskRepository taskRepository;
 
     public TeamServiceImpl(TeamRepository teamRepository, UserRepository userRepository) {
         this.teamRepository = teamRepository;
@@ -134,16 +139,29 @@ public class TeamServiceImpl implements TeamService {
     @Override
     @Transactional
     public void removeMember(Long teamId, Long memberIdToRemove, Long requesterId) {
-        Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new IllegalArgumentException("Équipe introuvable"));
+    Team team = teamRepository.findById(teamId)
+            .orElseThrow(() -> new IllegalArgumentException("Équipe introuvable"));
 
-        // Logique de suppression (à compléter selon vos besoins de sécurité)
-        User userToRemove = userRepository.findById(memberIdToRemove)
-                .orElseThrow(() -> new IllegalArgumentException("Membre introuvable"));
-        
-        team.getMembers().remove(userToRemove);
-        teamRepository.save(team);
+    // 1. Empêcher le propriétaire de "quitter" l'équipe sans la supprimer
+    // (Sinon l'équipe se retrouve sans membre owner, ou "orpheline")
+    if (team.getOwnerId().equals(memberIdToRemove)) {
+        throw new SecurityException("Le propriétaire ne peut pas quitter l'équipe. Il doit la supprimer.");
     }
+
+    // 2. Vérification des droits
+    boolean isSelfRemoval = requesterId.equals(memberIdToRemove); // Quitter
+    boolean isOwnerAction = team.getOwnerId().equals(requesterId); // Exclure
+
+    if (!isSelfRemoval && !isOwnerAction) {
+        throw new SecurityException("Vous n'avez pas le droit de supprimer ce membre.");
+    }
+
+    User userToRemove = userRepository.findById(memberIdToRemove)
+            .orElseThrow(() -> new IllegalArgumentException("Membre introuvable"));
+    
+    team.removeMember(userToRemove); // Utilise ta méthode helper dans Team.java
+    teamRepository.save(team);
+}
 
     @Override
     @Transactional
@@ -155,6 +173,15 @@ public class TeamServiceImpl implements TeamService {
             throw new SecurityException("Seul le créateur peut supprimer l'équipe.");
         }
 
+        List<TeamInvitation> invitations = invitationRepository.findByTeamId(teamId); // Suppose l'ajout de cette méthode dans le repo
+        invitationRepository.deleteAll(invitations);
+
+        List<Task> tasks = taskRepository.findByTeamId(teamId); // Suppose l'ajout de cette méthode dans TaskRepository
+        for (Task task : tasks) {
+            task.setTeam(null);
+            taskRepository.save(task);
+        }
+        
         // On nettoie les relations avant de supprimer pour éviter les erreurs de clé étrangère
         team.getMembers().clear(); 
         teamRepository.delete(team);
