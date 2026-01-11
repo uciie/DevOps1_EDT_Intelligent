@@ -9,11 +9,11 @@ const NotificationPage = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const currentUser = getCurrentUser();
-        if (!currentUser) {
+        const user = getCurrentUser();
+        if (!user) {
             navigate("/login");
         } else {
-            setUser(currentUser);
+            setUser(user);
         }
     }, [navigate]);
 

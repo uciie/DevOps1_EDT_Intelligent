@@ -58,7 +58,12 @@ const InvitationList = ({ userId }) => {
                                 </div>
                                 <div className="invit-info">
                                     <span className="invit-main-text">{invit.team.name}</span>
-                                    <span className="invit-sub-text">Invité par {invit.inviter.username}</span>
+                                    <span className="invit-sub-text">
+                                        {invit.inviter 
+                                            ? `Invité par ${invit.inviter.username}` 
+                                            : "Invité par un inconnu"
+                                        }
+                                    </span>
                                 </div>
                             </div>
                             <div className="invit-buttons">
