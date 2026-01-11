@@ -529,7 +529,17 @@ function SchedulePage() {
         showNotification("Équipe supprimée.", "success");
     } catch (error) {
         console.error(error);
-        showNotification(error.response?.data || "Erreur suppression équipe", "error");
+        
+        const errorData = error.response?.data;
+        let errorMessage = "Erreur suppression équipe";
+
+        if (typeof errorData === 'string') {
+            errorMessage = errorData;
+        } else if (errorData && errorData.message) {
+            errorMessage = errorData.message; // Spring Boot met souvent le message ici
+        }
+
+        showNotification(errorMessage, "error");
     }
   };
   // Utilisation de pageError pour les erreurs bloquantes
