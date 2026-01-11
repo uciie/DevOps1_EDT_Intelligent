@@ -36,10 +36,13 @@ dependencies {
 	//implementation 'com.fasterxml.jackson.core:jackson-annotations'
     implementation 'com.github.mangstadt:biweekly:0.6.8' //parser
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'com.h2database:h2'
+	runtimeOnly 'org.postgresql:postgresql'
+	testRuntimeOnly 'com.h2database:h2'  // H2 uniquement pour les tests
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    testImplementation 'org.mockito:mockito-core:5.10.0'
+	testImplementation 'org.mockito:mockito-core:5.6.0' // Mockito
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.6.0' // Mockito avec JUnit5
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
     plantuml 'net.sourceforge.plantuml:plantuml:1.2024.7'
 }
 
