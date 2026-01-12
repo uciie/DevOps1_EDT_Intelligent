@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -55,35 +56,65 @@ class TaskServiceImplTest {
 
     @Test
     void testGetTasksByUserId() {
-        // Ajout d'une tâche appartenant à un autre utilisateur pour tester le filtrage
-        User otherUser = new User("other", "pwd");
-        otherUser.setId(2L);
-        Task otherTask = new Task("Other Task", 30, 2, false, otherUser, (LocalDateTime) null);
-        
-        when(taskRepository.findAll()).thenReturn(Arrays.asList(task, otherTask));
+        // 1. GIVEN : Préparer les objets
+        User mockUser = new User();
+        mockUser.setId(1L);
+        mockUser.setUsername("testuser");
 
-        // When
+        Task task1 = new Task();
+        task1.setTitle("Test Task");
+        task1.setAssignee(mockUser); // La tâche est assignée à cet utilisateur
+
+        // 2. MOCKING : Configurer les comportements attendus
+        // Le service appelle d'abord userRepository.findById(1L)
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
+        
+        // Le service appelle ensuite taskRepository.findByAssignee(mockUser)
+        // IMPORTANT : On utilise findByAssignee et non findByUserId car c'est ce qu'il y a dans votre TaskServiceImpl
+        when(taskRepository.findByAssignee(mockUser)).thenReturn(Arrays.asList(task1));
+
+        // 3. WHEN : Appeler la méthode
         List<Task> result = taskService.getTasksByUserId(1L);
 
-        // Then: On ne doit récupérer que la tâche de l'user 1
-        assertEquals(1, result.size());
+        // 4. THEN : Vérifier le résultat
+        assertNotNull(result);
+        assertEquals(1, result.size(), "La liste devrait contenir 1 tâche");
         assertEquals("Test Task", result.get(0).getTitle());
+        
+        // Vérifier que les méthodes ont bien été appelées
+        verify(userRepository).findById(1L);
+        verify(taskRepository).findByAssignee(mockUser);
     }
 
     @Test
     void testCreateTask() {
-        // Given
-        // On doit mocker la recherche de l'utilisateur
+        // 1. Préparation explicite des données (Given)
+        User user = new User();
+        user.setId(1L);
+        user.setTeams(new ArrayList<>());
+        
+        Task taskToCreate = new Task();
+        taskToCreate.setTitle("Test Task");
+        
+        // Configurer le mock pour simuler l'enregistrement avec succès et l'attribution d'un ID
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(taskRepository.save(any(Task.class))).thenReturn(task);
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> {
+            Task t = invocation.getArgument(0);
+            t.setId(100L); // Simuler l'ID généré par la DB
+            return t;
+        });
 
-        // When
-        Task created = taskService.createTask(task, user.getId());
+        // 2. Exécution (When)
+        Task created = taskService.createTask(taskToCreate, 1L);
 
-        // Then
-        assertFalse(created.isDone()); // Vérifie que done est forcé à false
-        verify(userRepository).findById(1L); // Vérifie l'appel
-        verify(taskRepository).save(task);
+        // 3. Vérifications (Then)
+        assertNotNull(created);
+        assertEquals(100L, created.getId()); // Vérifie que l'ID a bien été "généré"
+        assertFalse(created.isDone()); // Vérifie la logique métier
+        assertEquals(user, created.getUser()); // Vérifie l'association à l'utilisateur
+        
+        verify(userRepository).findById(1L);
+        verify(taskRepository).save(any(Task.class));
     }
 
     @Test

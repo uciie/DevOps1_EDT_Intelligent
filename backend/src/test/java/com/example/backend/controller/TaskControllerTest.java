@@ -21,6 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @WebMvcTest(TaskController.class)
 class TaskControllerTest {
@@ -45,6 +46,10 @@ class TaskControllerTest {
         task = new Task("Test Task", 60, 1, false, user, (LocalDateTime) null); 
         
         task.setId(1L);
+
+        objectMapper = new ObjectMapper();
+        // Requis pour gérer LocalDateTime
+        objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
     }
 
     @Test
@@ -56,7 +61,7 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$[0].title").value("Test Task"));
     }
 
-@Test
+    @Test
     void testCreateTask() throws Exception {
         // Le contrôleur appelle createTask(Task task, Long userId). Mocker cette signature.
         when(taskService.createTask(any(Task.class), eq(1L))).thenReturn(task); 
@@ -102,13 +107,20 @@ class TaskControllerTest {
         // Remarque: L'appel MockMvc est converti en 'null' par Spring pour les @RequestParam(required = false) manquants.
         verify(taskService).planifyTask(eq(1L), eq(null), eq(null));
     }
+    
     @Test
     void testUpdateTask() throws Exception {
-        when(taskService.updateTask(eq(1L), any(Task.class))).thenReturn(task);
+        Task taskToUpdate = new Task();
+        taskToUpdate.setId(1L);
+        taskToUpdate.setTitle("Titre mis à jour");
+        taskToUpdate.setUser(null); // Ne mettez pas d'objet User complet ici si possible, ou mettez-le à null
+        
+        when(taskService.updateTask(eq(1L), any(Task.class))).thenReturn(taskToUpdate);
 
         mockMvc.perform(put("/api/tasks/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(task)))
+                .content(objectMapper.writeValueAsString(taskToUpdate)))
+                .andDo(print()) // Maintenant cela fonctionnera avec l'import
                 .andExpect(status().isOk());
     }
 
