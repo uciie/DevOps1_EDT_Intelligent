@@ -1,9 +1,11 @@
 package com.example.backend.controller;
 
 import com.example.backend.model.Task;
+import com.example.backend.service.impl.FocusService;
 import com.example.backend.service.TaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,9 +15,11 @@ import java.util.List;
 public class TaskController {
 
     private final TaskService taskService;
+    private final FocusService focusService;
 
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, FocusService focusService) {
         this.taskService = taskService;
+        this.focusService = focusService;
     }
 
     @GetMapping("/user/{userId}")
@@ -56,14 +60,27 @@ public class TaskController {
     }
 
     @PostMapping("/{taskId}/planify")
-    public ResponseEntity<Task> planifyTask(
+    public ResponseEntity<?> planifyTask(
         @PathVariable Long taskId,
-        // MARQUEZ LES PARAMÈTRES COMME OPTIONNELS
         @RequestParam(required = false) LocalDateTime start, 
         @RequestParam(required = false) LocalDateTime end
     ) {
-        Task plannedTask = taskService.planifyTask(taskId, start, end);
-        return ResponseEntity.ok(plannedTask);
+        try {
+            // 2. On a besoin du userId pour vérifier ses préférences
+            // On récupère d'abord la tâche via le service
+            Task taskToPlan = taskService.getTaskById(taskId); // Assure-toi que cette méthode existe dans TaskService
+            
+            if (start != null) {
+                // 3. Validation de la surcharge (Etudiant 1)
+                focusService.validateDayNotOverloaded(taskToPlan.getUser().getId(), start);
+            }
+
+            Task plannedTask = taskService.planifyTask(taskId, start, end);
+            return ResponseEntity.ok(plannedTask);
+            
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
+        }
     }
     
     //Récupérer les tâches d'une équipe spécifique

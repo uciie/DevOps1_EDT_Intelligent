@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.example.backend.model.Event;
@@ -28,5 +29,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
      */
     List<Event> findByUser_IdAndStartTimeBetween(Long userId, LocalDateTime start, LocalDateTime end);
 
+    @Query("SELECT COUNT(e) FROM Event e WHERE e.user.id = :userId AND e.startTime >= :start AND e.startTime <= :end")
+    long countEventsForDay(Long userId, LocalDateTime start, LocalDateTime end);
+    
 
 }
