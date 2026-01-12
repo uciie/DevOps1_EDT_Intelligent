@@ -27,12 +27,14 @@ public class TaskServiceImpl implements TaskService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final TeamRepository teamRepository;
+    private final FocusService focusService;
 
-    public TaskServiceImpl(TaskRepository taskRepository, EventRepository eventRepository, UserRepository userRepository, TeamRepository teamRepository) {
+    public TaskServiceImpl(TaskRepository taskRepository, EventRepository eventRepository, UserRepository userRepository, TeamRepository teamRepository,FocusService focusService) {
         this.taskRepository = taskRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.teamRepository = teamRepository;
+        this.focusService = focusService;
     }
 
     
@@ -191,72 +193,67 @@ public class TaskServiceImpl implements TaskService {
         taskRepository.deleteById(id);
     }
 
-// Dans TaskServiceImpl.java
+
 
 @Override
 public Task planifyTask(Long taskId, LocalDateTime start, LocalDateTime end) {
     Task task = taskRepository.findById(taskId)
             .orElseThrow(() -> new IllegalArgumentException("Tâche non trouvée"));
 
-    User user = task.getUser(); // On sait déjà que l'utilisateur est présent grâce à la vérification
+    User user = task.getUser();
     if (user == null) {
         throw new IllegalStateException("Impossible de planifier une tâche sans utilisateur associé");
     }
 
-    // --- ALLOCATION SIMPLE AU PREMIER TROU ---
+    // --- ALLOCATION INTELLIGENTE (First-Fit + Focus Aware) ---
     if (start == null || end == null) {
-        // 1. Définir la durée requise pour la tâche
         long durationMinutes = task.getEstimatedDuration(); 
-        
-        // 2. Récupérer et trier les événements existants par heure de début
-        // Vous devez implémenter cette méthode de récupération par utilisateur dans EventRepository ou EventService
         List<Event> userEvents = eventRepository.findByUser_IdOrderByStartTime(user.getId());
         
-        // --- Algorithme "First-Fit" (Premier Trou) ---
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime currentCheckTime = now.plusMinutes(10); // Commence à vérifier dans 10 minutes (ou dès maintenant)
+        // On commence à chercher à partir de maintenant
+        LocalDateTime currentCheckTime = now.plusMinutes(10); 
 
-        // Itérer sur les événements existants
         for (Event existingEvent : userEvents) {
-            
-            // Si le temps entre la fin du créneau actuel et le début du prochain événement 
-            // est suffisant pour notre tâche.
-            if (currentCheckTime.plusMinutes(durationMinutes).isBefore(existingEvent.getStartTime())) {
+            // On calcule la fin potentielle de la tâche si on la met à currentCheckTime
+            LocalDateTime potentialEnd = currentCheckTime.plusMinutes(durationMinutes);
+
+            // CONDITION MODIFIÉE : 
+            // 1. Est-ce qu'il y a assez de place avant le prochain événement ?
+            // 2. ET est-ce que ce créneau n'est PAS bloqué par un Bloc Focus ?
+            if (potentialEnd.isBefore(existingEvent.getStartTime()) && 
+                !focusService.estBloqueParLeFocus(user.getId(), currentCheckTime, potentialEnd)) {
+                
                 start = currentCheckTime;
-                end = currentCheckTime.plusMinutes(durationMinutes);
-                break; // Créneau trouvé, sortir de la boucle
+                end = potentialEnd;
+                break;
             }
             
-            // Sinon, avancer le point de vérification après la fin de l'événement existant
+            // Si le créneau est pris par un événement OU bloqué par le Focus, 
+            // on saute après l'événement existant.
             currentCheckTime = existingEvent.getEndTime();
         }
 
-        // Si aucun trou n'a été trouvé (c'est-à-dire que le créneau est à la suite du dernier événement)
+        // Si aucun trou n'a été trouvé entre les événements (ou si la liste est vide)
+        // On vérifie après le dernier événement, tout en respectant le Focus
         if (start == null) {
-            start = currentCheckTime; // Placer la tâche immédiatement après le dernier événement
+            start = currentCheckTime;
             end = currentCheckTime.plusMinutes(durationMinutes);
+            
+            // Sécurité : Si l'emplacement après le dernier événement tombe dans un bloc Focus
+            // On décale de 15 min en 15 min jusqu'à trouver la sortie du bloc Focus
+            while (focusService.estBloqueParLeFocus(user.getId(), start, end)) {
+                start = start.plusMinutes(15);
+                end = start.plusMinutes(durationMinutes);
+            }
         }
     }
-    // -------------------------------------------------------------
 
-    System.out.println("DEBUG PLANIFICATION: Tâche ID " + taskId + 
-                       " planifiée. Start: " + start + 
-                       ", End: " + end);
-                       
-    // Crée un nouvel événement à partir de la tâche (utilise les 'start' et 'end' trouvés ou fournis)
-    Event event = new Event(
-            task.getTitle(),
-            start,
-            end,
-            user // Utilisez l'objet User déjà récupéré
-    );
-
-    // Save the event first so it has an ID
+    // --- CRÉATION DE L'ÉVÉNEMENT ---
+    Event event = new Event(task.getTitle(), start, end, user);
     event = eventRepository.save(event);
 
-    // Lier l’événement à la tâche
     task.setEvent(event);
-    
     return taskRepository.save(task);
 }
 }

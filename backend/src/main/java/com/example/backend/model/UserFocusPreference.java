@@ -57,5 +57,13 @@ public class UserFocusPreference {
     public void setPreferredFocusTime(FocusTimePreference preferredFocusTime) {
         this.preferredFocusTime = preferredFocusTime;
     }
+    // À ajouter dans UserFocusPreference.java
+    public boolean isFocusModeEnabled() {
+        return focusModeEnabled;
+    }
+
+    public void setFocusModeEnabled(boolean focusModeEnabled) {
+        this.focusModeEnabled = focusModeEnabled;
+    }
 }
 
