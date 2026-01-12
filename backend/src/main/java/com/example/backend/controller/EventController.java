@@ -15,10 +15,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.backend.model.Event;
 import com.example.backend.model.Location;
 import com.example.backend.service.EventService;
+import com.example.backend.service.FocusService;
+
 import java.util.Map;
 
 /**
@@ -31,9 +34,11 @@ import java.util.Map;
 public class EventController {
 
     private final EventService eventService;
+    private final FocusService focusService;
 
-    public EventController(EventService eventService) {
+    public EventController(EventService eventService, FocusService focusService) {
         this.eventService = eventService;
+        this.focusService = focusService;
     }
 
     /**
@@ -92,14 +97,19 @@ public class EventController {
     @PostMapping
     public ResponseEntity<?> createEvent(@RequestBody EventRequest eventRequest) {
         try {
+            // 2. Validation de la surcharge (Etudiant 1)
+            focusService.validateDayNotOverloaded(eventRequest.getUserId(), eventRequest.getStartTime());
+
             Event createdEvent = eventService.createEvent(eventRequest);
             return ResponseEntity.ok(createdEvent);
+        } catch (ResponseStatusException e) {
+            // Capture l'erreur de surcharge pour renvoyer le bon message au front
+            return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         } catch (IllegalArgumentException e) {
-            // Renvoie une erreur 400 si le trajet est impossible ou les données invalides
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
+    
     /**
      * Met à jour un événement existant.
      *

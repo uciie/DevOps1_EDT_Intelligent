@@ -76,6 +76,12 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.findByUserAndAssigneeNot(creator, creator);
     }
 
+    @Override
+    public Task getTaskById(Long id) {
+        return taskRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Tâche introuvable avec l'ID : " + id));
+    }
+
     // --- RM-02 : CREATION & ASSIGNATION ---
 
     @Override

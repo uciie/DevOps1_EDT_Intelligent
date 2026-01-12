@@ -31,4 +31,6 @@ public interface TaskService {
     Task planifyTask(Long taskId, LocalDateTime start, LocalDateTime end);
 
     List<Task> getTasksByTeam(Long teamId);
+
+    Task getTaskById(Long id);
 }
