@@ -90,4 +90,5 @@ Analyse des workflows mis en place :
 ---
 **Annexes :**
 * Diagramme de classes UML.
+![uml](https://github.com/uciie/DevOps1_EDT_Intelligent/blob/main/uml/diagram_classes.png)
 * Captures d'écran de l'application.

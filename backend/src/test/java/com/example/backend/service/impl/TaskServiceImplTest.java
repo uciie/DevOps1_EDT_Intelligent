@@ -64,34 +64,65 @@ class TaskServiceImplTest {
 
     @Test
     void testGetTasksByUserId() {
-        // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        // Mock les appels spécifiques faits par le service
-        when(taskRepository.findByUser_Id(1L)).thenReturn(List.of(task));
-        when(taskRepository.findByAssignee(user)).thenReturn(List.of(task));
+        // 1. GIVEN : Préparer les objets
+        User mockUser = new User();
+        mockUser.setId(1L);
+        mockUser.setUsername("testuser");
 
-        // When
+        Task task1 = new Task();
+        task1.setTitle("Test Task");
+        task1.setAssignee(mockUser);
+        task1.setUser(mockUser);
+
+        // 2. MOCKING : Configurer les comportements attendus
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
+        
+        // On mocke les deux méthodes de recherche pour couvrir tous les cas du service
+        when(taskRepository.findByUser_Id(1L)).thenReturn(List.of(task1));
+        when(taskRepository.findByAssignee(mockUser)).thenReturn(List.of(task1));
+
+        // 3. WHEN : Appeler la méthode
         List<Task> result = taskService.getTasksByUserId(1L);
 
-        // Then
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.size()); 
-        // Note: Le service utilise un Set, donc le doublon (créateur + assigné) est géré.
+        // 4. THEN : Vérifier le résultat
+        assertNotNull(result);
+        assertFalse(result.isEmpty(), "La liste ne devrait pas être vide");
+        assertEquals(1, result.size(), "La liste devrait contenir 1 tâche (doublons filtrés)");
+        assertEquals("Test Task", result.get(0).getTitle());
+        
+        // Vérifier que les mocks ont été sollicités
+        verify(userRepository).findById(1L);
+        verify(taskRepository, atLeastOnce()).findByAssignee(mockUser);
     }
     @Test
     void testCreateTask() {
-        // Given
-        // On doit mocker la recherche de l'utilisateur
+        // 1. Préparation explicite des données (Given)
+        User user = new User();
+        user.setId(1L);
+        user.setTeams(new ArrayList<>());
+        
+        Task taskToCreate = new Task();
+        taskToCreate.setTitle("Test Task");
+        
+        // Configurer le mock pour simuler l'enregistrement avec succès et l'attribution d'un ID
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(taskRepository.save(any(Task.class))).thenReturn(task);
+        when(taskRepository.save(any(Task.class))).thenAnswer(invocation -> {
+            Task t = invocation.getArgument(0);
+            t.setId(100L); // Simuler l'ID généré par la DB
+            return t;
+        });
 
-        // When
-        Task created = taskService.createTask(task, user.getId());
+        // 2. Exécution (When)
+        Task created = taskService.createTask(taskToCreate, 1L);
 
-        // Then
-        assertFalse(created.isDone()); // Vérifie que done est forcé à false
-        verify(userRepository).findById(1L); // Vérifie l'appel
-        verify(taskRepository).save(task);
+        // 3. Vérifications (Then)
+        assertNotNull(created);
+        assertEquals(100L, created.getId()); // Vérifie que l'ID a bien été "généré"
+        assertFalse(created.isDone()); // Vérifie la logique métier
+        assertEquals(user, created.getUser()); // Vérifie l'association à l'utilisateur
+        
+        verify(userRepository).findById(1L);
+        verify(taskRepository).save(any(Task.class));
     }
 
     @Test
