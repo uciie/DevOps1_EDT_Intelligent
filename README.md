@@ -11,30 +11,30 @@
 
 ---
 
-## 📘 Sommaire
+##  Sommaire
 - [Smart Scheduler](#smart-scheduler)
-  - [📘 Sommaire](#-sommaire)
-  - [🎓 Qui sommes-nous ?](#-qui-sommes-nous-)
-  - [🌍 À propos du projet](#-à-propos-du-projet)
-    - [🎯 Public visé](#-public-visé)
-    - [⚖️ Analyse concurrentielle](#️-analyse-concurrentielle)
-  - [🛠️ Outils et Processus DevOps](#️-outils-et-processus-devops)
-  - [🏗️ Stack Technique et Outils](#️-stack-technique-et-outils)
-    - [🔧 Prérequis Système](#-prérequis-système)
+  - [ Sommaire](#-sommaire)
+  - [ Qui sommes-nous ?](#-qui-sommes-nous-)
+  - [ À propos du projet](#-à-propos-du-projet)
+    - [ Public visé](#-public-visé)
+    - [ Analyse concurrentielle](#️-analyse-concurrentielle)
+  - [ Outils et Processus DevOps](#️-outils-et-processus-devops)
+  - [ Stack Technique et Outils](#️-stack-technique-et-outils)
+    - [ Prérequis Système](#-prérequis-système)
     - [☕ Backend (Java / Spring Boot)](#-backend-java--spring-boot)
-    - [⚛️ Frontend (React / Vite)](#️-frontend-react--vite)
-  - [🧩 Installation et configuration](#-installation-et-configuration)
-    - [1️⃣ Cloner le projet](#1️⃣-cloner-le-projet)
-    - [2️⃣ Configuration Backend](#2️⃣-configuration-backend)
-    - [3️⃣ Configuration Frontend](#3️⃣-configuration-frontend)
-  - [🚀 Lancement](#-lancement)
+    - [ Frontend (React / Vite)](#️-frontend-react--vite)
+  - [ Installation et configuration](#-installation-et-configuration)
+    - [1 Cloner le projet](#1️⃣-cloner-le-projet)
+    - [2 Configuration Backend](#2️⃣-configuration-backend)
+    - [3 Configuration Frontend](#3️⃣-configuration-frontend)
+  - [ Lancement](#-lancement)
     - [Backend (API)](#backend-api)
     - [Frontend (Interface)](#frontend-interface)
-  - [👥 Équipe](#-équipe)
+  - [ Équipe](#-équipe)
 
 ---
 
-## 🎓 Qui sommes-nous ?
+##  Qui sommes-nous ?
 
 Nous sommes une équipe de quatre étudiants en **Master 1 MIAGE (Méthodes Informatiques Appliquées à la Gestion des Entreprises)**, parcours **MIXTE**, promotion **2025** à l'**Université Paris Nanterre**.
 
@@ -42,7 +42,7 @@ Ce projet a été réalisé dans le cadre de notre cursus DevOps, avec pour obje
 
 ---
 
-## 🌍 À propos du projet
+##  À propos du projet
 
 **Smart Scheduler** est une solution intelligente de gestion du temps. Contrairement à un agenda classique où l'utilisateur doit placer manuellement chaque événement, notre application :
 
@@ -50,12 +50,12 @@ Ce projet a été réalisé dans le cadre de notre cursus DevOps, avec pour obje
 2.  **Analyse** les créneaux libres.
 3.  **Optimise et insère automatiquement** vos tâches à faire (To-Do List) dans les "trous" de votre emploi du temps, selon des règles de priorité et de durée.
 
-### 🎯 Public visé
+###  Public visé
 * **Étudiants :** Pour jongler entre les cours, les révisions et les projets de groupe sans conflit.
 * **Professionnels indépendants :** Pour optimiser les temps de trajet et les périodes de travail profond.
 * **Personnes ayant des difficultés d'organisation :** L'automatisation réduit la charge mentale liée à la planification.
 
-### ⚖️ Analyse concurrentielle
+###  Analyse concurrentielle
 
 | Solution | Type | Avantages | Inconvénients | Notre approche |
 | :--- | :--- | :--- | :--- | :--- |
@@ -65,7 +65,7 @@ Ce projet a été réalisé dans le cadre de notre cursus DevOps, avec pour obje
 
 ---
 
-## 🛠️ Outils et Processus DevOps
+##  Outils et Processus DevOps
 
 Pour garantir la qualité et la maintenabilité du code, nous avons mis en place une chaîne DevOps complète :
 
@@ -80,11 +80,11 @@ Pour garantir la qualité et la maintenabilité du code, nous avons mis en place
 
 ---
 
-## 🏗️ Stack Technique et Outils
+##  Stack Technique et Outils
 
 Cette section détaille les technologies et librairies clés utilisées pour le développement, le build et les tests du projet.
 
-### 🔧 Prérequis Système
+###  Prérequis Système
 * **Java 21** (JDK) : Nécessaire pour le backend Spring Boot.
 * **Node.js 22** : Recommandé pour l'exécution du frontend React (utilisé en CI).
 * **PostgreSQL** : Base de données de production.
@@ -107,7 +107,7 @@ Le backend est construit avec **Spring Boot 3.5.6** et utilise **Gradle** pour l
     * **JaCoCo** (v0.8.13) : Rapport de couverture de code (Minimum requis : 70%).
     * **SonarQube** (Plugin v5.1.0) : Analyse statique et qualité du code.
 
-### ⚛️ Frontend (React / Vite)
+###  Frontend (React / Vite)
 Le frontend est une SPA (Single Page Application) développée avec **React 19** et **Vite**.
 
 * **Cœur :**
@@ -129,13 +129,13 @@ Le frontend est une SPA (Single Page Application) développée avec **React 19**
 
 ## 🧩 Installation et configuration
 
-### 1️⃣ Cloner le projet
+### 1 Cloner le projet
 ```bash
 git clone [https://github.com/uciie/DevOps1_EDT_Intelligent.git](https://github.com/uciie/DevOps1_EDT_Intelligent.git)
 cd DevOps1_EDT_Intelligent
 ````
 
-### 2️⃣ Configuration Backend
+### 2 Configuration Backend
 
 Ajouter le fichier `.env` dans le dossier `backend` (ne pas le committer \!) :
 
@@ -150,7 +150,7 @@ GOOGLE_MAPS_API_KEY=YOUR_KEY_HERE
 SPRING_PROFILES=external-api
 ```
 
-### 3️⃣ Configuration Frontend
+### 3 Configuration Frontend
 
 Ajouter le fichier `.env` dans le dossier `frontend` (ne pas le committer \!) :
 
@@ -160,8 +160,18 @@ VITE_GOOGLE_MAPS_API_KEY=YOUR_KEY_HERE # le même que celui du backend
 ```
 
 -----
+### 4 Comment Obtenir les configurations du fichier .env
 
-## 🚀 Lancement
+DB_URL, DB_USER, DB_PASSWORD
+On l'obtient en allant sur le site de Neon (Neon.tech), on se connecte avec son compte Neon (Ou on créer)
+créer un nouveau projet, en haut à droite appuyer sur le bouton connect, on change ensuite le langage en java, et on obtient une ligne de texte qui contient l'URL, l'user, et le password
+
+DB_URL devrait ressembler à : jdbc:postgresql://<something>/neondb?sslmode=require&channel_binding=require
+DB_USER devrait ressembler à : neondb_owner
+
+Pour obtenir l'api de google maps, il faut aller sur google cloud, rechercher "distance matrix api", cliquer sur "enable"/"activer", ensuite vérifier votre identité sur le site de google, et voila!
+
+##  Lancement
 
 ### Backend (API)
 
@@ -173,7 +183,7 @@ cd backend
 gradlew.bat bootRun
 ```
 
-👉 API accessible sur : [http://localhost:8080](https://www.google.com/search?q=http://localhost:8080)
+ API accessible sur : [http://localhost:8080](https://www.google.com/search?q=http://localhost:8080)
 
 ### Frontend (Interface)
 
@@ -183,7 +193,7 @@ npm install
 npm run dev
 ```
 
-👉 Interface accessible sur : [http://localhost:5173](https://www.google.com/search?q=http://localhost:5173)
+ Interface accessible sur : [http://localhost:5173](https://www.google.com/search?q=http://localhost:5173)
 
 -----
 

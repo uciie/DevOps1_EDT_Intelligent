@@ -137,28 +137,29 @@
   }
 }
 
+/* Layout à 3 colonnes : Tâches | Calendrier | Équipes */
 .schedule-content {
+  display: flex;
   flex: 1;
-  display: grid;
-  grid-template-columns: 380px 1fr;
-  gap: 0;
+  gap: 20px;
   overflow: hidden;
-  width: 100%;
-  height: 100%;
+  padding-bottom: 20px;
 }
 
 .schedule-sidebar {
-  background: white;
-  border-right: 1px solid var(--neutral-200);
-  overflow-y: auto;
-  box-shadow: var(--shadow-sm);
+  flex: 0 0 280px; /* Tâches à gauche */
+  display: flex;
+  flex-direction: column;
 }
 
 .schedule-main {
-  overflow-y: auto;
-  background: var(--neutral-50);
-  width: 100%;
-  height: 100%;
+  flex: 1; /* Calendrier au centre prend l'espace restant */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .loading-container {
@@ -393,4 +394,182 @@
 .schedule-sidebar::-webkit-scrollbar-thumb:hover,
 .schedule-main::-webkit-scrollbar-thumb:hover {
   background: var(--neutral-400);
+}
+
+/* NOUVEAU : Sidebar Équipes à droite */
+.teams-sidebar {
+    flex: 0 0 250px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.teams-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: #495057;
+}
+
+.btn-add-team {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.create-team-box {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.create-team-box input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.teams-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+}
+
+.team-item {
+    background: white;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.team-item:hover {
+    background: #e9ecef;
+}
+
+.team-item.active {
+    border-left: 4px solid #007bff;
+    background: #e7f1ff;
+}
+
+.team-info {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.team-actions {
+    padding: 10px;
+    border-top: 1px solid #eee;
+    background: #fafafa;
+}
+
+.invite-box {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 5px;
+}
+.invite-box input {
+    width: 100%;
+    font-size: 12px;
+    padding: 4px;
+}
+.invite-box button {
+    font-size: 10px;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.team-details-expanded {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--neutral-200);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.members-list-container {
+  margin-top: 15px;
+}
+
+.members-list-container h5 {
+  margin-bottom: 8px;
+  color: var(--neutral-600);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.members-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.member-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background-color: var(--neutral-50);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.member-row:hover {
+  background-color: var(--neutral-100);
+}
+
+.member-name {
+  font-weight: 500;
+  color: var(--neutral-800);
+}
+
+/* Bouton de suppression (croix rouge) */
+.btn-remove-member {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ef4444; /* Rouge */
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.btn-remove-member:hover {
+  background-color: #fee2e2;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Animation d'apparition */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
 }

@@ -1,0 +1,94 @@
+.invitations-grid {
+    display: flex;
+    flex-direction: column;
+}
+
+.invitation-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.3s ease;
+}
+
+.invitation-item:hover {
+    background-color: #fafafa;
+}
+
+.invitation-item:last-child {
+    border-bottom: none;
+}
+
+.invit-details {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Style des icônes d'équipe (avatars) */
+.invit-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 1.2rem;
+    background-color: var(--primary); /* Couleur par défaut */
+}
+
+/* Couleurs alternées pour les avatars comme dans le modèle */
+.invitation-item:nth-child(even) .invit-avatar {
+    background-color: #f59e0b; /* Orange du modèle */
+}
+
+.invit-info .invit-main-text {
+    display: block;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.invit-info .invit-sub-text {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.invit-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+/* Style des boutons conforme au modèle a.html */
+.btn-action {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.btn-confirm {
+    background-color: #ecfdf5;
+    color: var(--success);
+}
+
+.btn-confirm:hover {
+    background-color: var(--success);
+    color: white;
+}
+
+.btn-cancel {
+    background-color: #fef2f2;
+    color: var(--danger);
+}
+
+.btn-cancel:hover {
+    background-color: var(--danger);
+    color: white;
+}

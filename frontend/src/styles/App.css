@@ -209,3 +209,24 @@
     justify-content: center;
   }
 }
+
+.nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.notif-badge {
+    background-color: #ff4757;
+    color: white;
+    font-size: 0.75rem;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    padding: 2px;
+}

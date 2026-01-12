@@ -2,6 +2,7 @@ package com.example.backend.model;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -164,7 +165,7 @@ public class Event {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         Event event = (Event) obj;
-        return id != null ? id.equals(event.id) : event.id == null;
+        return Objects.equals(id, event.id);
     }
 
     @PreRemove

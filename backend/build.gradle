@@ -19,6 +19,7 @@ configurations {
     runtimeClasspath {
         extendsFrom developmentOnly
     }
+    plantuml
 }
 
 repositories {
@@ -42,6 +43,8 @@ dependencies {
 	testImplementation 'org.mockito:mockito-core:5.6.0' // Mockito
     testImplementation 'org.mockito:mockito-junit-jupiter:5.6.0' // Mockito avec JUnit5
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    plantuml 'net.sourceforge.plantuml:plantuml:1.2024.7'
+    implementation 'org.postgresql:postgresql'
 }
 
 tasks.named('test') {
@@ -88,10 +91,25 @@ sonarqube {
         property "sonar.organization", "uciie"
         property "sonar.host.url", "https://sonarcloud.io"
         property "sonar.java.coveragePlugin", "jacoco"
-        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
-        property "sonar.sourceEncoding", "UTF-8"
-
-        // Exclut tout le dossier build (où sont les rapports) et les fichiers HTML générés
-        property "sonar.exclusions", "**/build/**, **/reports/**, **/*.html"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
     }
 }
+
+task generateUML(type: JavaExec) {
+    group = "documentation"
+    description = "Génère les diagrammes UML à partir des fichiers .puml"
+
+    classpath = configurations.plantuml
+    mainClass = "net.sourceforge.plantuml.Run"
+    
+    // Arguments : dossier source et format
+    args = ["-tpng", "-o", "../uml", "../uml/*.puml"]
+    
+    // Optionnel : permet de ne pas échouer si le dossier est vide
+    doFirst {
+        file("../uml").mkdirs()
+    }
+}
+
+build.dependsOn generateUML
+// ./gradlew generateUML pour générer manuellement les diagrammes UML

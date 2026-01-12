@@ -46,7 +46,7 @@ public class Location {
      * Latitude GPS (optionnelle mais FORTEMENT recommandée).
      * Permet d'éviter toute ambiguïté d'adresse.
      * 
-     * 💡 Si non fournie, peut être calculée automatiquement via GeocodingService
+     * Si non fournie, peut être calculée automatiquement via GeocodingService
      */
     @Column(name = "latitude")
     private Double latitude;
@@ -55,7 +55,7 @@ public class Location {
      * Longitude GPS (optionnelle mais FORTEMENT recommandée).
      * Permet d'éviter toute ambiguïté d'adresse.
      * 
-     * 💡 Si non fournie, peut être calculée automatiquement via GeocodingService
+     * Si non fournie, peut être calculée automatiquement via GeocodingService
      */
     @Column(name = "longitude")
     private Double longitude;
@@ -162,7 +162,7 @@ public class Location {
             addressLower.contains("basilique") ||
             addressLower.contains("cathédrale")) {
             
-            System.err.println("⚠️  WARNING: L'adresse semble contenir un nom de monument.");
+            System.err.println("  WARNING: L'adresse semble contenir un nom de monument.");
             System.err.println("   Adresse: " + address);
             System.err.println("   Conseil: Mettre le nom du monument dans le champ 'name' et garder uniquement l'adresse postale.");
         }

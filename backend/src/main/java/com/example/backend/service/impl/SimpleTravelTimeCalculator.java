@@ -1,9 +1,10 @@
 package com.example.backend.service.impl;
 
+import org.springframework.stereotype.Component;
+
 import com.example.backend.model.Location;
 import com.example.backend.model.TravelTime.TransportMode;
 import com.example.backend.service.TravelTimeCalculator;
-import org.springframework.stereotype.Component;
 
 /**
  * Implémentation simple du calcul de temps de trajet.
@@ -23,7 +24,7 @@ public class SimpleTravelTimeCalculator implements TravelTimeCalculator {
 
     @Override
     public int calculateTravelTime(Location from, Location to, TransportMode mode) {
-        System.out.println("⚠️  Using SimpleTravelTimeCalculator (fallback).");
+        System.out.println("  Using SimpleTravelTimeCalculator (fallback).");
         if (!from.hasCoordinates() || !to.hasCoordinates()) {
             // Par défaut, on estime 15 minutes si pas de coordonnées
             return 15;
