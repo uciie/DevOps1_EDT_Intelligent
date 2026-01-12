@@ -20,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.backend.model.Event;
 import com.example.backend.model.Location;
 import com.example.backend.service.EventService;
-import com.example.backend.service.FocusService;
+import com.example.backend.service.impl.FocusService;
 
 import java.util.Map;
 

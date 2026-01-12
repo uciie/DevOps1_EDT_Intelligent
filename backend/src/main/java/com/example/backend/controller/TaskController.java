@@ -1,7 +1,7 @@
 package com.example.backend.controller;
 
 import com.example.backend.model.Task;
-import com.example.backend.service.FocusService;
+import com.example.backend.service.impl.FocusService;
 import com.example.backend.service.TaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
