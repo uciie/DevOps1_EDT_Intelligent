@@ -71,3 +71,18 @@ export async function planifyTask(taskId, start, end) {
     throw error;
   }
 }
+
+
+
+export async function reshuffleSchedule(userId) {
+  try {
+    // On utilise 'api' (Axios) comme pour les autres fonctions. 
+    // L'URL de base est déjà gérée par l'instance 'api'.
+    const response = await api.post(`/schedule/reshuffle/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors du réagencement de l'emploi du temps:", error);
+    throw error;
+  }
+}
+

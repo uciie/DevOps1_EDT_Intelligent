@@ -38,4 +38,7 @@ public class ScheduleController {
         optimizerService.reshuffle(userId);
         return ResponseEntity.ok("Schedule updated successfully.");
     }
+
+    
+    
 }
