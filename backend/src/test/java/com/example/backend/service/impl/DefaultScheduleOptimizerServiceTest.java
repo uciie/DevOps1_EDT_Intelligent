@@ -126,9 +126,11 @@ class DefaultScheduleOptimizerServiceTest {
      */
     @Test
     void devraitSauterReunionsExistantes() {
-        // Given
-        LocalDateTime debutReunion = LocalDateTime.now().withHour(9).withMinute(0);
-        Event reunion = new Event("Réunion Client", debutReunion, debutReunion.plusHours(1), user);
+        // Given - On place la réunion pile au début (08h00) pour forcer le saut
+        LocalDateTime debutReunion = LocalDateTime.now().withHour(8).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime finReunion = debutReunion.plusHours(1); // Finit à 09h00
+        
+        Event reunion = new Event("Réunion Matinale", debutReunion, finReunion, user);
         
         Task task = createSimpleTask("Tâche après réunion", 60, 1);
 
@@ -140,9 +142,11 @@ class DefaultScheduleOptimizerServiceTest {
         optimizerService.reshuffle(userId);
 
         // Then
-        // La tâche doit commencer au plus tôt à la fin de la réunion
+        assertNotNull(task.getEvent(), "La tâche devrait être planifiée");
+        // La tâche doit commencer au plus tôt à 09h00 (fin de la réunion)
         assertTrue(task.getEvent().getStartTime().isAfter(reunion.getEndTime()) 
-                || task.getEvent().getStartTime().equals(reunion.getEndTime()));
+                || task.getEvent().getStartTime().equals(reunion.getEndTime()),
+                "La tâche devrait commencer à " + reunion.getEndTime() + " mais commence à " + task.getEvent().getStartTime());
     }
 
     /**
