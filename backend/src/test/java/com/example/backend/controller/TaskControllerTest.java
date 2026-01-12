@@ -21,7 +21,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @WebMvcTest(TaskController.class)
 class TaskControllerTest {
@@ -117,10 +116,10 @@ class TaskControllerTest {
         
         when(taskService.updateTask(eq(1L), any(Task.class))).thenReturn(taskToUpdate);
 
-        mockMvc.perform(put("/api/tasks/1")
+        mockMvc.perform(put("/api/tasks/{id}", 1L)
+                .param("userId", "1")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(taskToUpdate)))
-                .andDo(print()) // Maintenant cela fonctionnera avec l'import
                 .andExpect(status().isOk());
     }
 
