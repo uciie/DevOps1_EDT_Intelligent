@@ -78,6 +78,7 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.findByUserAndAssigneeNot(creator, creator);
     }
 
+    // --- RM-01 : RÉCUPÉRATION TÂCHE PAR ID ---
     @Override
     public Task getTaskById(Long id) {
         return taskRepository.findById(id)

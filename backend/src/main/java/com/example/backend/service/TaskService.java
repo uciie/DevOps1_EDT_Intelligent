@@ -32,5 +32,6 @@ public interface TaskService {
 
     List<Task> getTasksByTeam(Long teamId);
 
+    // Récupérer une tâche par son ID
     Task getTaskById(Long id);
 }
