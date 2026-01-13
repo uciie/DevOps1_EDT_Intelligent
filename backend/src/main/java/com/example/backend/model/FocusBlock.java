@@ -19,4 +19,39 @@ public class FocusBlock {
     
     private String status = "ACTIVE"; // ACTIVE, CANCELLED
     private boolean suggestedBySystem; // Pour différencier de l'ajout manuel
+
+    // Constructeurs
+
+    public FocusBlock() {} // Obligatoire pour JPA
+
+    public FocusBlock(User user, LocalDateTime startTime, LocalDateTime endTime) {
+        this.user = user;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+    // Getters et setters pour tests
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+
+    public LocalDateTime getStartTime() { return startTime; }
+    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+
+    public LocalDateTime getEndTime() { return endTime; }
+    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+
+    public int getFlexibility() { return flexibility; }
+    public void setFlexibility(int flexibility) { this.flexibility = flexibility; }
+
+    public boolean isProtected() { return isProtected; }
+    public void setProtected(boolean isProtected) { this.isProtected = isProtected; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public boolean isSuggestedBySystem() { return suggestedBySystem; }
+    public void setSuggestedBySystem(boolean suggestedBySystem) { this.suggestedBySystem = suggestedBySystem; }
 }

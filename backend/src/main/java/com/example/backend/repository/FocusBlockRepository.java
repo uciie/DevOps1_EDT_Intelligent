@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface FocusBlockRepository extends JpaRepository<FocusBlock, Long> {
-    List<FocusBlock> findByUserIdAndStartTimeBetween(Long userId, LocalDateTime start, LocalDateTime end);
+    List<FocusBlock> findByUser_IdAndStartTimeBetween(Long userId, LocalDateTime start, LocalDateTime end);
 }
+

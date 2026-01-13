@@ -11,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -234,5 +237,71 @@ public class FocusServiceTest {
 
         // THEN : Ça ne doit PAS être bloqué car le mode est OFF
         assertFalse(estBloque);
+    }
+
+    // =========================================================================
+    // TESTS DE PAUL : VALIDATION DE CHARGE ET PRÉFÉRENCES
+    // =========================================================================
+
+    /**
+     * Test : Vérifie que la validation passe si le nombre d'événements est inférieur à la limite.
+     */
+    @Test
+    void devraitValiderSiMoinsDeMaxEvents() {
+        // GIVEN
+        UserFocusPreference prefs = new UserFocusPreference(userId);
+        prefs.setMaxEventsPerDay(5);
+        when(preferenceRepository.findById(userId)).thenReturn(Optional.of(prefs));
+        
+        // On simule 3 événements déjà présents
+        when(eventRepository.countEventsForDay(eq(userId), any(), any())).thenReturn(3L);
+
+        // WHEN & THEN : Ne doit pas lever d'exception
+        assertDoesNotThrow(() -> focusService.validateDayNotOverloaded(userId, a(10, 0)));
+    }
+
+    /**
+     * Test : Vérifie qu'une exception est levée si la limite d'événements est atteinte.
+     */
+    @Test
+    void devraitLeverExceptionSiTropDEvents() {
+        // GIVEN
+        UserFocusPreference prefs = new UserFocusPreference(userId);
+        prefs.setMaxEventsPerDay(5);
+        when(preferenceRepository.findById(userId)).thenReturn(Optional.of(prefs));
+        
+        // On simule 5 événements (limite atteinte)
+        when(eventRepository.countEventsForDay(eq(userId), any(), any())).thenReturn(5L);
+
+        // WHEN & THEN
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+            focusService.validateDayNotOverloaded(userId, a(10, 0));
+        });
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+        assertTrue(exception.getReason().contains("Limite de 5 événements atteinte"));
+    }
+
+    /**
+     * Test : Vérifie la mise à jour des préférences.
+     */
+    @Test
+    void devraitMettreAJourLesPreferences() {
+        // GIVEN
+        UserFocusPreference anciennesPrefs = new UserFocusPreference(userId);
+        UserFocusPreference nouvellesPrefs = new UserFocusPreference(userId);
+        nouvellesPrefs.setMaxEventsPerDay(10);
+        nouvellesPrefs.setFocusModeEnabled(false);
+
+        when(preferenceRepository.findById(userId)).thenReturn(Optional.of(anciennesPrefs));
+        when(preferenceRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        UserFocusPreference result = focusService.updatePreferences(userId, nouvellesPrefs);
+
+        // THEN
+        assertEquals(10, result.getMaxEventsPerDay());
+        assertFalse(result.isFocusModeEnabled());
+        verify(preferenceRepository).save(any());
     }
 }
