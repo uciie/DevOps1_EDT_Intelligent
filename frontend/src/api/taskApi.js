@@ -56,10 +56,13 @@ export async function createTask(taskData) {
 
 /**
  * Met à jour une tâche
+ * PUT /api/tasks/12?userId=5
  */
 export async function updateTask(taskId, taskData) {
   try {
-    const response = await api.put(`/tasks/${taskId}`, taskData);
+    const response = await api.put(`/tasks/${taskId}`, taskData, {
+      params: { userId: taskData.userId }
+    });
     return response.data;
   } catch (error) {
     console.error("Erreur lors de la mise à jour de la tâche:", error);

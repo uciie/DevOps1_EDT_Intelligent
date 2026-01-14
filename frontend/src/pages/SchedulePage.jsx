@@ -293,7 +293,8 @@ function SchedulePage() {
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
       const updatedTask = { ...task, completed: !task.completed };
-      await updateTask(taskId, updatedTask);
+      console.log("Mise à jour de la tâche :", updatedTask);
+      await updateTask(taskId, updatedTask, currentUser.id);
       setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
     } catch (err) {
       showNotification("Impossible de mettre à jour la tâche", "error");
@@ -390,7 +391,7 @@ function SchedulePage() {
         const task = tasks.find(t => t.id === event.taskId);
         if (task) {
           const updatedTask = { ...task, scheduledTime: null };
-          await updateTask(event.taskId, updatedTask);
+          await updateTask(event.taskId, updatedTask, currentUser.id);
           setTasks(tasks.map(t => t.id === event.taskId ? updatedTask : t));
         }
       }
@@ -422,7 +423,7 @@ function SchedulePage() {
       };
       const updatedTask = { ...task, scheduledTime: startTime.toISOString() };
 
-      await updateTask(event.taskId, updatedTask);
+      await updateTask(event.taskId, updatedTask, currentUser.id);
       setEvents(events.map(e => e.id === eventId ? updatedEvent : e));
       setTasks(tasks.map(t => t.id === event.taskId ? updatedTask : t));
     } catch (err) {
