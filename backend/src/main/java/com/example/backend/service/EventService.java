@@ -38,5 +38,5 @@ public interface EventService {
 
     // Lire le calendrier d'un coéquipier
     // requesterId = celui qui veut voir, targetUserId = celui qu'on regarde
-    List<Event> getTeammateEvents(Long requesterId, Long targetUserId);
+    List<Event> getTeamMemberEvents(Long requesterId, Long memberId);
 }
