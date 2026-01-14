@@ -27,6 +27,19 @@ export async function getDelegatedTasks(userId) {
 }
 
 /**
+ * Récupère les tâches d'une équipe
+ */
+export async function getTeamTasks(teamId) {
+  try {
+    const response = await api.get(`/tasks/team/${teamId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des tâches d'équipe:", error);
+    throw error;
+  }
+}
+
+/**
  * Crée une nouvelle tâche
  * Note: taskData peut maintenant contenir { assignee: { username: ... }, team: { id: ... } }
  */
