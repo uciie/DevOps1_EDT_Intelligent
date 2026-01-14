@@ -1,0 +1,116 @@
+\hypertarget{md_Rapport_autotoc_md1}{}\doxysection{1. Introduction}\label{md_Rapport_autotoc_md1}
+
+\begin{DoxyItemize}
+\item {\bfseries{Contexte \+:}} La difficulté de la gestion du temps personnel et professionnel dans un environnement hybride.
+\item {\bfseries{Problématique \+:}} Comment optimiser automatiquement un emploi du temps en intégrant des contraintes fixes (cours, réunions) et des tâches flexibles (To-\/\+Do List) ?
+\item {\bfseries{Solution proposée \+:}} {\bfseries{Smart Scheduler}}, une application Full Stack permettant l\textquotesingle{}import de calendriers, la gestion de tâches et l\textquotesingle{}optimisation automatique des créneaux libres.
+\item {\bfseries{Public visé \+:}} Étudiants, freelances et personnes cherchant à réduire leur charge mentale organisationnelle.
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md2}{}\doxysection{2. Architecture Technique}\label{md_Rapport_autotoc_md2}
+\hypertarget{md_Rapport_autotoc_md3}{}\doxysubsection{2.\+1. Vue d\textquotesingle{}ensemble}\label{md_Rapport_autotoc_md3}
+
+\begin{DoxyItemize}
+\item Présentation de l\textquotesingle{}architecture Client-\/\+Serveur (API REST).
+\item {\bfseries{Diagramme de classes \+:}} Référence au diagramme UML montrant les relations entre {\ttfamily User}, {\ttfamily Event}, {\ttfamily Task} et {\ttfamily Team}.
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md4}{}\doxysubsection{2.\+2. Backend (\+Spring Boot)}\label{md_Rapport_autotoc_md4}
+
+\begin{DoxyItemize}
+\item {\bfseries{Technologies \+:}} Java 21, Spring Boot 3.\+5.\+6, Gradle.
+\item {\bfseries{Structure en couches \+:}}
+\begin{DoxyItemize}
+\item {\bfseries{Controllers \+:}} Gestion des endpoints (ex\+: {\ttfamily Schedule\+Controller}, {\ttfamily Event\+Controller}).
+\item {\bfseries{Services \+:}} Logique métier (ex\+: {\ttfamily Schedule\+Optimizer\+Service}, {\ttfamily Travel\+Time\+Service}).
+\item {\bfseries{Repositories \+:}} Accès aux données (JPA/\+Hibernate).
+\end{DoxyItemize}
+\item {\bfseries{Gestion des données \+:}} Utilisation de Postgre\+SQL en production et H2 pour les tests.
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md5}{}\doxysubsection{2.\+3. Frontend (\+React)}\label{md_Rapport_autotoc_md5}
+
+\begin{DoxyItemize}
+\item {\bfseries{Technologies \+:}} React 19, Vite, Axios.
+\item {\bfseries{Interface utilisateur \+:}}
+\begin{DoxyItemize}
+\item Utilisation de {\ttfamily react-\/big-\/calendar} pour la visualisation.
+\item Composants clés \+: {\ttfamily Calendar}, {\ttfamily Todo\+List}, {\ttfamily Event\+Form}.
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md6}{}\doxysection{3. Fonctionnalités Clés et Implémentation}\label{md_Rapport_autotoc_md6}
+\hypertarget{md_Rapport_autotoc_md7}{}\doxysubsection{3.\+1. Importation et Parsing de Calendriers}\label{md_Rapport_autotoc_md7}
+
+\begin{DoxyItemize}
+\item Fonctionnement du service {\ttfamily Calendar\+Import\+Service}.
+\item Utilisation de la librairie {\ttfamily biweekly} pour traiter les fichiers {\ttfamily .ics}.
+\item Catégorisation automatique des événements importés.
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md8}{}\doxysubsection{3.\+2. Algorithme d\textquotesingle{}\+Optimisation d\textquotesingle{}\+Emploi du Temps}\label{md_Rapport_autotoc_md8}
+
+\begin{DoxyItemize}
+\item {\bfseries{Cœur du projet \+:}} Le {\ttfamily Schedule\+Optimizer\+Service} qui remplit les \char`\"{}trous\char`\"{} de l\textquotesingle{}agenda.
+\item {\bfseries{Stratégie \+:}} Utilisation de {\ttfamily Task\+Selection\+Strategy} pour prioriser les tâches à placer.
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md9}{}\doxysubsection{3.\+3. Calcul des Temps de Trajet}\label{md_Rapport_autotoc_md9}
+
+\begin{DoxyItemize}
+\item Gestion des déplacements entre deux événements ({\ttfamily Travel\+Time\+Service}).
+\item {\bfseries{Pattern Strategy \+:}} Coexistence de deux implémentations via l\textquotesingle{}interface {\ttfamily Travel\+Time\+Calculator} \+:
+\begin{DoxyItemize}
+\item {\ttfamily Google\+Maps\+Travel\+Time\+Calculator} (API réelle).
+\item {\ttfamily Simple\+Travel\+Time\+Calculator} (Estimation par vol d\textquotesingle{}oiseau/vitesse moyenne pour les tests ou fallback).
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md10}{}\doxysubsection{3.\+4. Fonctionnalités Collaboratives}\label{md_Rapport_autotoc_md10}
+
+\begin{DoxyItemize}
+\item Gestion des équipes via {\ttfamily Team\+Service}.
+\item Système d\textquotesingle{}invitations ({\ttfamily Team\+Invitation}) et partage de visibilité.
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md11}{}\doxysection{4. Stratégie Dev\+Ops et CI/\+CD}\label{md_Rapport_autotoc_md11}
+{\itshape Cette section justifie l\textquotesingle{}aspect \char`\"{}\+Dev\+Ops\char`\"{} du module.}\hypertarget{md_Rapport_autotoc_md12}{}\doxysubsection{4.\+1. Gestion de Configuration et Versionning}\label{md_Rapport_autotoc_md12}
+
+\begin{DoxyItemize}
+\item Utilisation de Git et du {\itshape Feature Branch Workflow}.
+\item Gestion des secrets et variables d\textquotesingle{}environnement ({\ttfamily .env}, {\ttfamily application.\+properties}).
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md13}{}\doxysubsection{4.\+2. Pipelines d\textquotesingle{}\+Intégration Continue (\+Git\+Hub Actions)}\label{md_Rapport_autotoc_md13}
+Analyse des workflows mis en place \+:
+\begin{DoxyItemize}
+\item {\bfseries{Build \+:}} Compilation automatique du Backend et du Frontend ({\ttfamily build.\+yml}).
+\item {\bfseries{Tests Automatisés \+:}} Exécution des tests unitaires et d\textquotesingle{}intégration à chaque Push/\+PR ({\ttfamily test.\+yml}).
+\item {\bfseries{Analyse de Qualité \+:}} Scan automatique via Sonar\+Cloud ({\ttfamily quality.\+yml}).
+\item {\bfseries{Rapport de Couverture \+:}} Génération des rapports Ja\+Co\+Co ({\ttfamily coverage.\+yml}).
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md14}{}\doxysubsection{4.\+3. Qualité du Code}\label{md_Rapport_autotoc_md14}
+
+\begin{DoxyItemize}
+\item {\bfseries{Sonar\+Cloud \+:}} Suivi de la dette technique, des code smells et de la duplication.
+\item {\bfseries{Linter \+:}} Utilisation d\textquotesingle{}ESLint pour standardiser le code Frontend.
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md15}{}\doxysection{5. Tests et Validation}\label{md_Rapport_autotoc_md15}
+\hypertarget{md_Rapport_autotoc_md16}{}\doxysubsection{5.\+1. Stratégie de Test Backend}\label{md_Rapport_autotoc_md16}
+
+\begin{DoxyItemize}
+\item {\bfseries{Tests Unitaires \+:}} Isolation des services avec Mockito (ex\+: {\ttfamily User\+Service\+Test}, {\ttfamily Task\+Service\+Impl\+Test}).
+\item {\bfseries{Tests d\textquotesingle{}Intégration \+:}} Validation des flux complets avec base de données H2 (ex\+: {\ttfamily Event\+Location\+Integration\+Test}).
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md17}{}\doxysubsection{5.\+2. Stratégie de Test Frontend}\label{md_Rapport_autotoc_md17}
+
+\begin{DoxyItemize}
+\item Utilisation de {\bfseries{Vitest}} pour tester les composants React et la logique UI.
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md18}{}\doxysection{6. Installation et Déploiement}\label{md_Rapport_autotoc_md18}
+
+\begin{DoxyItemize}
+\item Prérequis techniques (Java JDK 21, Node.\+js 22).
+\item Procédure de lancement local (Gradle wrapper, npm run dev).
+\item Configuration des clés API (Google Maps).
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md19}{}\doxysection{7. Bilan et Perspectives}\label{md_Rapport_autotoc_md19}
+
+\begin{DoxyItemize}
+\item {\bfseries{État actuel \+:}} Résumé des fonctionnalités opérationnelles.
+\item {\bfseries{Limites \+:}} Contraintes actuelles de l\textquotesingle{}algorithme d\textquotesingle{}optimisation.
+\item {\bfseries{Améliorations futures \+:}}
+\begin{DoxyItemize}
+\item Support du drag-\/and-\/drop avancé.
+\item Prise en compte de la fatigue ou des préférences horaires de l\textquotesingle{}utilisateur.
+\item Déploiement automatisé (CD) vers un cloud provider.
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md_Rapport_autotoc_md20}{}\doxysection{8. Conclusion}\label{md_Rapport_autotoc_md20}
+
+\begin{DoxyItemize}
+\item Synthèse des apprentissages techniques (Spring Boot, React) et méthodologiques (Dev\+Ops, CI/\+CD).
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+ {\bfseries{Annexes \+:}}
+\begin{DoxyItemize}
+\item Diagramme de classes UML.
+\item Captures d\textquotesingle{}écran de l\textquotesingle{}application. 
+\end{DoxyItemize}
