@@ -303,7 +303,7 @@ function SchedulePage() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      await deleteTask(taskId);
+      await deleteTask(taskId, currentUser.id);
       setTasks(tasks.filter(t => t.id !== taskId));
       setEvents(events.filter(e => e.taskId !== taskId));
       showNotification("Tâche supprimée", "success");
@@ -431,29 +431,25 @@ function SchedulePage() {
     }
   };
 
+  // --- ACTION RESHUFFLE ---
   const handleReshuffle = async () => {
     if (!currentUser) return;
     try {
       setLoading(true);
       await reshuffleSchedule(currentUser.id);
-      const rawTasksData = await getUserTasks(currentUser.id);
-      const tasksArray = normalizeData(rawTasksData);
+      // Rechargement des données après réorganisation
+      const rawTasks = await getUserTasks(currentUser.id);
+      const tasksArray = normalizeData(rawTasks);
       setTasks(tasksArray);
 
       const updatedEvents = tasksArray
           .filter(t => t.event) 
-          .map(t => formatEventForCalendar({
-              id: t.event.id,
-              taskId: t.id, 
-              title: t.title,
-              startTime: t.event.startTime, 
-              endTime: t.event.endTime,
-              priority: t.priority
-          }));
+          .map(t => formatEventForCalendar(t.event));
+
       setEvents(updatedEvents);
-      showNotification("Emploi du temps réorganisé !", "success");
+      showNotification("Agenda réorganisé avec succès !", "success");
     } catch (err) {
-      showNotification("Impossible de réorganiser l'emploi du temps.", "error");
+      showNotification("Erreur lors de la réorganisation", "error");
     } finally {
       setLoading(false);
     }

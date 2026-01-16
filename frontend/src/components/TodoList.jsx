@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import { getUserTasks, getDelegatedTasks, getTeamTasks } from '../api/taskApi';
+import Notification from './Notification';
 
 import '../styles/components/TodoList.css';
 
@@ -9,7 +10,18 @@ const ITEM_TYPES = {
 };
 
 // Composant pour une tâche draggable
-function DraggableTask({ task, onToggle, onDelete, onEdit, isEditing, onStartEdit, onCancelEdit, currentUser, showAssignee }) {
+function DraggableTask({ 
+  task, 
+  onToggle, 
+  onDelete, 
+  onEdit, 
+  isEditing, 
+  onStartEdit, 
+  onCancelEdit, 
+  currentUser, 
+  showAssignee,
+  onForbidden // Nouvelle prop pour notifier le parent d'une interdiction
+}) {
   const [editData, setEditData] = useState({
     title: task.title,
     durationMinutes: task.durationMinutes || task.duration || 30,
@@ -32,8 +44,31 @@ function DraggableTask({ task, onToggle, onDelete, onEdit, isEditing, onStartEdi
     }),
   }), [task]);
 
+  // --- LOGIQUE DE PERMISSION ---
+  // On détermine si l'utilisateur a le droit de modifier la tâche
+  const canModify = (() => {
+    if (!currentUser) return false;
+    // 1. L'utilisateur est le créateur de la tâche
+    if (task.user_id === currentUser.id) return true;
+    // 2. L'utilisateur est assigné à la tâche
+    if (task.assignee && task.assignee.id === currentUser.id) return true;
+    // Sinon, pas de droits
+    return false;
+  })();
+
+  // Fonction utilitaire pour vérifier les droits avant d'agir
+  const executeIfAllowed = (actionCallback) => {
+    if (canModify) {
+      actionCallback();
+    } else {
+      // Déclenche la notification d'interdiction
+      onForbidden("⛔ Vous n'avez pas les droits pour modifier cette tâche (ni créateur, ni assigné).");
+    }
+  };
+
   const handleEditSubmit = (e) => {
     e.preventDefault();
+    // L'édition réelle est gérée par le parent qui vérifiera le succès
     onEdit(task.id, editData);
   };
 
@@ -104,7 +139,10 @@ function DraggableTask({ task, onToggle, onDelete, onEdit, isEditing, onStartEdi
           type="checkbox"
           className="task-checkbox"
           checked={task.completed}
-          onChange={() => onToggle(task.id)}
+          // On retire le 'disabled' strict pour permettre le clic et afficher la notif d'erreur
+          onChange={() => canModify && onToggle(task.id)}
+          style={{ cursor: 'pointer' }} 
+          disabled={!canModify}
         />
         <div className="task-info">
           <span className="task-title">{task.title}</span>
@@ -117,9 +155,23 @@ function DraggableTask({ task, onToggle, onDelete, onEdit, isEditing, onStartEdi
               )}
           </div>
         </div>
+        
+        {/* On affiche les boutons mais on protège le clic par executeIfAllowed */}
         <div className="task-actions">
-          <button className="btn-edit" onClick={() => onStartEdit(task.id)}>✏️</button>
-          <button className="btn-delete" onClick={() => onDelete(task.id)}>×</button>
+          <button 
+            className="btn-edit" 
+            onClick={() => executeIfAllowed(() => onStartEdit(task.id))}
+            style={{ opacity: canModify ? 1 : 0.5 }} // Indice visuel optionnel
+          >
+            ✏️
+          </button>
+          <button 
+            className="btn-delete" 
+            onClick={() => executeIfAllowed(() => onDelete(task.id))}
+            style={{ opacity: canModify ? 1 : 0.5 }}
+          >
+            ×
+          </button>
         </div>
       </div>
     </li>
@@ -132,12 +184,14 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
   const [localTasks, setLocalTasks] = useState([]); 
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('ALL'); 
+  const [notification, setNotification] = useState(null);
 
   const [newTask, setNewTask] = useState({
     title: '',
     durationMinutes: 30,
     priority: 2,
-    assigneeId: ''
+    team: contextTeam ? contextTeam.id : null,
+    assigneeId: '' // Initialisé à vide
   });
 
   // --- Chargement des données selon le contexte (Personnel vs Equipe) ---
@@ -173,7 +227,43 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
     fetchTasks();
   }, [currentUser, contextTeam, onAddTask, onEditTask, onToggleTask, onDeleteTask]);
 
-  // --- Logique de filtrage par onglets ---
+  // --- Helpers pour Notification ---
+  const triggerNotification = (message, type = 'info') => {
+    setNotification({ message, type });
+  };
+
+  const closeNotification = () => {
+    setNotification(null);
+  };
+
+  // --- Wrappers pour injecter les notifications de succès ---
+  const handleEditTaskWrapper = async (taskId, data) => {
+    try {
+      await onEditTask(taskId, data);
+      setEditingTaskId(null); // Fermer le mode édition
+      triggerNotification("Tâche modifiée avec succès !", "success");
+    } catch (error) {
+      triggerNotification("Erreur lors de la modification.", "error");
+    }
+  };
+
+  const handleDeleteTaskWrapper = async (taskId) => {
+    if (window.confirm("Voulez-vous vraiment supprimer cette tâche ?")) {
+      try {
+        await onDeleteTask(taskId);
+        triggerNotification("Tâche supprimée avec succès !", "success");
+      } catch (error) {
+        triggerNotification("Erreur lors de la suppression.", "error");
+      }
+    }
+  };
+
+  const handleForbiddenAction = (message) => {
+    triggerNotification(message, "error");
+  };
+
+
+  // --- Logique de filtrage ---
   const getFilteredTasks = () => {
       let filtered = [...localTasks];
 
@@ -200,10 +290,31 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (newTask.title.trim()) {
-      // Si on est dans une équipe, on injecte le teamId
-      const taskToSave = contextTeam ? { ...newTask, teamId: contextTeam.id } : newTask;
+      // Construction de l'objet à sauvegarder
+      const taskToSave = {
+        title: newTask.title,
+        priority: newTask.priority,
+        // Correction 1 : On mappe durationMinutes vers duration
+        duration: newTask.durationMinutes,
+        completed: false
+      };
+
+      // 2. Gestion des relations (Team et Assignee)
+      // Spring Boot attend souvent des objets imbriqués { id: X } pour les relations
+      if (contextTeam) {
+        taskToSave.team = { id: contextTeam.id };
+
+        if (newTask.assigneeId) {
+          taskToSave.assignee = { id: parseInt(newTask.assigneeId) };
+        } else {
+          taskToSave.assignee = null;
+        }
+      }
+
       await onAddTask(taskToSave);
       handleCancel();
+      // Notification de création (optionnelle, mais cohérente)
+      triggerNotification("Tâche créée avec succès !", "success");
     }
   };
 
@@ -218,7 +329,15 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
   };
 
   return (
-    <div className="todo-list">
+    <div className="todo-list" style={{ position: 'relative' }}>
+      
+      {/* Affichage de la Notification en haut de la liste */}
+      <Notification 
+        message={notification?.message} 
+        type={notification?.type} 
+        onClose={closeNotification} 
+      />
+
       <div className="todo-header">
         <h2>{contextTeam ? `Projet ${contextTeam.name}` : '🏠 Mon Espace Personnel'}</h2>
         <div className="header-actions">
@@ -233,7 +352,6 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
         </div>
       </div>
 
-      {/* --- AFFICHAGE CONDITIONNEL DES FILTRES --- */}
       {contextTeam ? (
         <div className="task-filters">
           <button className={filter === 'ALL' ? 'active' : ''} onClick={() => setFilter('ALL')}>Tout</button>
@@ -241,7 +359,6 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
           <button className={filter === 'DELEGATED' ? 'active' : ''} onClick={() => setFilter('DELEGATED')}>Délégué</button>
         </div>
       ) : (
-        /* En mode Personnel, on force l'affichage "Tout" sans boutons */
         <div className="task-filters-single">
           <span className="active-tab">Toutes mes tâches</span>
         </div>
@@ -267,7 +384,26 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
                 <option value="1">🔴 Haute</option>
               </select>
             </label>
+            
+            {/* Ajout du champ d'assignation si on est dans une équipe */}
+            {contextTeam && contextTeam.members && (
+              <label>Assigner à
+                <select 
+                  value={newTask.assigneeId} 
+                  onChange={(e) => setNewTask({ ...newTask, team: contextTeam.id, assigneeId: e.target.value })}
+                  className="assignee-select"
+                >
+                  <option value="">-- Non assigné --</option>
+                  {contextTeam.members.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.username || member.email}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
           </div>
+          
           <div className="form-actions">
             <button type="submit" className="btn-submit">Ajouter</button>
             <button type="button" className="btn-cancel" onClick={handleCancel}>Annuler</button>
@@ -282,13 +418,17 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
                 key={task.id}
                 task={task}
                 onToggle={onToggleTask}
-                onDelete={onDeleteTask}
-                onEdit={onEditTask}
+                // On passe les wrappers qui incluent la notification de succès
+                onDelete={handleDeleteTaskWrapper}
+                onEdit={handleEditTaskWrapper}
+                
                 isEditing={editingTaskId === task.id}
                 onStartEdit={handleStartEdit}
                 onCancelEdit={() => setEditingTaskId(null)}
                 currentUser={currentUser}
                 showAssignee={true}
+                // Callback pour l'interdiction
+                onForbidden={handleForbiddenAction}
               />
             ))}
         </ul>
@@ -302,13 +442,16 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
                   key={task.id}
                   task={task}
                   onToggle={onToggleTask}
-                  onDelete={onDeleteTask}
-                  onEdit={onEditTask}
+                  // On passe les wrappers qui incluent la notification de succès
+                  onDelete={handleDeleteTaskWrapper}
+                  onEdit={handleEditTaskWrapper}
+
                   isEditing={editingTaskId === task.id}
                   onStartEdit={handleStartEdit}
                   onCancelEdit={() => setEditingTaskId(null)}
                   currentUser={currentUser}
                   showAssignee={true}
+                  onForbidden={handleForbiddenAction}
                 />
               ))}
             </ul>
