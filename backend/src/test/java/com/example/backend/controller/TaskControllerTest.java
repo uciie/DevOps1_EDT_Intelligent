@@ -87,9 +87,10 @@ public class TaskControllerTest {
 
     @Test
     void testDeleteTask() throws Exception {
-        Mockito.doNothing().when(taskService).deleteTask(1L);
+        Mockito.doNothing().when(taskService).deleteTask(1L, 1L);
 
-        mockMvc.perform(delete("/api/tasks/1"))
+        mockMvc.perform(delete("/api/tasks/1")
+                .param("userId", "1"))
                 .andExpect(status().isNoContent());
     }
 

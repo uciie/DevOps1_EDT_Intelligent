@@ -153,10 +153,16 @@ class TaskServiceImplTest {
 
     @Test
     void testDeleteTask() {
-        // When
-        taskService.deleteTask(100L);
+        // On définit l'assigné pour éviter le NullPointerException dans le service
+        task.setAssignee(user); 
+        
+        // On dit au mock de retourner la tâche quand on la cherche par ID 100
+        when(taskRepository.findById(100L)).thenReturn(Optional.of(task));
 
-        // Then
+        // On exécute la suppression
+        taskService.deleteTask(100L, 1L);
+
+        // On vérifie que la méthode deleteById a bien été appelée
         verify(taskRepository, times(1)).deleteById(100L);
     }
 
