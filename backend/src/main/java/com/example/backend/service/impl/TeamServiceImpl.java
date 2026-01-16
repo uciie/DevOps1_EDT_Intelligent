@@ -158,6 +158,14 @@ public class TeamServiceImpl implements TeamService {
 
     User userToRemove = userRepository.findById(memberIdToRemove)
             .orElseThrow(() -> new IllegalArgumentException("Membre introuvable"));
+
+    // reaattribution des tâches assignées à ce membre au createur de l'équipe ou les libérer
+    List<Task> tasksToUpdate = taskRepository.findByAssignee(userRepository.getById(memberIdToRemove));
+    for (Task task : tasksToUpdate) {
+        // Soit on réassigne au créateur, soit on libère (null) si le créateur est aussi le membre supprimé
+        task.setAssignee(task.getUser().getId() != memberIdToRemove ? task.getUser() : null); 
+        taskRepository.save(task);
+    }
     
     team.removeMember(userToRemove); // Utilise ta méthode helper dans Team.java
     teamRepository.save(team);

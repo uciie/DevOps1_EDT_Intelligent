@@ -73,9 +73,11 @@ export async function updateTask(taskId, taskData) {
 /**
  * Supprime une tâche
  */
-export async function deleteTask(taskId) {
+export async function deleteTask(taskId, userId) {
   try {
-    await api.delete(`/tasks/${taskId}`);
+    await api.delete(`/tasks/${taskId}`, {
+      params: { userId } // On passe l'ID de l'utilisateur courant pour la vérification
+    });
   } catch (error) {
     console.error("Erreur lors de la suppression de la tâche:", error);
     throw error;
