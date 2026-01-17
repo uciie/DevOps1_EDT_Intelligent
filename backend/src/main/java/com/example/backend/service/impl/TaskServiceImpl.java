@@ -78,6 +78,7 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.findByUserAndAssigneeNot(creator, creator);
     }
 
+    // --- RM-01 : RÉCUPÉRATION TÂCHE PAR ID ---
     @Override
     public Task getTaskById(Long id) {
         return taskRepository.findById(id)
@@ -189,7 +190,14 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public void deleteTask(Long id) {
+    public void deleteTask(Long id, Long userId) {
+        Task existing = taskRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Tâche non trouvée"));
+        boolean isCreator = existing.getUser().getId().equals(userId);
+        boolean isAssignee = existing.getAssignee().getId().equals(userId);
+        if (!isCreator && !isAssignee) {
+            throw new SecurityException("Vous n'avez pas les droits pour supprimer cette tâche.");
+        }   
         taskRepository.deleteById(id);
     }
 

@@ -27,6 +27,19 @@ export async function getDelegatedTasks(userId) {
 }
 
 /**
+ * Récupère les tâches d'une équipe
+ */
+export async function getTeamTasks(teamId) {
+  try {
+    const response = await api.get(`/tasks/team/${teamId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des tâches d'équipe:", error);
+    throw error;
+  }
+}
+
+/**
  * Crée une nouvelle tâche
  * Note: taskData peut maintenant contenir { assignee: { username: ... }, team: { id: ... } }
  */
@@ -43,10 +56,13 @@ export async function createTask(taskData) {
 
 /**
  * Met à jour une tâche
+ * PUT /api/tasks/12?userId=5
  */
 export async function updateTask(taskId, taskData) {
   try {
-    const response = await api.put(`/tasks/${taskId}`, taskData);
+    const response = await api.put(`/tasks/${taskId}`, taskData, {
+      params: { userId: taskData.userId }
+    });
     return response.data;
   } catch (error) {
     console.error("Erreur lors de la mise à jour de la tâche:", error);
@@ -57,9 +73,11 @@ export async function updateTask(taskId, taskData) {
 /**
  * Supprime une tâche
  */
-export async function deleteTask(taskId) {
+export async function deleteTask(taskId, userId) {
   try {
-    await api.delete(`/tasks/${taskId}`);
+    await api.delete(`/tasks/${taskId}`, {
+      params: { userId } // On passe l'ID de l'utilisateur courant pour la vérification
+    });
   } catch (error) {
     console.error("Erreur lors de la suppression de la tâche:", error);
     throw error;

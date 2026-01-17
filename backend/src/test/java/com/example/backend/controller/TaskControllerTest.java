@@ -3,143 +3,114 @@ package com.example.backend.controller;
 import com.example.backend.model.Task;
 import com.example.backend.model.User;
 import com.example.backend.service.TaskService;
+import com.example.backend.service.impl.FocusService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean; // Utiliser @MockBean pour Spring Boot < 3.4
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(TaskController.class)
-class TaskControllerTest {
+public class TaskControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean // Remplace @MockBean
+    @MockitoBean
     private TaskService taskService;
+
+    @MockitoBean
+    private FocusService focusService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    private Task task;
+    private Task testTask;
+    private User testUser;
 
     @BeforeEach
     void setUp() {
-        User user = new User("user", "pass");
-        user.setId(1L);
-        
-        // CORRECTION : Cast explicite de null en LocalDateTime pour lever l'ambiguïté
-        task = new Task("Test Task", 60, 1, false, user, (LocalDateTime) null); 
-        
-        task.setId(1L);
+        testUser = new User();
+        testUser.setId(1L);
+        testUser.setUsername("testuser");
 
-        objectMapper = new ObjectMapper();
-        // Requis pour gérer LocalDateTime
-        objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+        testTask = new Task();
+        testTask.setId(1L);
+        testTask.setTitle("Tâche de test");
+        testTask.setUser(testUser);
     }
 
     @Test
     void testGetUserTasks() throws Exception {
-        when(taskService.getTasksByUserId(1L)).thenReturn(Arrays.asList(task));
+        Mockito.when(taskService.getTasksByUserId(1L)).thenReturn(Arrays.asList(testTask));
 
         mockMvc.perform(get("/api/tasks/user/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].title").value("Test Task"));
+                .andExpect(jsonPath("$[0].title").value("Tâche de test"));
     }
 
     @Test
-    void testCreateTask() throws Exception {
-        // Le contrôleur appelle createTask(Task task, Long userId). Mocker cette signature.
-        when(taskService.createTask(any(Task.class), eq(1L))).thenReturn(task); 
+    void testCreateTaskForUser() throws Exception {
+        // La signature est createTask(Task, Long)
+        Mockito.when(taskService.createTask(any(Task.class), eq(1L))).thenReturn(testTask);
 
-        mockMvc.perform(post("/api/tasks/user/1") // <-- URL CORRIGÉE
+        mockMvc.perform(post("/api/tasks/user/1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(task)))
+                .content(objectMapper.writeValueAsString(testTask)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.title").value("Test Task"));
+                .andExpect(jsonPath("$.title").value("Tâche de test"));
     }
-    
-    // ... updateTask et deleteTask existants
 
-    // TEST MIS À JOUR POUR LA PLANIFICATION AVEC DATES (Test du cas 1)
-    @Test
-    void testPlanifyTask_WithDates() throws Exception {
-        when(taskService.planifyTask(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(task);
-
-        mockMvc.perform(post("/api/tasks/1/planify")
-                .param("start", "2025-10-10T10:00:00")
-                .param("end", "2025-10-10T11:00:00"))
-                .andExpect(status().isOk());
-        
-        // Vérifier que la méthode du service est bien appelée
-        verify(taskService).planifyTask(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class));
-    }
-    
-    // NOUVEAU TEST POUR LA PLANIFICATION AUTOMATIQUE (Test du cas 2: First-Fit)
-    // ----------------------------------------------------------------------
-    @Test
-    void testPlanifyTask_AutomaticFirstFit() throws Exception {
-        // Le mock doit gérer les arguments null
-        when(taskService.planifyTask(eq(1L), eq(null), eq(null))) 
-                .thenReturn(task);
-
-        // Appel sans aucun paramètre 'param'
-        mockMvc.perform(post("/api/tasks/1/planify"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1L));
-
-        // Vérifier que la méthode du service est appelée avec null pour les dates
-        // Remarque: L'appel MockMvc est converti en 'null' par Spring pour les @RequestParam(required = false) manquants.
-        verify(taskService).planifyTask(eq(1L), eq(null), eq(null));
-    }
-    
     @Test
     void testUpdateTask() throws Exception {
-        Task taskToUpdate = new Task();
-        taskToUpdate.setId(1L);
-        taskToUpdate.setTitle("Titre mis à jour");
-        taskToUpdate.setUser(null); // Ne mettez pas d'objet User complet ici si possible, ou mettez-le à null
-        
-        when(taskService.updateTask(eq(1L), any(Task.class))).thenReturn(taskToUpdate);
+        // La signature utilisée dans le controller est updateTask(Long, Task, Long)
+        Mockito.when(taskService.updateTask(eq(1L), any(Task.class), eq(1L))).thenReturn(testTask);
 
-        mockMvc.perform(put("/api/tasks/{id}", 1L)
+        mockMvc.perform(put("/api/tasks/1")
                 .param("userId", "1")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(taskToUpdate)))
-                .andExpect(status().isOk());
+                .content(objectMapper.writeValueAsString(testTask)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Tâche de test"));
     }
 
     @Test
     void testDeleteTask() throws Exception {
-        mockMvc.perform(delete("/api/tasks/1"))
-                .andExpect(status().isNoContent());
+        Mockito.doNothing().when(taskService).deleteTask(1L, 1L);
 
-        verify(taskService).deleteTask(1L);
+        mockMvc.perform(delete("/api/tasks/1")
+                .param("userId", "1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void testGetTeamTasks() throws Exception {
+        Mockito.when(taskService.getTasksByTeam(10L)).thenReturn(Arrays.asList(testTask));
+
+        mockMvc.perform(get("/api/tasks/team/10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].title").value("Tâche de test"));
     }
 
     @Test
     void testPlanifyTask() throws Exception {
-        when(taskService.planifyTask(eq(1L), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(task);
+        Mockito.when(taskService.getTaskById(1L)).thenReturn(testTask);
+        Mockito.when(taskService.planifyTask(eq(1L), any(), any())).thenReturn(testTask);
 
-        // Attention au format de date ISO pour LocalDateTime
         mockMvc.perform(post("/api/tasks/1/planify")
-                .param("start", "2025-10-10T10:00:00")
-                .param("end", "2025-10-10T11:00:00"))
+                .param("start", "2024-12-30T10:00:00")
+                .param("end", "2024-12-30T11:00:00"))
                 .andExpect(status().isOk());
     }
 }

@@ -5,10 +5,10 @@ import React, { useEffect } from 'react';
 export default function Notification({ message, type, onClose }) {
   useEffect(() => {
     if (message) {
-      // Disparition automatique après 3 secondes
+      // Disparition automatique après 1 seconde
       const timer = setTimeout(() => {
         onClose();
-      }, 3000);
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [message, onClose]);

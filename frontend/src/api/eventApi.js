@@ -85,3 +85,20 @@ export async function recalculateTravelTimes(userId, useGoogleMaps) {
     throw error;
   }
 }
+
+/**
+ * Récupère les événements d'un membre de l'équipe (Lecture seule + Anonymisé)
+ * @param {number} requesterId - ID de l'utilisateur qui fait la demande
+ * @param {number} memberId - ID du membre dont on veut voir le calendrier
+ */
+export const getTeamMemberEvents = async (requesterId, memberId) => {
+  try {
+    const response = await api.get(`/events/member/${memberId}`, {
+      params: { requesterId }
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Erreur lors de la récupération du calendrier du membre", error);
+    throw error;
+  }
+};

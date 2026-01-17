@@ -484,3 +484,92 @@
     border-radius: 4px;
     margin-top: 4px;
 }
+/* --- Onglets de filtrage RM-04 --- */
+.task-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 4px;
+    background: #f1f3f5;
+    border-radius: 10px;
+}
+
+.task-filters button {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #495057;
+    transition: all 0.2s ease;
+}
+
+.task-filters button:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.task-filters button.active {
+    background: #ffffff;
+    color: #228be6; /* Ou votre couleur primaire */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+}
+
+/* --- Badges d'assignation --- */
+.assignee-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.assignee-badge.me {
+    background-color: #e7f5ff;
+    color: #1c7ed6;
+    border: 1px solid #a5d8ff;
+}
+
+.assignee-badge.other {
+    background-color: #f3f0ff;
+    color: #6741d9;
+    border: 1px solid #d0bfff;
+}
+
+/* --- Barre de recherche --- */
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.search-input {
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    padding: 5px 15px;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.search-input:focus {
+    border-color: #228be6;
+}è
+
+.task-filters-single {
+    margin-bottom: 20px;
+    padding: 8px 15px;
+    background: #e9ecef;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.active-tab {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #495057;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}

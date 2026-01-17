@@ -25,12 +25,13 @@ public interface TaskService {
     Task updateTask(Long id, Task task);
 
     // Supprimer une tâche
-    void deleteTask(Long id);
+    void deleteTask(Long id, Long userId);
 
     // Planifier une tâche dans le calendrier (drag and drop)
     Task planifyTask(Long taskId, LocalDateTime start, LocalDateTime end);
 
     List<Task> getTasksByTeam(Long teamId);
 
+    // Récupérer une tâche par son ID
     Task getTaskById(Long id);
 }

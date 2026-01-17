@@ -4,16 +4,28 @@ import { ITEM_TYPES } from './TodoList';
 import '../styles/components/Calendar.css';
 
 // Composant pour une cellule de calendrier
-function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick, onEditEvent }) {
+function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick, onEditEvent, isReadOnly, currentUser }) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ITEM_TYPES.TASK,
-    drop: (item) => {
-      onDropTask(item.task.id, day, hour);
-    },
+    // MODIFICATION ICI : On vérifie que ce n'est pas un calendrier tiers ET que la tâche appartient à l'utilisateur
+
+  canDrop: (item) => {
+    if (isReadOnly) return false;
+    // Sécurité : si currentUser n'est pas encore chargé
+    if (!currentUser || !currentUser.id) return false;
+    // Note : on vérifie que item.task existe bien (suite à notre correction précédente)
+    if (!item.task) return true;
+    // On autorise le drop seulement si la tâche appartient à l'utilisateur actuel ou lui est assignée
+    return item.task.assigneeId === currentUser.id || item.task.userId === currentUser.id;
+  },
+  drop: (item) => {
+    // Ceci fonctionnera maintenant sans planter
+    onDropTask(item.task.id, day, hour); 
+  },
     collect: (monitor) => ({
       isOver: monitor.isOver(),
     }),
-  }), [day, hour]);
+  }), [day, hour, isReadOnly]);
 
   const cellEvents = events.filter(event => {
     if (!event.day) return false;
@@ -24,60 +36,45 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick
     );
   });
 
+  // --- FONCTION DE SÉCURITÉ MISE À JOUR ---
+  const renderLocation = (loc) => {
+    if (!loc) return null;
+    
+    // Si lecture seule (calendrier tiers), on peut masquer le lieu pour plus de confidentialité
+    if (isReadOnly) return null;
+
+    // Si c'est un objet, on affiche uniquement l'adresse comme demandé
+    if (typeof loc === 'object') {
+      return loc.address || loc.name || loc.displayName || "Lieu inconnu";
+    }
+    return loc;
+  };
+
   return (
     <div
       ref={drop}
-      className={`calendar-cell ${isOver ? 'drop-target' : ''}`}
+      className={`calendar-cell ${isOver ? 'drag-over' : ''} ${isReadOnly ? 'readonly-cell' : ''}`}
+      onClick={() => !isReadOnly && onAddClick(day, hour)}
     >
-      <button
-        className="ghost-button"
-        onClick={() => onAddClick(day, hour)}
-        title="Ajouter un événement"
-      >
-        <span className="ghost-icon">+</span>
-      </button>
-
-      {cellEvents.map((event) => {
-        // --- CALCUL DE LA HAUTEUR (Dynamique JS obligatoire) ---
-        const start = new Date(event.startTime);
-        const end = event.endTime ? new Date(event.endTime) : new Date(start.getTime() + 60 * 60000);
-        const durationMinutes = (end - start) / (1000 * 60);
-        const heightPx = ((durationMinutes / 60) * 60) + 1; 
-
-        return (
-          <div
-            key={event.id}
-            className="calendar-event-block"
-            title="Modifier l'évènement"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEditEvent(event);
-            }}
-            style={{ 
-              // Hauteur dynamique calculée (+1px pour le chevauchement)
-              height: `${heightPx}px`, 
-              // ON CHANGE ICI : La couleur est appliquée à la bordure gauche
-              borderLeftColor: event.color || '#3b82f6' 
-            }}
-          >
-            <div className="event-block-title">
-              {event.summary || event.title || "Sans titre"}
-            </div>
-
-            <div className="event-block-time">
-              {start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} - {end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-            </div>
-
-            {event.location && (
-               <div className="event-block-location">
-                 {typeof event.location === 'object' 
-                   ? (event.location.address || "") 
-                   : event.location}
-               </div>
-            )}
-            
+      {cellEvents.map((event) => (
+        <div 
+          key={event.id} 
+          className="calendar-event"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isReadOnly) onEditEvent(event);
+          }}
+        >
+          <div className="event-summary">{event.summary}</div>
+          <div className="event-time">
+            {event.startTime?.substring(11, 16)} - {event.endTime?.substring(11, 16)}
+          </div>
+          {renderLocation(event.location) && (
+            <div className="event-location">📍 {renderLocation(event.location)}</div>
+          )}
+          {!isReadOnly && (
             <button
-              className="btn-delete-event-block"
+              className="delete-event-btn"
               onClick={(e) => {
                 e.stopPropagation();
                 onDeleteEvent(event.id);
@@ -85,71 +82,69 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick
             >
               ×
             </button>
-          </div>
-        );
-      })}
+          )}
+        </div>
+      ))}
     </div>
   );
 }
 
-export default function Calendar({ events, onDropTask, onDeleteEvent, onAddEventRequest, onEditEvent }) {
-  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
-    const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(today.setDate(diff));
-  });
+function Calendar({ events, onDropTask, onDeleteEvent, onAddEventRequest, onEditEvent, isReadOnly = false, currentUser}) {
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-  const getDaysOfWeek = () => {
-    const days = [];
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(currentWeekStart);
-      day.setDate(currentWeekStart.getDate() + i);
-      days.push(day);
-    }
-    return days;
-  };
+  const days = [];
+  const startOfWeek = new Date(currentDate);
+  startOfWeek.setDate(currentDate.getDate() - currentDate.getDay() + (currentDate.getDay() === 0 ? -6 : 1));
 
-  const days = getDaysOfWeek();
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(startOfWeek);
+    day.setDate(startOfWeek.getDate() + i);
+    days.push(day);
+  }
 
-  const startHour = (() => {
-    const eventsInCurrentWeek = events.filter(event => {
-      if (!event.startTime) return false;
-      const eventDate = new Date(event.startTime);
-      return days.some(day => day.toDateString() === eventDate.toDateString());
+  const getDynamicHours = () => {
+    // Filtrer les événements qui appartiennent à la semaine affichée
+    const weekTimestamps = days.map(d => d.toDateString());
+    const eventsInWeek = events.filter(event => {
+      if (!event.day) return false;
+      return weekTimestamps.includes(new Date(event.day).toDateString());
     });
 
-    if (eventsInCurrentWeek.length === 0) return 8;
+    // Trouver l'heure la plus basse (minimum 8h par défaut, maximum 23h)
+    let startHour = 8; 
+    if (eventsInWeek.length > 0) {
+      const minEventHour = Math.min(...eventsInWeek.map(e => e.hour));
+      startHour = minEventHour;
+    }
 
-    const hoursInWeek = eventsInCurrentWeek.map(e => new Date(e.startTime).getHours());
-    return Math.min(...hoursInWeek);
-  })();
+    // Créer le tableau d'heures de startHour jusqu'à 23h
+    const dynamicHours = [];
+    for (let h = startHour; h <= 23; h++) {
+      dynamicHours.push(h);
+    }
+    return dynamicHours;
+  };
 
-  const hours = Array.from({ length: 24 - startHour }, (_, i) => i + startHour);
+  const hours = getDynamicHours();
+  const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
   const goToPreviousWeek = () => {
-    const newDate = new Date(currentWeekStart);
-    newDate.setDate(currentWeekStart.getDate() - 7);
-    setCurrentWeekStart(newDate);
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() - 7);
+    setCurrentDate(newDate);
   };
 
   const goToNextWeek = () => {
-    const newDate = new Date(currentWeekStart);
-    newDate.setDate(currentWeekStart.getDate() + 7);
-    setCurrentWeekStart(newDate);
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() + 7);
+    setCurrentDate(newDate);
   };
 
-  const goToToday = () => {
-    const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-    setCurrentWeekStart(new Date(today.setDate(diff)));
-  };
+  const goToToday = () => setCurrentDate(new Date());
 
   const formatWeekRange = () => {
-    const start = days[0];
-    const end = days[6];
-    return `${start.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })} - ${end.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}`;
+    const options = { day: 'numeric', month: 'long' };
+    return `Semaine du ${days[0].toLocaleDateString('fr-FR', options)} au ${days[6].toLocaleDateString('fr-FR', options)}`;
   };
 
   const isToday = (date) => {
@@ -157,17 +152,17 @@ export default function Calendar({ events, onDropTask, onDeleteEvent, onAddEvent
     return date.toDateString() === today.toDateString();
   };
 
-  const dayNames = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-
   return (
-    <div className="calendar-container">
+    <div className={`calendar-container ${isReadOnly ? 'mode-readonly' : ''}`}>
       <div className="calendar-header">
         <div className="calendar-nav">
           <button className="btn-nav" onClick={goToPreviousWeek}>{'<'}</button>
           <button className="btn-today" onClick={goToToday}>Aujourd'hui</button>
           <button className="btn-nav" onClick={goToNextWeek}>{'>'}</button>
         </div>
-        <div className="current-week">{formatWeekRange()}</div>
+        <div className="current-week">
+            {formatWeekRange()} {isReadOnly && <span className="readonly-badge" style={{marginLeft: '10px', color: 'var(--primary-color)'}}>(Consultation)</span>}
+        </div>
       </div>
 
       <div className="calendar-grid">
@@ -180,7 +175,6 @@ export default function Calendar({ events, onDropTask, onDeleteEvent, onAddEvent
         ))}
 
         {hours.map((hour) => (
-          /* Utilisation de la classe CSS .calendar-hour-row au lieu de display: contents inline */
           <div key={`hour-${hour}`} className="calendar-hour-row">
             <div className="time-label">{`${hour}:00`}</div>
             {days.map((day, dayIndex) => (
@@ -193,6 +187,8 @@ export default function Calendar({ events, onDropTask, onDeleteEvent, onAddEvent
                 onDeleteEvent={onDeleteEvent}
                 onAddClick={onAddEventRequest}
                 onEditEvent={onEditEvent}
+                isReadOnly={isReadOnly}
+                currentUser={currentUser}
               />
             ))}
           </div>
@@ -201,3 +197,5 @@ export default function Calendar({ events, onDropTask, onDeleteEvent, onAddEvent
     </div>
   );
 }
+
+export default Calendar;

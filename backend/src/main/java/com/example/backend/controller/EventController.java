@@ -165,6 +165,20 @@ public class EventController {
     }
 
     /**
+     * Récupère les événements d'un coéquipier en masquant les détails sensibles.
+     *
+     * @param requesterId l'ID de l'utilisateur qui fait la requête
+     * @param memberId l'ID du coéquipier dont on veut voir les événements
+     * @return liste des événements du coéquipier avec détails masqués
+     */
+    @GetMapping("/member/{memberId}")
+    public ResponseEntity<List<Event>> getTeamMemberEvents(
+            @RequestParam Long requesterId, 
+            @PathVariable Long memberId) {
+        return ResponseEntity.ok(eventService.getTeamMemberEvents(requesterId, memberId));
+    }
+
+    /**
      * DTO pour la création/modification d'événements.
      */
     public static class EventRequest {

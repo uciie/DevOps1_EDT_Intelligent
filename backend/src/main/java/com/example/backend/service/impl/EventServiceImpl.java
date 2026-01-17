@@ -12,6 +12,7 @@ import com.example.backend.repository.UserRepository;
 import com.example.backend.service.EventService;
 import com.example.backend.service.TravelTimeCalculator;
 import com.example.backend.service.TravelTimeService;
+import com.example.backend.repository.TeamRepository;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Implémentation du service pour la gestion des événements.
@@ -31,7 +33,8 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final TravelTimeService travelTimeService;
     private final TravelTimeRepository travelTimeRepository; // Ajout pour accès direct si besoin
-    
+    private final TeamRepository teamRepository;
+
     // On garde le calculateur principal (qui sera Google si activé, sinon Simple par défaut)
     private final TravelTimeCalculator primaryCalculator;
     // On injecte explicitement le calculateur simple pour le fallback forcé
@@ -43,13 +46,15 @@ public class EventServiceImpl implements EventService {
                             TravelTimeService travelTimeService,
                             TravelTimeRepository travelTimeRepository,
                             TravelTimeCalculator primaryCalculator,
-                            @Qualifier("simpleTravelTimeCalculator") TravelTimeCalculator simpleCalculator) {
+                            @Qualifier("simpleTravelTimeCalculator") TravelTimeCalculator simpleCalculator,
+                            TeamRepository teamRepository) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.travelTimeService = travelTimeService;
         this.travelTimeRepository = travelTimeRepository;
         this.primaryCalculator = primaryCalculator;
         this.simpleCalculator = simpleCalculator;
+        this.teamRepository = teamRepository;
     }
 
     // --- Helper pour choisir le calculateur ---
@@ -328,38 +333,26 @@ public class EventServiceImpl implements EventService {
      * RM-05 : Consultation du calendrier partagé (Lecture Seule)
      */
     @Override
-    public List<Event> getTeammateEvents(Long requesterId, Long targetUserId) {
-        User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur requérant introuvable"));
-        
-        User target = userRepository.findById(targetUserId)
-                .orElseThrow(() -> new IllegalArgumentException("Utilisateur cible introuvable"));
+    public List<Event> getTeamMemberEvents(Long requesterId, Long memberId) {
+        // 1. Vérifier si les deux utilisateurs partagent au moins une équipe
+        boolean shareTeam = teamRepository.findAll().stream()
+            .anyMatch(team -> team.getMembers().stream().anyMatch(m -> m.getId().equals(requesterId)) 
+                        && team.getMembers().stream().anyMatch(m -> m.getId().equals(memberId)));
 
-        // 1. Vérification de sécurité : Sont-ils dans la même équipe ?
-        // On regarde l'intersection des listes d'équipes
-        boolean sharedTeam = requester.getTeams().stream()
-                .anyMatch(team -> target.getTeams().contains(team));
-
-        if (!sharedTeam) {
-            throw new SecurityException("Accès refusé : Vous n'êtes pas dans la même équipe que cet utilisateur.");
+        if (!shareTeam) {
+            throw new RuntimeException("Vous n'avez pas l'autorisation de voir ce calendrier.");
         }
 
-        // 2. Récupération des événements
-        List<Event> events = eventRepository.findByUser_IdOrderByStartTime(targetUserId);
-
-        // 3. (Optionnel) Confidentialité : Masquer les détails privés
-        // Si vous voulez implémenter le mode "Occupé" seulement :
-        /*
-        return events.stream().map(e -> {
-            Event publicView = new Event();
-            publicView.setStartTime(e.getStartTime());
-            publicView.setEndTime(e.getEndTime());
-            publicView.setSummary("Occupé"); // Masque le titre réel
-            return publicView;
-        }).toList();
-        */
-
-        // Pour l'instant, on retourne tout (transparence d'équipe)
-        return events;
+        // 2. Récupérer les événements et masquer les détails (RM-05)
+        return eventRepository.findByUser_Id(memberId).stream()
+            .map(event -> {
+                Event anonymized = new Event();
+                anonymized.setId(event.getId());
+                anonymized.setStartTime(event.getStartTime());
+                anonymized.setEndTime(event.getEndTime());
+                anonymized.setSummary("Occupé"); // Masquage du titre
+                anonymized.setLocation(null);
+                return anonymized;
+            }).collect(Collectors.toList());
     }
 }
