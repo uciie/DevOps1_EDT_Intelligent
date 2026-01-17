@@ -511,6 +511,7 @@ function SchedulePage() {
             onAddEventRequest={handleCellClick}
             onEditEvent={handleOpenEditModal}
             contextTeam={selectedTeam} 
+            currentUser={currentUser}
           />
         </main>
 

@@ -37,12 +37,13 @@ function DraggableTask({
   }, [task]);
 
   const [{ isDragging }, drag] = useDrag(() => ({
-    type: ITEM_TYPES.TASK,
-    item: { task },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  }), [task]);
+      type: ITEM_TYPES.TASK,
+      item: { task: task }, 
+      canDrag: !task.done, // (Vérifiez aussi que ceci ne renvoie pas false)
+      collect: (monitor) => ({
+          isDragging: !!monitor.isDragging(),
+      }),
+  }));
 
   // --- LOGIQUE DE PERMISSION ---
   // On détermine si l'utilisateur a le droit de modifier la tâche
@@ -132,13 +133,13 @@ function DraggableTask({
   return (
     <li
       ref={drag}
-      className={`task-item priority-${task.priority} ${isDragging ? 'dragging' : ''} ${task.completed ? 'task-done' : ''}`}
+      className={`task-item priority-${task.priority} ${isDragging ? 'dragging' : ''} ${task.done ? 'task-done' : ''}`}
     >
       <div className="task-content">
         <input
           type="checkbox"
           className="task-checkbox"
-          checked={task.completed}
+          checked={task.done}
           // On retire le 'disabled' strict pour permettre le clic et afficher la notif d'erreur
           onChange={() => canModify && onToggle(task.id)}
           style={{ cursor: 'pointer' }} 
@@ -284,8 +285,8 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
   };
 
   const currentFiltered = getFilteredTasks();
-  const activeFilteredTasks = currentFiltered.filter(t => !t.completed);
-  const completedFilteredTasks = currentFiltered.filter(t => t.completed);
+  const activeFilteredTasks = currentFiltered.filter(t => !t.done);
+  const completedFilteredTasks = currentFiltered.filter(t => t.done);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -296,7 +297,7 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
         priority: newTask.priority,
         // Correction 1 : On mappe durationMinutes vers duration
         duration: newTask.durationMinutes,
-        completed: false
+        done: false
       };
 
       // 2. Gestion des relations (Team et Assignee)

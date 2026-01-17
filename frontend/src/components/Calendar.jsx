@@ -4,24 +4,24 @@ import { ITEM_TYPES } from './TodoList';
 import '../styles/components/Calendar.css';
 
 // Composant pour une cellule de calendrier
-function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick, onEditEvent, isReadOnly }) {
+function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick, onEditEvent, isReadOnly, currentUser }) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: ITEM_TYPES.TASK,
     // MODIFICATION ICI : On vérifie que ce n'est pas un calendrier tiers ET que la tâche appartient à l'utilisateur
-    canDrop: (item) => {
-      if (isReadOnly) return false;
-      
-      const userStr = localStorage.getItem('user');
-      if (!userStr) return false;
-      const currentUserId = JSON.parse(userStr).id;
 
-      // On ne peut dropper que si on est l'assigné ou le créateur de la tâche
-      // (Selon votre règle RM-02 : assignee par défaut = creator)
-      return item.task.assigneeId === currentUserId || item.task.creatorId === currentUserId;
-    },
-    drop: (item) => {
-      onDropTask(item.task.id, day, hour);
-    },
+  canDrop: (item) => {
+    if (isReadOnly) return false;
+    // Sécurité : si currentUser n'est pas encore chargé
+    if (!currentUser || !currentUser.id) return false;
+    // Note : on vérifie que item.task existe bien (suite à notre correction précédente)
+    if (!item.task) return true;
+    // On autorise le drop seulement si la tâche appartient à l'utilisateur actuel ou lui est assignée
+    return item.task.assigneeId === currentUser.id || item.task.userId === currentUser.id;
+  },
+  drop: (item) => {
+    // Ceci fonctionnera maintenant sans planter
+    onDropTask(item.task.id, day, hour); 
+  },
     collect: (monitor) => ({
       isOver: monitor.isOver(),
     }),
@@ -89,7 +89,7 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick
   );
 }
 
-function Calendar({ events, onDropTask, onDeleteEvent, onAddEventRequest, onEditEvent, isReadOnly = false }) {
+function Calendar({ events, onDropTask, onDeleteEvent, onAddEventRequest, onEditEvent, isReadOnly = false, currentUser}) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const days = [];
@@ -188,6 +188,7 @@ function Calendar({ events, onDropTask, onDeleteEvent, onAddEventRequest, onEdit
                 onAddClick={onAddEventRequest}
                 onEditEvent={onEditEvent}
                 isReadOnly={isReadOnly}
+                currentUser={currentUser}
               />
             ))}
           </div>
