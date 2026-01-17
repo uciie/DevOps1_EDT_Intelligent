@@ -2,9 +2,15 @@ name: CI - Qualité (SonarCloud)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" , "hotfix/yml" ]
+    paths:
+      - 'backend/src/main/**' # Déclenche uniquement si le code métier backend change
+      - '.github/workflows/quality.yml' # Toujours utile pour tester la config
+
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'backend/src/main/**'
 
 jobs:
   sonar:
@@ -24,7 +30,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Important pour l'analyse précise
+          fetch-depth: 0
 
       - name: Setup Java 21
         uses: actions/setup-java@v4
@@ -44,5 +50,9 @@ jobs:
         working-directory: ./backend
         run: |
           chmod +x gradlew
-          # Génère le rapport et l'envoie.
-          ./gradlew clean test jacocoTestReport sonar --info --no-daemon
+          # On lance les tests pour la couverture, mais on restreint l'analyse statique
+          ./gradlew clean test jacocoTestReport sonar \
+            --info --no-daemon \
+            -Dsonar.sources=src/main \
+            -Dsonar.tests=src/test \
+            -Dsonar.exclusions=**/*.test.java
