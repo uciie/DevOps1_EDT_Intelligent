@@ -1,0 +1,251 @@
+\href{./LICENSE}{\texttt{ }} \href{https://github.com/uciie/DevOps1_EDT_Intelligent/releases}{\texttt{ }} \href{https://sonarcloud.io/summary/new_code?id=uciie_DevOps1_EDT_Intelligent}{\texttt{ }} \href{https://sonarcloud.io/summary/new_code?id=uciie_DevOps1_EDT_Intelligent}{\texttt{ }} \href{https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/build.yml}{\texttt{ }} \href{https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/test.yml}{\texttt{ }}
+
+\begin{quote}
+{\bfseries{Emploi du temps intelligent}} — Optimisation automatique de planning, import ICS et gestion de tâches. \end{quote}
+\hypertarget{md_README_autotoc_md23}{}\doxysection{$<$/blockquote$>$}\label{md_README_autotoc_md23}
+\hypertarget{md_README_autotoc_md24}{}\doxysection{Sommaire}\label{md_README_autotoc_md24}
+
+\begin{DoxyItemize}
+\item \href{\#smart-scheduler}{\texttt{ Smart Scheduler}}
+\begin{DoxyItemize}
+\item \href{\#-sommaire}{\texttt{ Sommaire}}
+\item \href{\#-qui-sommes-nous-}{\texttt{ Qui sommes-\/nous ?}}
+\item \href{\#-\%C3\%A0-propos-du-projet}{\texttt{ À propos du projet}}
+\begin{DoxyItemize}
+\item \href{\#-public-vis\%C3\%A9}{\texttt{ Public visé}}
+\item \href{\#\%EF\%B8\%8F-analyse-concurrentielle}{\texttt{ Analyse concurrentielle}}
+\end{DoxyItemize}
+\item \href{\#\%EF\%B8\%8F-outils-et-processus-devops}{\texttt{ Outils et Processus Dev\+Ops}}
+\item \href{\#\%EF\%B8\%8F-stack-technique-et-outils}{\texttt{ Stack Technique et Outils}}
+\begin{DoxyItemize}
+\item \href{\#-pr\%C3\%A9requis-syst\%C3\%A8me}{\texttt{ Prérequis Système}}
+\item \href{\#-backend-java--spring-boot}{\texttt{ ☕ Backend (Java / Spring Boot)}}
+\item \href{\#\%EF\%B8\%8F-frontend-react--vite}{\texttt{ Frontend (React / Vite)}}
+\end{DoxyItemize}
+\item \href{\#-installation-et-configuration}{\texttt{ Installation et configuration}}
+\begin{DoxyItemize}
+\item \href{\#1\%EF\%B8\%8F\%E2\%83\%A3-cloner-le-projet}{\texttt{ 1 Cloner le projet}}
+\item \href{\#2\%EF\%B8\%8F\%E2\%83\%A3-configuration-backend}{\texttt{ 2 Configuration Backend}}
+\item \href{\#3\%EF\%B8\%8F\%E2\%83\%A3-configuration-frontend}{\texttt{ 3 Configuration Frontend}}
+\end{DoxyItemize}
+\item \href{\#-lancement}{\texttt{ Lancement}}
+\begin{DoxyItemize}
+\item \href{\#backend-api}{\texttt{ Backend (API)}}
+\item \href{\#frontend-interface}{\texttt{ Frontend (Interface)}}
+\end{DoxyItemize}
+\item \href{\#-\%C3\%A9quipe}{\texttt{ Équipe}}
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_README_autotoc_md26}{}\doxysection{Qui sommes-\/nous ?}\label{md_README_autotoc_md26}
+Nous sommes une équipe de quatre étudiants en {\bfseries{Master 1 MIAGE (Méthodes Informatiques Appliquées à la Gestion des Entreprises)}}, parcours {\bfseries{MIXTE}}, promotion {\bfseries{2025}} à l\textquotesingle{}{\bfseries{Université Paris Nanterre}}.
+
+Ce projet a été réalisé dans le cadre de notre cursus Dev\+Ops, avec pour objectif de mettre en œuvre une chaîne d\textquotesingle{}intégration et de déploiement continue (CI/\+CD) sur une application Full Stack.
+
+\DoxyHorRuler{0}
+\hypertarget{md_README_autotoc_md28}{}\doxysection{À propos du projet}\label{md_README_autotoc_md28}
+{\bfseries{Smart Scheduler}} est une solution intelligente de gestion du temps. Contrairement à un agenda classique où l\textquotesingle{}utilisateur doit placer manuellement chaque événement, notre application \+:
+
+
+\begin{DoxyEnumerate}
+\item {\bfseries{Importe}} vos contraintes existantes (cours, réunions) via des fichiers {\ttfamily .ics} (ex\+: ENT universitaire, Google Calendar).
+\item {\bfseries{Analyse}} les créneaux libres.
+\item {\bfseries{Optimise et insère automatiquement}} vos tâches à faire (To-\/\+Do List) dans les \char`\"{}trous\char`\"{} de votre emploi du temps, selon des règles de priorité et de durée.
+\end{DoxyEnumerate}\hypertarget{md_README_autotoc_md29}{}\doxysubsection{Public visé}\label{md_README_autotoc_md29}
+
+\begin{DoxyItemize}
+\item {\bfseries{Étudiants \+:}} Pour jongler entre les cours, les révisions et les projets de groupe sans conflit.
+\item {\bfseries{Professionnels indépendants \+:}} Pour optimiser les temps de trajet et les périodes de travail profond.
+\item {\bfseries{Personnes ayant des difficultés d\textquotesingle{}organisation \+:}} L\textquotesingle{}automatisation réduit la charge mentale liée à la planification.
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md30}{}\doxysubsection{Analyse concurrentielle}\label{md_README_autotoc_md30}
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{5}{|X[-1]}|}
+\hline
+\cellcolor{\tableheadbgcolor}\textbf{ Solution   }&\cellcolor{\tableheadbgcolor}\textbf{ Type   }&\cellcolor{\tableheadbgcolor}\textbf{ Avantages   }&\cellcolor{\tableheadbgcolor}\textbf{ Inconvénients   }&\cellcolor{\tableheadbgcolor}\textbf{ Notre approche    }\\\cline{1-5}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\cellcolor{\tableheadbgcolor}\textbf{ Solution   }&\cellcolor{\tableheadbgcolor}\textbf{ Type   }&\cellcolor{\tableheadbgcolor}\textbf{ Avantages   }&\cellcolor{\tableheadbgcolor}\textbf{ Inconvénients   }&\cellcolor{\tableheadbgcolor}\textbf{ Notre approche    }\\\cline{1-5}
+\endhead
+{\bfseries{Google Calendar / Outlook}}   &Calendrier Classique   &Gratuit, universel.   &Aucune automatisation. L\textquotesingle{}utilisateur doit tout placer à la main.   &Automatisation du placement des tâches.    \\\cline{1-5}
+{\bfseries{Motion / Reclaim.\+ai}}   &Planificateurs IA   &Très puissants, fonctionnalités avancées.   &Payants (chers), complexes, propriétaires (données privées).   &{\bfseries{Open-\/source}}, gratuit, simple d\textquotesingle{}utilisation et transparent sur les données.    \\\cline{1-5}
+{\bfseries{Todoist / Trello}}   &Gestionnaires de tâches   &Excellents pour lister les tâches.   &Ne planifient pas {\itshape quand} faire la tâche dans l\textquotesingle{}agenda.   &Fusion de la liste de tâches et de l\textquotesingle{}agenda.   \\\cline{1-5}
+\end{longtabu}
+
+
+\DoxyHorRuler{0}
+\hypertarget{md_README_autotoc_md32}{}\doxysection{Outils et Processus Dev\+Ops}\label{md_README_autotoc_md32}
+Pour garantir la qualité et la maintenabilité du code, nous avons mis en place une chaîne Dev\+Ops complète \+:
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Gestion de version \+:}} Git \& Git\+Hub (Branching model\+: Feature Branch Workflow).
+\item {\bfseries{Intégration Continue (CI) \+:}}
+\begin{DoxyItemize}
+\item {\bfseries{Git\+Hub Actions \+:}} Compilation et exécution des tests unitaires et d\textquotesingle{}intégration à chaque push.
+\item {\bfseries{Gradle \+:}} Automatisation du build backend.
+\end{DoxyItemize}
+\item {\bfseries{Qualité du code (QA) \+:}}
+\begin{DoxyItemize}
+\item {\bfseries{Sonar\+Cloud \+:}} Analyse statique du code, détection de bugs, \char`\"{}code smells\char`\"{} et suivi de la couverture de code.
+\item {\bfseries{Ja\+Co\+Co \+:}} Rapport de couverture de tests Java.
+\end{DoxyItemize}
+\item {\bfseries{Tests \+:}} JUnit 5 pour les tests unitaires et d\textquotesingle{}intégration.
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_README_autotoc_md34}{}\doxysection{Stack Technique et Outils}\label{md_README_autotoc_md34}
+Cette section détaille les technologies et librairies clés utilisées pour le développement, le build et les tests du projet.\hypertarget{md_README_autotoc_md35}{}\doxysubsection{Prérequis Système}\label{md_README_autotoc_md35}
+
+\begin{DoxyItemize}
+\item {\bfseries{Java 21}} (JDK) \+: Nécessaire pour le backend Spring Boot.
+\item {\bfseries{Node.\+js 22}} \+: Recommandé pour l\textquotesingle{}exécution du frontend React (utilisé en CI).
+\item {\bfseries{Postgre\+SQL}} \+: Base de données de production.
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md36}{}\doxysubsection{☕ Backend (\+Java / Spring Boot)}\label{md_README_autotoc_md36}
+Le backend est construit avec {\bfseries{Spring Boot 3.\+5.\+6}} et utilise {\bfseries{Gradle}} pour l\textquotesingle{}automatisation.
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Framework \& API \+:}}
+\begin{DoxyItemize}
+\item {\ttfamily spring-\/boot-\/starter-\/web} \+: Création des endpoints REST.
+\item {\ttfamily spring-\/boot-\/starter-\/data-\/jpa} \+: Interaction avec la base de données.
+\item {\ttfamily spring-\/boot-\/starter-\/validation} \+: Validation des données entrantes.
+\item {\ttfamily spring-\/dotenv} (v4.\+0.\+0) \+: Gestion des variables d\textquotesingle{}environnement (.env).
+\end{DoxyItemize}
+\item {\bfseries{Traitement de Données \+:}}
+\begin{DoxyItemize}
+\item {\ttfamily biweekly} (v0.\+6.\+8) \+: Parsing et manipulation des fichiers i\+Calendar (.ics).
+\end{DoxyItemize}
+\item {\bfseries{Base de Données \+:}}
+\begin{DoxyItemize}
+\item {\ttfamily postgresql} \+: Driver pour la base de données de production.
+\item {\ttfamily h2} \+: Base de données en mémoire pour les tests d\textquotesingle{}intégration.
+\end{DoxyItemize}
+\item {\bfseries{Tests \& Qualité \+:}}
+\begin{DoxyItemize}
+\item {\bfseries{JUnit 5}} (v5.\+10.\+0) \& {\bfseries{Mockito}} (v5.\+6.\+0) \+: Tests unitaires.
+\item {\bfseries{Ja\+Co\+Co}} (v0.\+8.\+13) \+: Rapport de couverture de code (Minimum requis \+: 70\%).
+\item {\bfseries{Sonar\+Qube}} (Plugin v5.\+1.\+0) \+: Analyse statique et qualité du code.
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md37}{}\doxysubsection{Frontend (\+React / Vite)}\label{md_README_autotoc_md37}
+Le frontend est une SPA (Single Page Application) développée avec {\bfseries{React 19}} et {\bfseries{Vite}}.
+
+
+\begin{DoxyItemize}
+\item {\bfseries{Cœur \+:}}
+\begin{DoxyItemize}
+\item {\ttfamily react} (v19.\+2.\+0) \& {\ttfamily react-\/dom} (v19.\+2.\+0).
+\item {\ttfamily vite} (v7.\+1.\+9) \+: Outil de build et serveur de développement ultra-\/rapide.
+\end{DoxyItemize}
+\item {\bfseries{Navigation \& Requêtes \+:}}
+\begin{DoxyItemize}
+\item {\ttfamily react-\/router-\/dom} (v7.\+9.\+4) \+: Gestion du routing côté client.
+\item {\ttfamily axios} (v1.\+12.\+2) \+: Client HTTP pour communiquer avec l\textquotesingle{}API Backend.
+\end{DoxyItemize}
+\item {\bfseries{Interface \& Calendrier \+:}}
+\begin{DoxyItemize}
+\item {\ttfamily react-\/big-\/calendar} (v1.\+19.\+4) \+: Composant d\textquotesingle{}affichage de l\textquotesingle{}emploi du temps.
+\item {\ttfamily moment} (v2.\+30.\+1) \+: Manipulation des dates.
+\item {\ttfamily react-\/dnd} (v16.\+0.\+1) \& {\ttfamily react-\/dnd-\/html5-\/backend} \+: Gestion du Drag \& Drop pour les tâches.
+\item {\ttfamily @react-\/google-\/maps/api} (v2.\+20.\+7) \+: Intégration des cartes Google Maps.
+\end{DoxyItemize}
+\item {\bfseries{Tests \& Linting \+:}}
+\begin{DoxyItemize}
+\item {\ttfamily vitest} (v3.\+2.\+4) \+: Framework de tests unitaires (compatible Jest).
+\item {\ttfamily eslint} (v9.\+36.\+0) \+: Linter pour garantir la qualité du code Java\+Script/\+React.
+\end{DoxyItemize}
+\end{DoxyItemize}
+
+\DoxyHorRuler{0}
+\hypertarget{md_README_autotoc_md39}{}\doxysection{🧩 Installation et configuration}\label{md_README_autotoc_md39}
+\hypertarget{md_README_autotoc_md40}{}\doxysubsection{1 Cloner le projet}\label{md_README_autotoc_md40}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{git clone [https://github.com/uciie/DevOps1\_EDT\_Intelligent.git](https://github.com/uciie/DevOps1\_EDT\_Intelligent.git)}
+\DoxyCodeLine{cd DevOps1\_EDT\_Intelligent}
+\DoxyCodeLine{````}
+\DoxyCodeLine{}
+\DoxyCodeLine{\#\#\# 2 Configuration Backend}
+\DoxyCodeLine{}
+\DoxyCodeLine{Ajouter le fichier `.env` dans le dossier `backend` (ne pas le committer \(\backslash\)!) :}
+\DoxyCodeLine{}
+\DoxyCodeLine{```properties}
+\DoxyCodeLine{\# .env example}
+\DoxyCodeLine{DB\_URL=jdbc:postgresql://<votre-\/host>/neondb?sslmode=require}
+\DoxyCodeLine{DB\_USER=<votre-\/user>}
+\DoxyCodeLine{DB\_PASSWORD=<votre-\/password>}
+\DoxyCodeLine{GOOGLE\_MAPS\_INTEGRATION\_TESTS=true}
+\DoxyCodeLine{\# Clé API : contacter l'équipe pour l'accès}
+\DoxyCodeLine{GOOGLE\_MAPS\_API\_KEY=YOUR\_KEY\_HERE}
+\DoxyCodeLine{SPRING\_PROFILES=external-\/api}
+
+\end{DoxyCode}
+\hypertarget{md_README_autotoc_md41}{}\doxysubsection{3 Configuration Frontend}\label{md_README_autotoc_md41}
+Ajouter le fichier {\ttfamily .env} dans le dossier {\ttfamily frontend} (ne pas le committer !) \+:
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\# .env example}
+\DoxyCodeLine{VITE\_GOOGLE\_MAPS\_API\_KEY=YOUR\_KEY\_HERE \# le même que celui du backend}
+
+\end{DoxyCode}
+
+
+\DoxyHorRuler{0}
+ \hypertarget{md_README_autotoc_md43}{}\doxysubsection{4 Comment Obtenir les configurations du fichier .\+env}\label{md_README_autotoc_md43}
+DB\+\_\+\+URL, DB\+\_\+\+USER, DB\+\_\+\+PASSWORD On l\textquotesingle{}obtient en allant sur le site de Neon (Neon.\+tech), on se connecte avec son compte Neon (Ou on créer) créer un nouveau projet, en haut à droite appuyer sur le bouton connect, on change ensuite le langage en java, et on obtient une ligne de texte qui contient l\textquotesingle{}URL, l\textquotesingle{}user, et le password
+
+DB\+\_\+\+URL devrait ressembler à \+: jdbc\+:postgresql\+://$<$something$>$/neondb?sslmode=require\&channel\+\_\+binding=require DB\+\_\+\+USER devrait ressembler à \+: neondb\+\_\+owner
+
+Pour obtenir l\textquotesingle{}api de google maps, il faut aller sur google cloud, rechercher \char`\"{}distance matrix api\char`\"{}, cliquer sur \char`\"{}enable\char`\"{}/\char`\"{}activer\char`\"{}, ensuite vérifier votre identité sur le site de google, et voila!\hypertarget{md_README_autotoc_md44}{}\doxysection{Lancement}\label{md_README_autotoc_md44}
+\hypertarget{md_README_autotoc_md45}{}\doxysubsection{Backend (\+API)}\label{md_README_autotoc_md45}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd backend}
+\DoxyCodeLine{\# Linux / Mac}
+\DoxyCodeLine{./gradlew bootRun}
+\DoxyCodeLine{\# Windows}
+\DoxyCodeLine{gradlew.bat bootRun}
+
+\end{DoxyCode}
+
+
+API accessible sur \+: \href{https://www.google.com/search?q=http://localhost:8080}{\texttt{ http\+://localhost\+:8080}}\hypertarget{md_README_autotoc_md46}{}\doxysubsection{Frontend (\+Interface)}\label{md_README_autotoc_md46}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{cd frontend}
+\DoxyCodeLine{npm install}
+\DoxyCodeLine{npm run dev}
+
+\end{DoxyCode}
+
+
+Interface accessible sur \+: \href{https://www.google.com/search?q=http://localhost:5173}{\texttt{ http\+://localhost\+:5173}}
+
+\DoxyHorRuler{0}
+\hypertarget{md_README_autotoc_md48}{}\doxysection{👥 Équipe}\label{md_README_autotoc_md48}
+\tabulinesep=1mm
+\begin{longtabu}spread 0pt [c]{*{4}{|X[-1]}|}
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Membre   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Git\+Hub   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Numéro Étudiant   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Rôle    }\\\cline{1-4}
+\endfirsthead
+\hline
+\endfoot
+\hline
+\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Membre   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Git\+Hub   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Numéro Étudiant   }&\PBS\centering \cellcolor{\tableheadbgcolor}\textbf{ Rôle    }\\\cline{1-4}
+\endhead
+{\bfseries{Lucie Pan}}   &\href{https://github.com/uciie}{\texttt{ @uciie}}   &45004162   &?    \\\cline{1-4}
+{\bfseries{Paul Beyssac}}   &\href{https://github.com/BPaulz3trei}{\texttt{ @\+BPaulz3trei}}   &42006035   &?    \\\cline{1-4}
+{\bfseries{Manda Dabo}}   &\href{https://github.com/MandaDABO}{\texttt{ @\+Manda\+DABO}}   &42012949   &?    \\\cline{1-4}
+{\bfseries{Sylvain Huang}}   &\href{https://github.com/Kusanagies}{\texttt{ @\+Kusanagies}}   &41005688   &?   \\\cline{1-4}
+\end{longtabu}
+
+
+\DoxyHorRuler{0}
+
+
+\begin{quote}
+Projet universitaire M1 MIAGE 2024-\/2025 — Université Paris Nanterre. \end{quote}
