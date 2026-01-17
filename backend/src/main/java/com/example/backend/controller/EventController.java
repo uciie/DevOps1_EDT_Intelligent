@@ -79,7 +79,7 @@ public class EventController {
      * @return l'événement trouvé
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getEventById(@PathVariable Long id) {
+    public ResponseEntity<Object> getEventById(@PathVariable Long id) {
         try {
             Event event = eventService.getEventById(id);
             return ResponseEntity.ok(event);
@@ -95,7 +95,7 @@ public class EventController {
      * @return l'événement créé avec les temps de trajet calculés
      */
     @PostMapping
-    public ResponseEntity<?> createEvent(@RequestBody EventRequest eventRequest) {
+    public ResponseEntity<Object> createEvent(@RequestBody EventRequest eventRequest) {
         try {
             // 2. Validation de la surcharge (Etudiant 1)
             focusService.validateDayNotOverloaded(eventRequest.getUserId(), eventRequest.getStartTime());
@@ -132,7 +132,7 @@ public class EventController {
      * @return confirmation de suppression
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteEvent(@PathVariable Long id) {
+    public ResponseEntity<Object> deleteEvent(@PathVariable Long id) {
         try {
             eventService.deleteEvent(id);
             return ResponseEntity.ok("Événement supprimé avec succès");
@@ -151,7 +151,7 @@ public class EventController {
      * C'est utile quand l'utilisateur change de préférence (Google Maps vs Simple).
      */
     @PostMapping("/recalculate")
-    public ResponseEntity<?> recalculateTravelTimes(
+    public ResponseEntity<Object> recalculateTravelTimes(
             @RequestParam Long userId,
             @RequestParam Boolean useGoogleMaps) {
         try {

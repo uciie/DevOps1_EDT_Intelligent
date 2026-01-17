@@ -38,7 +38,7 @@ public class TeamController {
 
     // 3. Voir mes équipes (GET /api/teams/user/1)
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Team>> getMyTeams(@PathVariable Long userId) {
+    public ResponseEntity<Set<Team>> getMyTeams(@PathVariable Long userId) {
         return ResponseEntity.ok(teamService.getTeamsByUserId(userId));
     }
 
@@ -50,7 +50,7 @@ public class TeamController {
     // AJOUT : Endpoint pour supprimer un membre
     // DELETE /api/teams/{teamId}/members/{memberId}?requesterId=...
     @DeleteMapping("/{teamId}/members/{memberId}")
-    public ResponseEntity<?> removeMember(
+    public ResponseEntity<Object> removeMember(
             @PathVariable Long teamId,
             @PathVariable Long memberId,
             @RequestParam Long requesterId) { // On passe l'ID de celui qui fait la demande
@@ -65,7 +65,7 @@ public class TeamController {
         }
     }
     @DeleteMapping("/{teamId}")
-    public ResponseEntity<?> deleteTeam(
+    public ResponseEntity<Object> deleteTeam(
             @PathVariable Long teamId,
             @RequestParam Long requesterId) {
         try {
@@ -97,7 +97,7 @@ public class TeamController {
     }
 
     @PostMapping("/invitations/{invitationId}/respond")
-    public ResponseEntity<?> respond(@PathVariable Long invitationId, @RequestParam boolean accept) {
+    public ResponseEntity<Object> respond(@PathVariable Long invitationId, @RequestParam boolean accept) {
         teamService.respondToInvitation(invitationId, accept);
         return ResponseEntity.ok().build();
     }

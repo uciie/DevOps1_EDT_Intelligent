@@ -121,7 +121,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Team> getTeamsByUserId(Long userId) {
+    public Set<Team> getTeamsByUserId(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("Utilisateur introuvable"));
         return user.getTeams(); 

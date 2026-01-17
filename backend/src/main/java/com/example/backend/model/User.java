@@ -2,6 +2,8 @@ package com.example.backend.model;
 
 import jakarta.persistence.*;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,7 +35,7 @@ public class User {
 
     @ManyToMany(mappedBy = "members")
     @JsonIgnore // Important pour éviter les boucles infinies lors de la sérialisation JSON
-    private List<Team> teams;
+    private Set<Team> teams = new HashSet<>();
 
     /**
      * Constructeur par défaut.
@@ -87,6 +89,6 @@ public class User {
     public void setTasks(List<Task> tasks) { this.tasks = tasks; }
 
     // Ajoutez les getters/setters pour teams
-    public List<Team> getTeams() { return teams; }
-    public void setTeams(List<Team> teams) { this.teams = teams; }
+    public Set<Team> getTeams() { return teams; }
+    public void setTeams(Set<Team> teams) { this.teams = teams; }
 }

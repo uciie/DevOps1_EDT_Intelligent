@@ -26,7 +26,7 @@ public interface TeamService {
     List<TeamInvitation> getPendingInvitations(Long userId);
 
     // Récupérer les équipes d'un utilisateur
-    List<Team> getTeamsByUserId(Long userId);
+    Set<Team> getTeamsByUserId(Long userId);
 
     // Récupérer les membres d'une équipe
     Set<User> getTeamMembers(Long teamId);
