@@ -60,7 +60,7 @@ public class TaskController {
     }
 
     @PostMapping("/{taskId}/planify")
-    public ResponseEntity<?> planifyTask(
+    public ResponseEntity<Object> planifyTask(
         @PathVariable Long taskId,
         @RequestParam(required = false) LocalDateTime start, 
         @RequestParam(required = false) LocalDateTime end

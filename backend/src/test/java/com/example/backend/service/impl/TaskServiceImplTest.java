@@ -15,10 +15,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Collections;
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,7 +58,7 @@ class TaskServiceImplTest {
         task = new Task("Test Task", 60, 1, false, user, (LocalDateTime) null); 
         
         task.setId(100L);
-        user.setTeams(new ArrayList<>());
+        user.setTeams(new HashSet<>());
     }
 
     @Test
@@ -98,7 +98,7 @@ class TaskServiceImplTest {
         // 1. Préparation explicite des données (Given)
         User user = new User();
         user.setId(1L);
-        user.setTeams(new ArrayList<>());
+        user.setTeams(new HashSet<>());
         
         Task taskToCreate = new Task();
         taskToCreate.setTitle("Test Task");

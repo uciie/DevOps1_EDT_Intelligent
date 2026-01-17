@@ -553,10 +553,10 @@ class GoogleMapsTravelTimeCalculatorIntegrationTest {
             System.out.println("Adresse: " + timeAddr + " min");
             System.out.println("Différence: " + Math.abs(timeGPS - timeAddr) + " min");
 
-            // Les deux méthodes devraient donner des résultats similaires (±20%)
+            // Les deux méthodes devraient donner des résultats similaires (+-50%)
             double ratio = (double) Math.max(timeGPS, timeAddr) / Math.min(timeGPS, timeAddr);
-            /*assertTrue(ratio <= 1.3, 
-                "GPS et Adresse devraient donner des résultats similaires. Ratio: " + ratio);   */
+            assertTrue(ratio <= 1.5, 
+                "GPS et Adresse devraient donner des résultats similaires. Ratio: " + ratio);
         }
     }
 

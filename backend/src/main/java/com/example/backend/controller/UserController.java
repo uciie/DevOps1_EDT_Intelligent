@@ -20,6 +20,9 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+    private final String username = "username";
+    private final String password = "password";
+    private final String id = "id";
 
     /**
      * Construit un nouveau UserController avec le service utilisateur donné.
@@ -38,9 +41,9 @@ public class UserController {
      * @return ResponseEntity avec l'utilisateur ou une erreur
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> credentials) {
-        String username = credentials.get("username");
-        String password = credentials.get("password");
+    public ResponseEntity<Object> login(@RequestBody Map<String, String> credentials) {
+        String username = credentials.get(this.username);
+        String password = credentials.get(this.password);
 
         // Validation
         if (username == null || username.trim().isEmpty()) {
@@ -66,8 +69,8 @@ public class UserController {
 
         // Succès: retourner l'utilisateur SANS le mot de passe
         Map<String, Object> response = new HashMap<>();
-        response.put("id", user.getId());
-        response.put("username", user.getUsername());
+        response.put(this.id, user.getId());
+        response.put(this.username, user.getUsername());
 
         return ResponseEntity.ok(response);
     }
@@ -79,14 +82,14 @@ public class UserController {
      * @return une ResponseEntity contenant l'utilisateur nouvellement créé ou une erreur si l'enregistrement échoue.
      */
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
+    public ResponseEntity<Object> register(@RequestBody User user) {
         try {
             User newUser = userService.registerUser(user.getUsername(), user.getPassword());
             
             // Retourner sans le mot de passe
             Map<String, Object> response = new HashMap<>();
-            response.put("id", newUser.getId());
-            response.put("username", newUser.getUsername());
+            response.put(this.id, newUser.getId());
+            response.put(this.username, newUser.getUsername());
             
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (RuntimeException e) {
@@ -107,8 +110,8 @@ public class UserController {
         List<Map<String, Object>> simpleUsers = users.stream()
             .map(user -> {
                 Map<String, Object> userMap = new HashMap<>();
-                userMap.put("id", user.getId());
-                userMap.put("username", user.getUsername());
+                userMap.put(this.id, user.getId());
+                userMap.put(this.username, user.getUsername());
                 // On n'ajoute PAS events ni tasks ici
                 return userMap;
             })
@@ -124,7 +127,7 @@ public class UserController {
      * @return une ResponseEntity contenant l'utilisateur ou une erreur si l'utilisateur n'est pas trouvé.
      */    
     @GetMapping("/username/{username}")
-    public ResponseEntity<User> getByUsername(@PathVariable String username) {
+    public ResponseEntity<Object> getByUsername(@PathVariable String username) {
         User user = userService.getUserByUsername(username);
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
