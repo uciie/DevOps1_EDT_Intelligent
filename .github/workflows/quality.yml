@@ -2,9 +2,16 @@ name: CI - Qualité (SonarCloud)
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" , "hotfix/yml" ]
+    paths:
+      - 'backend/src/main/**'
+      - 'frontend/src/**'
+
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'backend/src/main/**'
+      - 'frontend/src/**'
 
 jobs:
   sonar:
