@@ -258,9 +258,7 @@ function SchedulePage() {
       const taskToUpdate = {
         ...task,
         title: editData.title,
-        estimatedDuration: editData.durationMinutes, 
-        duration: editData.durationMinutes,       
-        durationMinutes: editData.durationMinutes,
+        estimatedDuration: editData.estimatedDuration,
         priority: editData.priority
       };
       const savedTask = await updateTask(taskId, taskToUpdate);
@@ -271,7 +269,7 @@ function SchedulePage() {
           if (relatedEvent) {
             const startTime = new Date(task.scheduledTime);
             const endTime = new Date(startTime);
-            endTime.setMinutes(endTime.getMinutes() + editData.durationMinutes);
+            endTime.setMinutes(endTime.getMinutes() + editData.estimatedDuration);
             const updatedEvent = {
               ...relatedEvent,
               title: editData.title,
@@ -412,7 +410,7 @@ function SchedulePage() {
       const startTime = new Date(newDay);
       startTime.setHours(newHour, 0, 0, 0);
       const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + (task.durationMinutes || 60));
+      endTime.setMinutes(endTime.getMinutes() + (task.estimatedDuration || 60));
 
       const updatedEvent = {
         ...event,

@@ -24,14 +24,14 @@ function DraggableTask({
 }) {
   const [editData, setEditData] = useState({
     title: task.title,
-    durationMinutes: task.durationMinutes || task.duration || 30,
+    estimatedDuration: task.estimatedDuration || task.duration || 30,
     priority: task.priority || 2
   });
 
   useEffect(() => {
     setEditData({
       title: task.title,
-      durationMinutes: task.durationMinutes || task.duration || 30,
+      estimatedDuration: task.estimatedDuration || task.duration || 30,
       priority: task.priority || 2
     });
   }, [task]);
@@ -76,7 +76,7 @@ function DraggableTask({
   const handleCancel = () => {
     setEditData({
       title: task.title,
-      durationMinutes: task.durationMinutes || task.duration || 30,
+      estimatedDuration: task.estimatedDuration || task.duration || 30,
       priority: task.priority || 2
     });
     onCancelEdit();
@@ -102,8 +102,8 @@ function DraggableTask({
                 min="5"
                 max="480"
                 step="5"
-                value={editData.durationMinutes}
-                onChange={(e) => setEditData({ ...editData, durationMinutes: parseInt(e.target.value) })}
+                value={editData.estimatedDuration}
+                onChange={(e) => setEditData({ ...editData, estimatedDuration: parseInt(e.target.value) })}
               />
             </label>
             <label>
@@ -148,7 +148,7 @@ function DraggableTask({
         <div className="task-info">
           <span className="task-title">{task.title}</span>
           <div className="task-meta">
-              <span className="task-duration">{task.durationMinutes || task.duration} min</span>
+              <span className="task-duration">{task.estimatedDuration || task.duration} min</span>
               {showAssignee && assigneeName && (
                   <span className={`assignee-badge ${isAssignedToOther ? 'other' : 'me'}`}>
                       {isAssignedToOther ? `👤 ${assigneeName}` : '👤 Moi'}
@@ -189,7 +189,7 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
 
   const [newTask, setNewTask] = useState({
     title: '',
-    durationMinutes: 30,
+    estimatedDuration: 30,
     priority: 2,
     team: contextTeam ? contextTeam.id : null,
     assigneeId: '' // Initialisé à vide
@@ -295,8 +295,8 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
       const taskToSave = {
         title: newTask.title,
         priority: newTask.priority,
-        // Correction 1 : On mappe durationMinutes vers duration
-        duration: newTask.durationMinutes,
+        // Correction 1 : On mappe estimatedDuration vers duration
+        estimatedDuration: newTask.estimatedDuration,
         done: false
       };
 
@@ -320,7 +320,7 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
   };
 
   const handleCancel = () => {
-    setNewTask({ title: '', durationMinutes: 30, priority: 2, assigneeId: '' });
+    setNewTask({ title: '', estimatedDuration: 30, priority: 2, assigneeId: '' });
     setShowForm(false);
   };
 
@@ -376,7 +376,7 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
           />
           <div className="form-row">
             <label>Durée (min)
-              <input type="number" value={newTask.durationMinutes} onChange={(e) => setNewTask({ ...newTask, durationMinutes: parseInt(e.target.value) })} />
+              <input type="number" value={newTask.estimatedDuration} onChange={(e) => setNewTask({ ...newTask, estimatedDuration: parseInt(e.target.value) })} />
             </label>
             <label>Priorité
               <select value={newTask.priority} onChange={(e) => setNewTask({ ...newTask, priority: parseInt(e.target.value) })}>
