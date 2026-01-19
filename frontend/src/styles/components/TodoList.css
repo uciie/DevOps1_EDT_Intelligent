@@ -210,7 +210,7 @@
 }
 
 /* Priorités */
-.task-item.priority-1 {
+.task-item.priority-3 {
   border-left: 4px solid #4caf50;
 }
 
@@ -218,7 +218,7 @@
   border-left: 4px solid #ff9800;
 }
 
-.task-item.priority-3 {
+.task-item.priority-1 {
   border-left: 4px solid #f44336;
 }
 
