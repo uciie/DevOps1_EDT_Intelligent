@@ -28,12 +28,11 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick
   }), [day, hour, isReadOnly]);
 
   const cellEvents = events.filter(event => {
-    if (!event.day) return false;
-    const eventDate = new Date(event.day);
-    return (
-      eventDate.toDateString() === day.toDateString() &&
-      event.hour === hour
-    );
+    const eventDate = new Date(event.startTime);
+    return eventDate.getDate() === day.getDate() && 
+           eventDate.getMonth() === day.getMonth() &&
+           eventDate.getFullYear() === day.getFullYear() &&
+           eventDate.getHours() === hour;
   });
 
   // --- FONCTION DE SÉCURITÉ MISE À JOUR ---
@@ -64,37 +63,46 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick
           +
         </button>
       )}
-      {cellEvents.map((event) => (
-        <div 
-          key={event.id} 
-          className="calendar-event"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!isReadOnly) onEditEvent(event);
-          }}
-        >
-          <div className="event-summary">{event.summary}</div>
-          <div className="event-time">
-            {event.startTime?.substring(11, 16)} - {event.endTime?.substring(11, 16)}
-          </div>
-          {renderLocation(event.location) && (
-            <div className="event-location">📍 {renderLocation(event.location)}</div>
-          )}
-          {!isReadOnly && (
-            <button
-              className="delete-event-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteEvent(event.id);
+      {cellEvents.map((event) => {
+        const start = new Date(event.startTime);
+        const end = new Date(event.endTime);
+        const durationHours = Math.max(1, (end - start) / (1000 * 60 * 60));
+        return (
+          <div 
+            key={event.id} 
+            className="calendar-event"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isReadOnly) onEditEvent(event);
+            }}
+            style={{ 
+                height: `calc(${durationHours} * 100% + ${Math.max(0, durationHours - 1)} * 1px)`,
+                zIndex: 10 
               }}
-              title="Supprimer l'événement"
-            >
-              ×
-            </button>
-          )}
-          
-        </div>
-      ))}
+            
+          >
+            <div className="event-summary">{event.summary}</div>
+            <div className="event-time">
+              {event.startTime?.substring(11, 16)} - {event.endTime?.substring(11, 16)}
+            </div>
+            {renderLocation(event.location) && (
+              <div className="event-location">📍 {renderLocation(event.location)}</div>
+            )}
+            {!isReadOnly && (
+              <button
+                className="delete-event-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteEvent(event.id);
+                }}
+                title="Supprimer l'événement"
+              >
+                ×
+              </button>
+            )}
+          </div>
+        )
+      })}
     </div>
   );
 }

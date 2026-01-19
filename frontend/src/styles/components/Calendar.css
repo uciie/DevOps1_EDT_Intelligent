@@ -143,7 +143,7 @@
 
 .calendar-cell {
   background: white;
-  min-height: 60px;
+  height: 80px;
   position: relative;
   transition: all var(--transition-fast);
   /* Permet aux événements de déborder sur les heures suivantes */
@@ -151,6 +151,7 @@
   padding: 0 !important;
   border-right: 1px solid var(--neutral-200);
   border-bottom: 1px solid var(--neutral-200);
+  box-sizing: border-box;
 }
 
 .calendar-cell.drop-target {
