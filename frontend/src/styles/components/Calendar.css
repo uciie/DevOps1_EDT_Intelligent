@@ -186,51 +186,37 @@
 
 /* --- STYLE BLOC PLEIN (EVENTS) --- */
 
-.calendar-event-block {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%; /* Prend toute la largeur */
-  
-  /* Style visuel de base */
-  padding: 4px 6px;
+
+/* --- STYLE BLOC AVEC BARRE LATÉRALE --- */
+
+.calendar-event {
+  padding: 4px 8px;
   border-radius: 4px;
-  color: white;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  font-size: 0.8rem;
+  margin-bottom: 2px;
   cursor: pointer;
-  
-  /* Mise en page interne */
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   gap: 2px;
-  box-sizing: border-box;
-  overflow: hidden;
-  
-  /* Transitions et Superposition */
-  transition: transform 0.1s ease, box-shadow 0.1s;
-  z-index: 50; /* Valeur par défaut déplacée ici */
-  
-  /* Séparation visuelle fine */
-  border-bottom: 1px solid rgba(255,255,255,0.3);
-}
 
-/* --- STYLE BLOC AVEC BARRE LATÉRALE --- */
-
-.calendar-event-block {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+  
+  /* --- CORRECTION TAILLE ET DÉBORDEMENT --- */
+  min-height: 45px; /* Hauteur minimale pour assurer la lisibilité */
+  width: calc(100% - 4px); /* S'adapte à la largeur de la cellule */
+  overflow: hidden; /* Empêche le texte de dépasser */
+  position: relative;
   
   /* Style visuel : Fond clair et bordure gauche */
-  background-color: #EFF6FF; /* Fond bleu très clair */
+  background-color: #047de7; /* Fond bleu très clair */
   border-left: 4px solid;    /* La couleur sera définie dans le JS */
   border-radius: 4px;
   
   /* Padding et espacement */
   padding: 4px 8px;
   box-sizing: border-box;
+  color: white;
   
   /* Ombre et curseur */
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
@@ -251,11 +237,11 @@
   border-bottom: 1px solid white;
 }
 
-.calendar-event-block:hover {
+.calendar-event:hover {
   transform: scale(1.01); /* Léger effet au survol */
   z-index: 100 !important;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  background-color: #DBEAFE; /* Fond légèrement plus foncé au survol */
+  background-color: #10478a; /* Fond légèrement plus foncé au survol */
 }
 
 /* Couleurs de texte sombres pour le fond clair */
@@ -283,7 +269,7 @@
 }
 
 /* Bouton supprimer adapté au fond clair */
-.btn-delete-event-block {
+.delete-event-btn {
   position: absolute;
   top: 4px;
   right: 4px;
@@ -292,7 +278,7 @@
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  color: #9CA3AF; /* Icône grise */
+  color: #f95e60; /* Icône grise */
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -302,11 +288,42 @@
   transition: all 0.2s;
 }
 
-.calendar-event-block:hover .btn-delete-event-block {
+.calendar-event:hover .delete-event-btn {
   opacity: 1;
 }
 
-.btn-delete-event-block:hover {
+.delete-event-btn:hover {
   background: #E5E7EB; /* Fond gris au survol du bouton */
   color: #EF4444; /* Icône rouge au survol */
+}
+
+.calendar-cell .add-event-btn {
+  display: none; /* Masqué par défaut */
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--primary-500);
+  color: white;
+  border: none;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  z-index: 10;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+/* Apparition au survol de la cellule */
+.calendar-cell:hover .add-event-btn {
+  display: flex;
+}
+
+.calendar-cell .add-event-btn:hover {
+  background: var(--primary-600);
+  transform: scale(1.1);
 }

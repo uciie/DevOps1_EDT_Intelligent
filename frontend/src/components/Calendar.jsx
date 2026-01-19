@@ -54,8 +54,16 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick
     <div
       ref={drop}
       className={`calendar-cell ${isOver ? 'drag-over' : ''} ${isReadOnly ? 'readonly-cell' : ''}`}
-      onClick={() => !isReadOnly && onAddClick(day, hour)}
     >
+      {!isReadOnly && (
+        <button 
+          className="add-event-btn" 
+          onClick={() => onAddClick(day, hour)}
+          title="Ajouter un événement"
+        >
+          +
+        </button>
+      )}
       {cellEvents.map((event) => (
         <div 
           key={event.id} 
@@ -79,10 +87,12 @@ function CalendarCell({ day, hour, events, onDropTask, onDeleteEvent, onAddClick
                 e.stopPropagation();
                 onDeleteEvent(event.id);
               }}
+              title="Supprimer l'événement"
             >
               ×
             </button>
           )}
+          
         </div>
       ))}
     </div>
