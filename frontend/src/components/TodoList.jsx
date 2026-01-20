@@ -385,10 +385,12 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
                 <option value="1">🔴 Haute</option>
               </select>
             </label>
-            
-            {/* Ajout du champ d'assignation si on est dans une équipe */}
-            {contextTeam && contextTeam.members && (
-              <label>Assigner à
+          </div>
+          
+          {/* Ajout du champ d'assignation si on est dans une équipe */}
+          {contextTeam && contextTeam.members && (
+            <div className="form-row">
+              <label className="assignee-label-full">Assigner à 
                 <select 
                   value={newTask.assigneeId} 
                   onChange={(e) => setNewTask({ ...newTask, team: contextTeam.id, assigneeId: e.target.value })}
@@ -402,8 +404,8 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
                   ))}
                 </select>
               </label>
-            )}
-          </div>
+            </div>
+          )}
           
           <div className="form-actions">
             <button type="submit" className="btn-submit">Ajouter</button>
