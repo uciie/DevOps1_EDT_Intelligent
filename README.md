@@ -210,4 +210,8 @@ npm run dev
 
 -----
 
+## 🏷️ Kanban
+[Kanban](https://trello.com/invite/b/696e35985f2da4aedf80f810/ATTIfd33f201485e160c93be5212ebf775a6130CAEEF/devopsprof)
+
 > Projet universitaire M1 MIAGE 2024-2025 — Université Paris Nanterre.
+
