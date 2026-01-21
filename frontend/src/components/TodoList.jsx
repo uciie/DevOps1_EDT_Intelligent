@@ -50,7 +50,7 @@ function DraggableTask({
   const canModify = (() => {
     if (!currentUser) return false;
     // 1. L'utilisateur est le créateur de la tâche
-    if (task.user_id === currentUser.id) return true;
+    if (task.userId === currentUser.id) return true;
     // 2. L'utilisateur est assigné à la tâche
     if (task.assignee && task.assignee.id === currentUser.id) return true;
     // Sinon, pas de droits

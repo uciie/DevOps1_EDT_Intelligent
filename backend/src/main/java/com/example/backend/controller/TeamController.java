@@ -48,15 +48,15 @@ public class TeamController {
         return ResponseEntity.ok(teamService.getTeamMembers(teamId));
     }
     // AJOUT : Endpoint pour supprimer un membre
-    // DELETE /api/teams/{teamId}/members/{memberId}?requesterId=...
+    // DELETE /api/teams/{teamId}/members/{memberId}?ownerId=...
     @DeleteMapping("/{teamId}/members/{memberId}")
     public ResponseEntity<Object> removeMember(
             @PathVariable Long teamId,
             @PathVariable Long memberId,
-            @RequestParam Long requesterId) { // On passe l'ID de celui qui fait la demande
+            @RequestParam Long ownerId) { // On passe l'ID de celui qui fait la demande
         
         try {
-            teamService.removeMember(teamId, memberId, requesterId);
+            teamService.removeMember(teamId, memberId, ownerId);
             return ResponseEntity.ok().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(e.getMessage());
@@ -67,9 +67,9 @@ public class TeamController {
     @DeleteMapping("/{teamId}")
     public ResponseEntity<Object> deleteTeam(
             @PathVariable Long teamId,
-            @RequestParam Long requesterId) {
+            @RequestParam Long ownerId) {
         try {
-            teamService.deleteTeam(teamId, requesterId);
+            teamService.deleteTeam(teamId, ownerId);
             return ResponseEntity.ok().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(403).body(e.getMessage());
