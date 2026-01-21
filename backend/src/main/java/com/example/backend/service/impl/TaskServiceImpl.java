@@ -189,6 +189,14 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.save(existing);
     }
 
+    /**
+     * supprime une tâche si l'utilisateur est le créateur ou l'assigné
+     * supprime également l'événement associé
+     * @param id l'id de la tâche à supprimer
+     * @param userId l'id de l'utilisateur demandant la suppression
+     * @throws IllegalArgumentException si la tâche n'existe pas
+     * @throws SecurityException si l'utilisateur n'a pas les droits de suppression
+     */
     @Override
     public void deleteTask(Long id, Long userId) {
         Task existing = taskRepository.findById(id)
@@ -198,6 +206,7 @@ public class TaskServiceImpl implements TaskService {
         if (!isCreator && !isAssignee) {
             throw new SecurityException("Vous n'avez pas les droits pour supprimer cette tâche.");
         }   
+        eventRepository.deleteById(existing.getEvent().getId());
         taskRepository.deleteById(id);
     }
 

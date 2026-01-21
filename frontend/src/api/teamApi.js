@@ -36,7 +36,7 @@ export const removeMemberFromTeam = async (teamId, memberId, requesterId) => {
 // AJOUT : Supprimer une équipe
 export const deleteTeam = async (teamId, requesterId) => {
   const response = await api.delete(`/teams/${teamId}`, {
-    params: { requesterId }
+    params: { ownerId: requesterId } // On passe l'ID du propriétaire en paramètre
   });
   return response.data;
 };
