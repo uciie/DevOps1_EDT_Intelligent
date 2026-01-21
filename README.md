@@ -24,14 +24,18 @@
     - [Prérequis Système](#prérequis-système)
     - [☕ Backend (Java / Spring Boot)](#-backend-java--spring-boot)
     - [Frontend (React / Vite)](#frontend-react--vite)
-  - [🧩 Installation et configuration](#-installation-et-configuration)
-    - [1 Cloner le projet](#1-cloner-le-projet)
-    - [2 Configuration Backend](#2-configuration-backend)
-    - [3 Configuration Frontend](#3-configuration-frontend)
-    - [4 Comment Obtenir les configurations du fichier .env](#4-comment-obtenir-les-configurations-du-fichier-env)
-  - [Lancement](#lancement)
-    - [Backend (API)](#backend-api)
-    - [Frontend (Interface)](#frontend-interface)
+  - [Installation des Prérequis Système](#installation-des-prérequis-système)
+    - [1. Java 21 (JDK)](#1-java-21-jdk)
+    - [2. Node.js 22 \& NPM](#2-nodejs-22--npm)
+    - [3. PostgreSQL](#3-postgresql)
+  - [Configuration étape par étape](#configuration-étape-par-étape)
+    - [1. Clonage et structure](#1-clonage-et-structure)
+    - [2. Configuration du Backend (Java)](#2-configuration-du-backend-java)
+    - [3. Configuration du Frontend (React + Vite)](#3-configuration-du-frontend-react--vite)
+    - [4. Comment Obtenir les configurations du fichier .env](#4-comment-obtenir-les-configurations-du-fichier-env)
+  - [Lancement des serveurs en parallèle sur deux terminals](#lancement-des-serveurs-en-parallèle-sur-deux-terminals)
+    - [Backend](#backend)
+    - [Frontend](#frontend)
   - [👥 Équipe](#-équipe)
 
 ---
@@ -129,53 +133,99 @@ Le frontend est une SPA (Single Page Application) développée avec **React 19**
 
 ---
 
-## 🧩 Installation et configuration
+## Installation des Prérequis Système
 
-### 1 Cloner le projet
+Avant de configurer le projet, vous devez installer les environnements d'exécution sur votre machine.
+
+### 1. Java 21 (JDK)
+
+Le backend utilise **Spring Boot 3.5.6**, qui nécessite Java 21.
+
+* **Installation :** Téléchargez le JDK 21 (via [Oracle](https://www.oracle.com/java/technologies/downloads/) ou [Adoptium](https://adoptium.net/)).
+* **Vérification :** Ouvrez un terminal et tapez :
 ```bash
-git clone [https://github.com/uciie/DevOps1_EDT_Intelligent.git](https://github.com/uciie/DevOps1_EDT_Intelligent.git)
+java -version
+```
+
+
+* **Gradle :** Notez que vous n'avez pas besoin d'installer Gradle manuellement. Le projet inclut un "Gradle Wrapper" (`gradlew`), qui télécharge automatiquement la version correcte de Gradle lors de la première exécution.
+
+### 2. Node.js 22 & NPM
+
+Le frontend nécessite Node.js pour gérer les dépendances et le serveur de développement Vite.
+
+* **Installation :** Téléchargez la version LTS (ou v22) sur [nodejs.org](https://nodejs.org/).
+* **Vérification :**
+```bash
+node -v
+npm -v
+```
+
+
+
+### 3. PostgreSQL
+
+Bien que le projet utilise la base de données cloud **Neon.tech** par défaut, vous devez avoir accès à un client PostgreSQL ou au moins posséder un compte Neon pour obtenir vos identifiants.
+
+---
+
+## Configuration étape par étape
+
+### 1. Clonage et structure
+
+```bash
+git clone https://github.com/uciie/DevOps1_EDT_Intelligent.git
 cd DevOps1_EDT_Intelligent
-````
+```
 
-### 2 Configuration Backend
+### 2. Configuration du Backend (Java)
 
-Ajouter le fichier `.env` dans le dossier `backend` (ne pas le committer \!) :
+Le backend utilise le package `spring-dotenv` pour lire les variables sensibles.
 
+1. Allez dans le dossier `backend`.
+2. Créez un fichier nommé `.env`.
+3. Récupérez vos accès sur **Neon.tech** :
+   * Créez un projet PostgreSQL sur Neon.
+   * Cliquez sur **Connect**, choisissez **Java**, et copiez les informations.
+
+4. Remplissez le fichier `.env` comme suit :
 ```properties
-# .env example
 DB_URL=jdbc:postgresql://<votre-host>/neondb?sslmode=require
 DB_USER=<votre-user>
 DB_PASSWORD=<votre-password>
+# Clé API : contacter l'équipe pour l'accès ou utiliser votre propre clé
+GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
 GOOGLE_MAPS_INTEGRATION_TESTS=true
-# Clé API : contacter l'équipe pour l'accès
-GOOGLE_MAPS_API_KEY=YOUR_KEY_HERE
 SPRING_PROFILES=external-api
 ```
 
-### 3 Configuration Frontend
+### 3. Configuration du Frontend (React + Vite)
 
-Ajouter le fichier `.env` dans le dossier `frontend` (ne pas le committer \!) :
+Vite utilise des variables d'environnement préfixées par `VITE_` pour des raisons de sécurité.
 
+1. Allez dans le dossier `frontend`.
+2. Créez un fichier nommé `.env`.
+3. Ajoutez la clé API Google Maps (nécessaire pour le composant de carte) :
 ```properties
-# .env example
-VITE_GOOGLE_MAPS_API_KEY=YOUR_KEY_HERE # le même que celui du backend
+VITE_GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE # le même que celui du backend
 ```
 
------
-### 4 Comment Obtenir les configurations du fichier .env
+### 4. Comment Obtenir les configurations du fichier .env
+`DB_URL`, `DB_USER`, `DB_PASSWORD` On l'obtient en allant sur le site de Neon (Neon.tech), on se connecte avec son compte Neon (Ou on créer) créer un nouveau projet, en haut à droite appuyer sur le bouton connect, on change ensuite le langage en java, et on obtient une ligne de texte qui contient l'URL, l'user, et le password
 
-DB_URL, DB_USER, DB_PASSWORD
-On l'obtient en allant sur le site de Neon (Neon.tech), on se connecte avec son compte Neon (Ou on créer)
-créer un nouveau projet, en haut à droite appuyer sur le bouton connect, on change ensuite le langage en java, et on obtient une ligne de texte qui contient l'URL, l'user, et le password
+DB_URL devrait ressembler à : `jdbc:postgresql:///neondb?sslmode=require&channel_binding=require DB_USER` devrait ressembler à : `neondb_owner`
 
-DB_URL devrait ressembler à : jdbc:postgresql://<something>/neondb?sslmode=require&channel_binding=require
-DB_USER devrait ressembler à : neondb_owner
+Pour obtenir l'api de google maps, il faut aller sur google cloud, rechercher `distance matrix api`, cliquer sur `enable`/`activer`, ensuite vérifier votre identité sur le site de google, et voila!
 
-Pour obtenir l'api de google maps, il faut aller sur google cloud, rechercher "distance matrix api", cliquer sur "enable"/"activer", ensuite vérifier votre identité sur le site de google, et voila!
+---
 
-##  Lancement
+## Lancement des serveurs en parallèle sur deux terminals
+Vous êtes au niveau du projet : `/DevOps1_EDT_Intelligent`
+### Backend
 
-### Backend (API)
+Le wrapper Gradle va compiler le code, télécharger les bibliothèques (Spring Boot, Biweekly, etc.) et lancer l'API.
+
+* **Commande :**
 
 ```bash
 cd backend
@@ -185,17 +235,24 @@ cd backend
 gradlew.bat bootRun
 ```
 
- API accessible sur : [http://localhost:8080](https://www.google.com/search?q=http://localhost:8080)
+* L'API sera disponible sur `http://localhost:8080`.
 
-### Frontend (Interface)
+### Frontend
 
+Vite est utilisé pour un rechargement rapide (Hot Module Replacement).
+
+* **Installation des dépendances :**
+À faire une seule fois lors du téléchargement du projet. 
 ```bash
-cd frontend
 npm install
+```
+
+* **Démarrage :**
+```bash
 npm run dev
 ```
 
- Interface accessible sur : [http://localhost:5173](https://www.google.com/search?q=http://localhost:5173)
+* L'interface sera disponible sur `http://localhost:5173`.
 
 -----
 
