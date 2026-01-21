@@ -22,9 +22,9 @@
   - [Outils et Processus DevOps](#outils-et-processus-devops)
   - [Stack Technique et Outils](#stack-technique-et-outils)
     - [Prérequis Système](#prérequis-système)
-    - [☕ Backend (Java / Spring Boot)](#-backend-java--spring-boot)
+    - [Backend (Java / Spring Boot)](#-backend-java--spring-boot)
     - [Frontend (React / Vite)](#frontend-react--vite)
-  - [🧩 Installation et configuration](#-installation-et-configuration)
+  - [Installation et configuration](#-installation-et-configuration)
     - [1 Cloner le projet](#1-cloner-le-projet)
     - [2 Configuration Backend](#2-configuration-backend)
     - [3 Configuration Frontend](#3-configuration-frontend)
@@ -32,7 +32,7 @@
   - [Lancement](#lancement)
     - [Backend (API)](#backend-api)
     - [Frontend (Interface)](#frontend-interface)
-  - [👥 Équipe](#-équipe)
+  - [Équipe](#-équipe)
 
 ---
 
@@ -91,7 +91,7 @@ Cette section détaille les technologies et librairies clés utilisées pour le 
 * **Node.js 22** : Recommandé pour l'exécution du frontend React (utilisé en CI).
 * **PostgreSQL** : Base de données de production.
 
-### ☕ Backend (Java / Spring Boot)
+### Backend (Java / Spring Boot)
 Le backend est construit avec **Spring Boot 3.5.6** et utilise **Gradle** pour l'automatisation.
 
 * **Framework & API :**
@@ -129,7 +129,7 @@ Le frontend est une SPA (Single Page Application) développée avec **React 19**
 
 ---
 
-## 🧩 Installation et configuration
+## Installation et configuration
 
 ### 1 Cloner le projet
 ```bash
@@ -199,7 +199,7 @@ npm run dev
 
 -----
 
-## 👥 Équipe
+## Équipe
 
 | Membre | GitHub | Numéro Étudiant | Rôle |
 |---------|---------|----|----|
@@ -210,8 +210,9 @@ npm run dev
 
 -----
 
-## 🏷️ Kanban
+## Kanban
 [Kanban](https://trello.com/invite/b/696e35985f2da4aedf80f810/ATTIfd33f201485e160c93be5212ebf775a6130CAEEF/devopsprof)
 
 > Projet universitaire M1 MIAGE 2024-2025 — Université Paris Nanterre.
+
 
