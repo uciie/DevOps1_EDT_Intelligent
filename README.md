@@ -22,7 +22,7 @@
   - [Outils et Processus DevOps](#outils-et-processus-devops)
   - [Stack Technique et Outils](#stack-technique-et-outils)
     - [Prérequis Système](#prérequis-système)
-    - [☕ Backend (Java / Spring Boot)](#-backend-java--spring-boot)
+    - [Backend (Java / Spring Boot)](#backend-java--spring-boot)
     - [Frontend (React / Vite)](#frontend-react--vite)
   - [Installation des Prérequis Système](#installation-des-prérequis-système)
     - [1. Java 21 (JDK)](#1-java-21-jdk)
@@ -36,7 +36,8 @@
   - [Lancement des serveurs en parallèle sur deux terminals](#lancement-des-serveurs-en-parallèle-sur-deux-terminals)
     - [Backend](#backend)
     - [Frontend](#frontend)
-  - [👥 Équipe](#-équipe)
+  - [Équipe](#équipe)
+  - [Kanban](#kanban)
 
 ---
 
@@ -95,7 +96,7 @@ Cette section détaille les technologies et librairies clés utilisées pour le 
 * **Node.js 22** : Recommandé pour l'exécution du frontend React (utilisé en CI).
 * **PostgreSQL** : Base de données de production.
 
-### ☕ Backend (Java / Spring Boot)
+### Backend (Java / Spring Boot)
 Le backend est construit avec **Spring Boot 3.5.6** et utilise **Gradle** pour l'automatisation.
 
 * **Framework & API :**
@@ -256,7 +257,7 @@ npm run dev
 
 -----
 
-## 👥 Équipe
+## Équipe
 
 | Membre | GitHub | Numéro Étudiant | Rôle |
 |---------|---------|----|----|
@@ -267,4 +268,9 @@ npm run dev
 
 -----
 
+## Kanban
+[Kanban](https://trello.com/invite/b/696e35985f2da4aedf80f810/ATTIfd33f201485e160c93be5212ebf775a6130CAEEF/devopsprof)
+
 > Projet universitaire M1 MIAGE 2024-2025 — Université Paris Nanterre.
+
+
