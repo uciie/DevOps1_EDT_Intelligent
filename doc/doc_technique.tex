@@ -1,3 +1,4 @@
+\begin{document}
 \documentclass[12pt,a4paper]{report}
 \usepackage[utf8]{inputenc}
 \usepackage[french]{babel}
@@ -5,8 +6,8 @@
 \usepackage{graphicx}
 \usepackage{hyperref}
 \usepackage{listings}
-\usepackage{color}
 \usepackage{geometry}
+\usepackage{color}
 \geometry{margin=2.5cm}
 
 % Configuration pour le code Java
@@ -31,7 +32,80 @@
   tabsize=3
 }
 
+\title{Dossier Technique \& Manuel Utilisateur \\ \Large Projet DevOps - DevOps1\_EDT\_Intelligent}
+\author{Équipe EDT Intelligent \\ Université Paris Nanterre}
+\date{\today}
+
 \begin{document}
+
+\maketitle
+\tableofcontents
+
+\chapter{Introduction}
+Ce document présente l'application \textbf{DevOps1\_EDT\_Intelligent}, un système de gestion d'emploi du temps intelligent. Il détaille l'architecture technique, les processus DevOps mis en place et le guide d'utilisation, en s'appuyant sur les standards de qualité logicielle.
+
+\chapter{Architecture Technique}
+
+\section{Diagramme de Classes UML}
+Le diagramme suivant représente la structure globale du backend de l'application. Il est généré automatiquement à chaque modification du code Java.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{uml/diagram_classes.png}
+    \caption{Diagramme de classes automatique}
+\end{figure}
+
+\section{Technologies Utilisées}
+\begin{itemize}
+    \item \textbf{Backend :} Java avec Spring Boot.
+    \item \textbf{Frontend :} React / Vite.
+    \item \textbf{Build :} Gradle.
+    \item \textbf{CI/CD :} GitHub Actions.
+\end{itemize}
+
+\section{Intégration Continue (CI)}
+Plusieurs workflows GitHub Actions assurent la stabilité du projet:
+\begin{itemize}
+    \item \textbf{Build \& Test :} Compilation et exécution des tests unitaires à chaque push.
+    \item \textbf{Analyse de Qualité :} Utilisation de SonarCloud pour détecter les vulnérabilités.
+    \item \textbf{Couverture de Code :} Génération de rapports Jacoco.
+\end{itemize}
+
+\section{Génération UML Automatique}
+À chaque modification dans \texttt{backend/src/main/java}, un script extrait la structure des classes et met à jour les fichiers \texttt{.puml} et \texttt{.png} dans le dossier \texttt{uml/}.
+
+\chapter{Manuel Utilisateur}
+
+\section{Prérequis et Configuration}
+Avant de procéder à l'installation, assurez-vous que les éléments suivants sont configurés sur votre machine :
+\begin{itemize}
+    \item \textbf{Java Development Kit (JDK) 17 ou supérieur :} Indispensable pour compiler et exécuter le backend Spring Boot.
+    \item \textbf{Node.js (version 18+) et npm :} Requis pour la gestion des dépendances et le lancement du frontend React.
+    \item \textbf{Environnement Git :} Pour cloner le dépôt et gérer les versions.
+    \item \textbf{Docker (optionnel) :} Si vous souhaitez isoler les services ou la base de données.
+    \item \textbf{Variables d'environnement :} Créez un fichier \texttt{.env} dans \texttt{backend/} et \texttt{frontend/} si des clés API (ex: Google Maps) sont nécessaires pour le calcul des temps de trajet. Pour plus de détails, consultez le fichier \texttt{README.md} du projet.
+\end{itemize}
+
+\section{Installation}
+Pour lancer le projet localement:
+\begin{enumerate}
+    \item Cloner le dépôt : \texttt{git clone https://github.com/uciie/DevOps1\_EDT\_Intelligent.git}.
+    \item \textbf{Configuration du Backend :} 
+    \begin{itemize}
+        \item Accédez au dossier : \texttt{cd backend}
+        \item Lancer le serveur : \texttt{./gradlew bootRun}.
+    \end{itemize}
+    \item \textbf{Configuration du Frontend :}
+    \begin{itemize}
+        \item Accédez au dossier : \texttt{cd frontend}
+        \item Installer les dépendances : \texttt{npm install}.
+        \item Lancer l'application : \texttt{npm run dev}.
+    \end{itemize}
+\end{enumerate}
+
+\section{Génération UML Automatique}
+À chaque modification dans \texttt{backend/src/main/java}, un script extrait la structure des classes et met à jour les fichiers \texttt{.puml} et \texttt{.png} dans le dossier \texttt{doc/uml/}.
+
 
 \chapter{Fonctionnalités Détaillées \& Implémentation}
 
