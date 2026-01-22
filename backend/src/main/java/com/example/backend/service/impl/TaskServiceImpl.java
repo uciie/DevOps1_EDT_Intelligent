@@ -202,11 +202,14 @@ public class TaskServiceImpl implements TaskService {
         Task existing = taskRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Tâche non trouvée"));
         boolean isCreator = existing.getUser().getId().equals(userId);
-        boolean isAssignee = existing.getAssignee().getId().equals(userId);
+        boolean isAssignee = existing.getAssignee() != null && existing.getAssignee().getId().equals(userId);
         if (!isCreator && !isAssignee) {
             throw new SecurityException("Vous n'avez pas les droits pour supprimer cette tâche.");
         }   
-        eventRepository.deleteById(existing.getEvent().getId());
+        // Supprimer l'événement associé s'il existe
+        if (existing.getEvent() != null && existing.getEvent().getId() != null) {
+            eventRepository.deleteById(existing.getEvent().getId());
+        }
         taskRepository.deleteById(id);
     }
 
