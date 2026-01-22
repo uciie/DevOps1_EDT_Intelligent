@@ -45,6 +45,8 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
     plantuml 'net.sourceforge.plantuml:plantuml:1.2024.7'
     implementation 'org.postgresql:postgresql'
+    // SDK Google AI Studio pour Gemini
+    implementation 'com.google.genai:google-genai:1.17.0' 
 }
 
 tasks.named('test') {
