@@ -58,14 +58,16 @@ class TeamInvitationRepositoryTest {
     void testFindByTeamId() {
         // Arrange
         User inviter = new User("inviter", "password");
+        entityManager.persistAndFlush(inviter);
         User invited1 = new User("invited1", "password");
         User invited2 = new User("invited2", "password");
         Team team1 = new Team();
         team1.setName("Team 1");
+        team1.setOwnerId(inviter.getId());
         Team team2 = new Team();
         team2.setName("Team 2");
+        team2.setOwnerId(inviter.getId());
         
-        entityManager.persistAndFlush(inviter);
         entityManager.persistAndFlush(invited1);
         entityManager.persistAndFlush(invited2);
         entityManager.persistAndFlush(team1);
@@ -104,13 +106,15 @@ class TeamInvitationRepositoryTest {
     void testFindByInvitedUserIdAndStatus() {
         // Arrange
         User inviter = new User("inviter", "password");
+        entityManager.persistAndFlush(inviter);
         User invited = new User("invited", "password");
         Team team1 = new Team();
         team1.setName("Team 1");
+        team1.setOwnerId(inviter.getId());
         Team team2 = new Team();
         team2.setName("Team 2");
+        team2.setOwnerId(inviter.getId());
         
-        entityManager.persistAndFlush(inviter);
         entityManager.persistAndFlush(invited);
         entityManager.persistAndFlush(team1);
         entityManager.persistAndFlush(team2);
