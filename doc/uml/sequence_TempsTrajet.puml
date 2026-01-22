@@ -1,0 +1,30 @@
+@startuml
+title Séquence : Calcul du Temps de Trajet
+
+participant "TravelTimeService" as TTService
+participant "TravelTimeCalculator" as Calculator
+participant "Event" as Event
+participant "TravelTimeRepository" as TTRepo
+
+[-> TTService : createTravelTime(fromEvent, toEvent, mode)
+activate TTService
+
+TTService -> Event : getLocation() (Origin & Destination)
+alt Localisations présentes
+    TTService -> Calculator : calculateTravelTime(locA, locB, mode)
+    activate Calculator
+    Calculator --> TTService : durationMinutes
+    deactivate Calculator
+
+    TTService -> TTService : travelStartTime = fromEvent.endTime
+    
+    create participant "TravelTime" as TT
+    TTService -> TT : new(from, to, startTime, duration)
+    
+    TTService -> TTRepo : save(travelTime)
+    TTService --> [ : TravelTime créé
+else Localisation manquante
+    TTService --> [ : Throw IllegalArgumentException
+end
+deactivate TTService
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+title Séquence : Cycle de Vie d'une Tâche (CRUD & Attribution)
+
+actor Utilisateur
+participant "TaskController" as Ctrl
+participant "TaskServiceImpl" as Service
+participant "ScheduleOptimizer" as Optimizer
+database "Base de Données" as DB
+
+== Création et Attribution ==
+Utilisateur -> Ctrl : POST /api/tasks (TaskDTO)
+activate Ctrl
+Ctrl -> Service : createTask(dto, creatorId)
+activate Service
+
+Service -> Service : setAssignee(dto.assigneeId || creatorId)
+note right : Règle RM-02 : Assigné par défaut au créateur
+
+Service -> DB : save(Task)
+Service --> Ctrl : Task créée
+deactivate Service
+Ctrl -> Optimizer : reshuffle(userId)
+note right : La nouvelle tâche est immédiatement\nplacée dans un créneau libre.
+Ctrl --> Utilisateur : 201 Created
+deactivate Ctrl
+
+== Modification ==
+Utilisateur -> Ctrl : PUT /api/tasks/{id} (New Data)
+activate Ctrl
+Ctrl -> Service : updateTask(id, newData)
+Service -> DB : update(Task)
+Service --> Ctrl : Updated Task
+Ctrl -> Optimizer : reshuffle(userId)
+note right : Recalcul si la durée ou\nla priorité a changé.
+Ctrl --> Utilisateur : 200 OK
+deactivate Ctrl
+
+== Suppression ==
+Utilisateur -> Ctrl : DELETE /api/tasks/{id}
+activate Ctrl
+Ctrl -> Service : deleteTask(id)
+activate Service
+Service -> DB : findEventByTaskId(id)
+Service -> DB : delete(Associated Event)
+Service -> DB : delete(Task)
+Service --> Ctrl : Success
+deactivate Service
+Ctrl --> Utilisateur : 204 No Content
+deactivate Ctrl
+
+@enduml

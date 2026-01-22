@@ -1,0 +1,211 @@
+\documentclass[12pt,a4paper]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+% Configuration pour le code Java
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\begin{document}
+
+\chapter{Fonctionnalités Détaillées \& Implémentation}
+
+%================================================================================
+
+\section{Gestion des Tâches : Attribution, Modification et Suppression}
+Le système permet une gestion granulaire des tâches, qu'elles soient individuelles ou au sein d'une équipe.
+
+\subsection{Règles Métier et Synchronisation du Code}
+\begin{itemize}
+    \item \textbf{Attribution (RM-02/04) :} Par défaut, le créateur est l'assigné. Dans une équipe, une tâche peut être déléguée à un autre membre.
+    \item \textbf{Modification :} Toute modification (durée, priorité) déclenche potentiellement un recalcul de l'emploi du temps via l'optimiseur.
+    \item \textbf{Suppression :} La suppression d'une tâche entraîne le nettoyage automatique de l'événement associé dans l'agenda.
+\end{itemize}
+
+% EXTRACTION DIRECTE DU CODE SOURCE (Synchronisé)
+\lstinputlisting[language=Java, firstline=40, lastline=90, caption=Logique de gestion des tâches (Service)]{backend/src/main/java/com/example/backend/service/impl/TaskServiceImpl.java}
+
+\subsection{Capture d'écran : Liste des tâches}
+\begin{figure}[h]
+    \centering
+    \vspace{8cm} % ESPACE RÉSERVÉ POUR LA CAPTURE D'ÉCRAN
+    \caption{Interface de gestion et d'assignation des tâches}
+\end{figure}
+
+\subsection{Diagramme de séquence : Cycle de vie d'une tâche}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{uml/sequence_task_lifecycle.png}
+    \caption{Séquence de création, attribution et suppression de tâche}
+\end{figure}
+
+%================================================================================
+\section{Optimisation de l'Emploi du Temps}
+Cette fonctionnalité permet de planifier des sessions de travail intelligentes.
+
+\subsection{Algorithme de sélection des tâches}
+Voici l'implémentation de la stratégie de sélection des tâches utilisée par l'optimiseur :
+
+% SYNCHRONISATION AUTOMATIQUE : pointe vers votre fichier réel
+\lstinputlisting[language=Java, caption=Stratégie de sélection par défaut]{backend/src/main/java/com/example/backend/service/strategy/DefaultTaskSelectionStrategy.java}
+
+\subsection{Capture d'écran de l'interface d'optimisation}
+\begin{figure}[h]
+    \centering
+    \vspace{8cm} % ESPACE RÉSERVÉ POUR LA CAPTURE D'ÉCRAN
+    \caption{Interface de l'emploi du temps optimisé}
+\end{figure}
+
+\subsection{Diagramme de séquence : Optimisation}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{uml/sequence_ScheduleOptimizer.png}
+    \caption{Séquence de calcul d'un emploi du temps intelligent}
+\end{figure}
+
+%================================================================================
+
+\section{Localisation et Temps de Trajet}
+\subsection{Calculateur de trajet}
+Le code suivant montre comment le système interagit avec les coordonnées géographiques :
+
+\lstinputlisting[language=Java, firstline=10, lastline=40, caption=Calcul des temps de trajet]{backend/src/main/java/com/example/backend/service/impl/SimpleTravelTimeCalculator.java}
+
+\subsection{Diagramme de séquence : Calcul des trajets}
+\begin{figure}[h]
+    \centering
+    % L'image sera générée par le workflow à partir du .puml
+    \includegraphics[width=0.9\textwidth]{uml/sequence_TempsTrajet.png}
+    \caption{Processus de calcul des temps de trajet entre événements}
+\end{figure}
+
+\subsection{Capture d'écran du module de transport}
+\begin{figure}[h]
+    \centering
+    \vspace{8cm} % ESPACE RÉSERVÉ POUR LA CAPTURE D'ÉCRAN
+    \caption{Visualisation des temps de trajet entre deux cours}
+\end{figure}
+
+%================================================================================
+
+\section{Analyse d'Activité et Agrégation}
+Cette fonctionnalité permet de fusionner les données planifiées et réelles pour offrir une vue analytique à l'utilisateur.
+
+\subsection{Règles d'Agrégation}
+Le système applique une logique de fusion stricte :
+\begin{itemize}
+    \item \textbf{Dualité :} Fusion des \texttt{ActivityLogs} (réel) et des \texttt{Events} (planifié).
+    \item \textbf{Robustesse :} Exclusion automatique des sessions sans date de fin pour ne pas fausser les moyennes.
+    \item \textbf{Confidentialité :} Les données sont filtrées par \texttt{userId} ; même au sein d'une équipe, les statistiques de productivité restent privées.
+\end{itemize}
+
+\subsection{Implémentation du Service}
+Le code suivant illustre la récupération et le filtrage des logs :
+% SYNCHRONISATION AUTOMATIQUE
+\lstinputlisting[language=Java, firstline=25, lastline=60, caption=Logique d'agrégation des statistiques]{backend/src/main/java/com/example/backend/service/ActivityLogService.java}
+
+\subsection{Diagramme de séquence : Analytics}
+\begin{figure}[h]
+    \centering
+    % L'image sera générée par le workflow à partir du .puml
+    \includegraphics[width=0.9\textwidth]{uml/sequence_ActivityAnalytics.png}
+    \caption{Processus de fusion et calcul des statistiques d'activité}
+\end{figure}
+
+\subsection{Capture d'écran du Dashboard}
+\begin{figure}[h]
+    \centering
+    \vspace{8cm} % ESPACE RÉSERVÉ POUR LA CAPTURE D'ÉCRAN DES GRAPHIQUES
+    \caption{Interface de visualisation des statistiques par catégorie}
+\end{figure}
+
+%================================================================================
+
+\section{Gestion d'Équipe}
+\subsection{Modèle de données d'équipe}
+Structure synchronisée de l'entité Team :
+
+\lstinputlisting[language=Java, caption=Modèle de données Team]{backend/src/main/java/com/example/backend/service/impl/TeamServiceImpl.java}
+
+\subsection{Diagramme de séquence : Gestion d'équipe}
+\begin{figure}[h]
+    \centering
+    % L'image sera générée par le workflow à partir du .puml
+    \includegraphics[width=0.9\textwidth]{uml/sequence_CollabTeam.png}
+    \caption{Processus de gestion des invitations d'équipe}
+\end{figure}
+
+\subsection{Capture d'écran du Dashboard}
+\begin{figure}[h]
+    \centering
+    \vspace{8cm} % ESPACE RÉSERVÉ POUR LA CAPTURE D'ÉCRAN DES GRAPHIQUES
+    \caption{Interface de gestion des membres de l'équipe}
+\end{figure}
+
+%================================================================================
+\chapter{Tests et Qualité Logicielle (Backend)}
+
+Le backend utilise une stratégie de tests multicouches (Unitaire, Intégration, Repository) pour garantir que chaque règle métier est respectée.
+
+\section{Tests de Logique Métier (Services)}
+Les tests unitaires utilisent \textbf{JUnit 5} et \textbf{Mockito} pour simuler les dépendances et valider les comportements complexes.
+
+\subsection{Optimisation et Planning}
+Les tests du service d'optimisation vérifient que l'algorithme place correctement les tâches sans chevauchement avec les événements importés (ICS).
+\lstinputlisting[language=Java, firstline=30, lastline=70, caption=Tests de l'optimiseur de planning]{backend/src/test/java/com/example/backend/service/impl/DefaultScheduleOptimizerServiceTest.java}
+
+\subsection{Gestion des Tâches}
+Le service des tâches est testé pour valider la création, la modification et surtout les règles d'attribution automatique.
+\lstinputlisting[language=Java, firstline=25, lastline=60, caption=Validation unitaire du TaskService]{backend/src/test/java/com/example/backend/service/impl/TaskServiceImplTest.java}
+
+\section{Tests de Persistance (Repositories)}
+Nous utilisons des tests de repository pour valider les requêtes SQL/JPA personnalisées, notamment pour le filtrage par utilisateur et par période.
+\begin{itemize}
+    \item \textbf{ActivityLogRepositoryTest :} Vérifie l'extraction des logs pour les statistiques.
+    \item \textbf{UserRepositoryTest :} Valide les contraintes d'unicité sur les emails.
+\end{itemize}
+
+\section{Tests d'API (Controllers)}
+Les contrôleurs sont testés avec \texttt{MockMvc} pour s'assurer que les endpoints REST renvoient les bons codes HTTP (200 OK, 201 Created, 404 Not Found).
+\begin{itemize}
+    \item \textbf{ActivityLogControllerTest :} Vérifie que les statistiques sont bien renvoyées au format JSON via le DTO.
+    \item \textbf{TeamControllerTest :} Valide le flux d'invitation et d'acceptation dans une équipe.
+\end{itemize}
+
+\section{Justification de l'étendue des tests}
+Outre les tests des services métier, la suite de tests couvre l'intégralité des couches de l'application pour les raisons suivantes :
+
+\begin{description}
+    \item[Sécurité des points d'entrée :] Les tests de \textit{Controllers} valident les contrats d'interface avec le Frontend, évitant les erreurs de désérialisation JSON.
+    \item[Intégrité des données :] Les tests de \textit{Repositories} garantissent que les règles de persistance et les requêtes personnalisées (JPA) ne produisent pas d'effets de bord en base de données.
+    \item[Robustesse des formats :] Le parsing de fichiers externes (ICS) étant sujet à de nombreuses variations, des tests dédiés (\textit{ParserTests}) assurent que l'application est résiliente face à des données mal formées.
+    \item[Objectif Qualité (SonarCloud) :] Cette granularité permet d'atteindre un taux de couverture élevé, critère indispensable pour valider la \textit{Quality Gate} de notre pipeline CI/CD.
+\end{description}
+
+
+\end{document}

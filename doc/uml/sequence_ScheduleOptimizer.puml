@@ -1,0 +1,50 @@
+@startuml
+title Séquence : Optimisation Intelligente des Tâches
+
+actor Utilisateur
+participant "DefaultScheduleOptimizerService" as Optimizer
+participant "TaskRepository" as TaskRepo
+participant "EventRepository" as EventRepo
+participant "FocusService" as Focus
+database "Base de Données" as DB
+
+Utilisateur -> Optimizer : reshuffle(userId)
+activate Optimizer
+
+Optimizer -> EventRepo : findByUser_IdOrderByStartTime(userId)
+Optimizer -> TaskRepo : findByUser_Id(userId)
+
+note over Optimizer : Tri des tâches :\n1. Deadline la plus proche\n2. Priorité (importance)
+Optimizer -> Optimizer : sort(tasks)
+
+loop Pour chaque Task (non faite & sans événement)
+    Optimizer -> Optimizer : Initialiser curseur (8h00 ou NOW)
+    
+    loop Tant que non placée
+        Optimizer -> Optimizer : Calculer créneau potentiel (curseur + duration)
+        
+        Optimizer -> Optimizer : findCollision(start, end, events)
+        alt Collision avec un cours/événement fixe
+            Optimizer -> Optimizer : curseur = collisionEvent.endTime
+        else Pas de collision événement
+            Optimizer -> Focus : estBloqueParLeFocus(userId, start, end)
+            activate Focus
+            Focus -> DB : getPreferences(userId)
+            Focus --> Optimizer : boolean (bloqué ?)
+            deactivate Focus
+            
+            alt Créneau dans un bloc de focus préféré
+                Optimizer -> EventRepo : save(New Task Event)
+                Optimizer -> TaskRepo : update(Task with EventId)
+                Optimizer -> Optimizer : placed = true
+                Optimizer -> Optimizer : curseur = taskEvent.endTime
+            else Bloqué par Focus ou pas de place
+                Optimizer -> Optimizer : curseur = curseur + 15 min
+            end
+        end
+    end
+end
+
+Optimizer --> Utilisateur : Planning mis à jour
+deactivate Optimizer
+@enduml
