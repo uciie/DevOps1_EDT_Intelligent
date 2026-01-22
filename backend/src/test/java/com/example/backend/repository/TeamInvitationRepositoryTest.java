@@ -27,11 +27,14 @@ class TeamInvitationRepositoryTest {
         // Arrange
         User inviter = new User("inviter", "password");
         User invited = new User("invited", "password");
-        Team team = new Team();
-        team.setName("Test Team");
         
         entityManager.persistAndFlush(inviter);
         entityManager.persistAndFlush(invited);
+        
+        Team team = new Team();
+        team.setName("Test Team");
+        team.setOwnerId(inviter.getId());
+        
         entityManager.persistAndFlush(team);
 
         TeamInvitation invitation = new TeamInvitation();
@@ -149,11 +152,14 @@ class TeamInvitationRepositoryTest {
         // Arrange
         User inviter = new User("inviter", "password");
         User invited = new User("invited", "password");
-        Team team = new Team();
-        team.setName("Test Team");
         
         entityManager.persistAndFlush(inviter);
         entityManager.persistAndFlush(invited);
+        
+        Team team = new Team();
+        team.setName("Test Team");
+        team.setOwnerId(inviter.getId());
+        
         entityManager.persistAndFlush(team);
 
         TeamInvitation invitation = new TeamInvitation();
@@ -180,11 +186,14 @@ class TeamInvitationRepositoryTest {
         // Arrange
         User inviter = new User("inviter", "password");
         User invited = new User("invited", "password");
-        Team team = new Team();
-        team.setName("Test Team");
         
         entityManager.persistAndFlush(inviter);
         entityManager.persistAndFlush(invited);
+        
+        Team team = new Team();
+        team.setName("Test Team");
+        team.setOwnerId(inviter.getId());
+        
         entityManager.persistAndFlush(team);
 
         // Act - Chercher une invitation qui n'existe pas
@@ -200,11 +209,14 @@ class TeamInvitationRepositoryTest {
         // Arrange
         User inviter = new User("inviter", "password");
         User invited = new User("invited", "password");
-        Team team = new Team();
-        team.setName("Test Team");
         
         entityManager.persistAndFlush(inviter);
         entityManager.persistAndFlush(invited);
+        
+        Team team = new Team();
+        team.setName("Test Team");
+        team.setOwnerId(inviter.getId());
+        
         entityManager.persistAndFlush(team);
 
         TeamInvitation invitation = new TeamInvitation();
@@ -227,11 +239,14 @@ class TeamInvitationRepositoryTest {
         // Arrange
         User inviter = new User("inviter", "password");
         User invited = new User("invited", "password");
-        Team team = new Team();
-        team.setName("Test Team");
         
         entityManager.persistAndFlush(inviter);
         entityManager.persistAndFlush(invited);
+        
+        Team team = new Team();
+        team.setName("Test Team");
+        team.setOwnerId(inviter.getId());
+        
         entityManager.persistAndFlush(team);
 
         TeamInvitation invitation = new TeamInvitation();
