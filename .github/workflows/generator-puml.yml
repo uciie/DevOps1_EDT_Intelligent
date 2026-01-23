@@ -1,0 +1,55 @@
+name: Generate UML PUML and PNG
+
+on:
+  push:
+    branches:
+      - main
+      - documentation
+    paths:
+      - 'backend/src/main/java/**'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  update-diagrams:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Install Graphviz
+        run: sudo apt-get install -y graphviz
+
+      - name: Generate .puml from Source
+        run: |
+          mkdir -p doc/uml
+          # Téléchargement du générateur de structure (Reverse Engineering)
+          wget https://github.com/danielflower/app-info-generator/releases/download/v1.0/plantuml-generator.jar
+          # Extraction du code Java vers le format texte puml
+          java -jar plantuml-generator.jar backend/src/main/java > doc/uml/diagram_classes.puml
+
+      - name: Render PNG from PUML
+        run: |
+          # Téléchargement du moteur PlantUML officiel
+          wget https://github.com/plantuml/plantuml/releases/download/v1.2024.3/plantuml-1.2024.3.jar -O plantuml.jar
+          # Conversion du texte en image PNG
+          java -jar plantuml.jar -tpng doc/uml/diagram_classes.puml
+
+      - name: Commit and Push changes
+        if: github.event_name == 'push'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add doc/uml/diagram_classes.puml doc/uml/diagram_classes.png
+          git commit -m "docs: mise à jour automatique UML (puml + png)" || echo "No changes to commit"
+          git push
