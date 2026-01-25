@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21' # Utilise la version 21 comme dans ton build.gradle
+          java-version: '21'
 
       - name: Install Dependencies
         run: |
@@ -34,19 +34,31 @@ jobs:
       - name: Download PlantUML
         run: wget -O plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2024.3/plantuml-1.2024.3.jar
 
-      - name: Generate PUML from Java
+      # 1. On génère d'abord le texte du diagramme de classes à partir du code Java
+      - name: Generate Class Diagram PUML from Java
         run: |
           cd backend
           chmod +x gradlew
           ./gradlew generatePlantUml
+
+      # 2. On génère les PNG pour TOUS les fichiers .puml (classes + séquences)
+      - name: Render ALL PNGs from PUML files
+        run: |
+          # Cette commande scanne doc/uml/ et génère les PNG pour :
+          # - diagram_classes.puml (fraîchement généré)
+          # - sequence_*.puml (vos fichiers existants)
+          java -Djava.awt.headless=true -jar plantuml.jar -tpng "doc/uml/*.puml"
 
       - name: Commit and Push changes
         if: github.event_name == 'push'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          # On ajoute tous les fichiers puml et png modifiés
           git add doc/uml/*.puml doc/uml/*.png
           if ! git diff --cached --quiet; then
-            git commit -m "docs: auto-update diagrams [skip ci]"
+            git commit -m "docs: auto-update class diagrams and sequence images [skip ci]"
             git push
+          else
+            echo "No changes to commit"
           fi

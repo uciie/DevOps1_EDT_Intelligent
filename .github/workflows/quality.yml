@@ -56,3 +56,4 @@ jobs:
             -Dsonar.sources=src/main \
             -Dsonar.tests=src/test \
             -Dsonar.exclusions=**/*.test.java
+            -Dsonar.exclusion=java/com/example/backend/utils/** # Exclure le code généré automatiquement
