@@ -1,6 +1,8 @@
 package com.example.backend.service.strategy;
 
 import com.example.backend.model.Task;
+import com.example.backend.model.Task.TaskStatus;
+import com.example.backend.model.Event;
 import com.example.backend.repository.TaskRepository;
 import org.springframework.stereotype.Component;
 
@@ -23,11 +25,11 @@ public class DefaultTaskSelectionStrategy implements TaskSelectionStrategy {
 
         return tasks.stream()
                 // Tâches non terminées
-                .filter(t -> !t.isDone())
+                .filter(t -> !t.getStatus().equals(TaskStatus.DONE))
                 // Ignorer les tâches liées à un événement annulé ou terminé
                 .filter(t -> t.getEvent() == null ||
-                        !(t.getEvent().getStatus().equalsIgnoreCase("CANCELLED")
-                        || t.getEvent().getStatus().equalsIgnoreCase("DONE")))
+                    !(t.getEvent().getStatus() == Event.EventStatus.PENDING_DELETION
+                    || t.getEvent().getStatus() == Event.EventStatus.CONFIRMED))
                 // Durée compatible avec le temps disponible
                 .filter(t -> t.getEstimatedDuration() <= availableMinutes)
                 // Choisir celle avec la priorité la plus haute
