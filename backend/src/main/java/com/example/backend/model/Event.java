@@ -41,8 +41,6 @@ public class Event {
     @JoinColumn(name = "location_id")
     private Location location;
 
-    private String status = "PLANNED";
-
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference("userEvents")
@@ -56,6 +54,14 @@ public class Event {
 
     @OneToMany(mappedBy = "toEvent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TravelTime> arrivals;
+
+    private EventStatus status = EventStatus.PLANNED;
+
+    public enum EventStatus {
+        PLANNED,
+        CONFIRMED,
+        PENDING_DELETION
+    }
 
     public Event() {}
 
@@ -113,11 +119,11 @@ public class Event {
         this.endTime = endTime;
     }
 
-    public String getStatus() {
+    public EventStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(EventStatus status) {
         this.status = status;
     }
 

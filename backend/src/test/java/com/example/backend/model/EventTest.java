@@ -33,7 +33,7 @@ class EventTest {
         assertEquals(start, event.getStartTime());
         assertEquals(end, event.getEndTime());
         assertEquals(user, event.getUser());
-        assertEquals("PLANNED", event.getStatus()); // Statut par défaut
+        assertEquals(Event.EventStatus.PLANNED, event.getStatus()); // Statut par défaut
     }
 
     /**
@@ -67,15 +67,15 @@ class EventTest {
 
         // Création de deux tâches liées à l'événement
         // Assurez-vous que le constructeur Task correspond bien à celui défini dans Task.java
-        Task task1 = new Task("Prepare slides", 30, 2, false, user, event);
-        Task task2 = new Task("Send invites", 15, 1, true, user, event);
+        Task task1 = new Task("Prepare slides", 30, 2, Task.TaskStatus.PENDING_CREATION, user, event);
+        Task task2 = new Task("Send invites", 15, 1, Task.TaskStatus.DONE, user, event);
 
 
         // Modification du statut
-        event.setStatus("DONE");
+        event.setStatus(Event.EventStatus.CONFIRMED);
 
         // Vérifications des relations et du statut
-        assertEquals("DONE", event.getStatus());
+        assertEquals(Event.EventStatus.CONFIRMED, event.getStatus());
         assertEquals(user, event.getUser());
         assertEquals(user.getId(), event.getUserId()); // Vérifie la cohérence user ↔ event
     }
@@ -90,7 +90,7 @@ class EventTest {
         assertNull(event.getSummary());
         assertNull(event.getStartTime());
         assertNull(event.getEndTime());
-        assertEquals("PLANNED", event.getStatus());
+        assertEquals(Event.EventStatus.PLANNED, event.getStatus());
         assertNull(event.getUser());
         
 
@@ -181,18 +181,11 @@ class EventTest {
         // Arrange
         Event event = new Event();
 
-        // Act & Assert
-        event.setStatus("PLANNED");
-        assertEquals("PLANNED", event.getStatus());
-
-        event.setStatus("CANCELLED");
-        assertEquals("CANCELLED", event.getStatus());
-
-        event.setStatus("DONE");
-        assertEquals("DONE", event.getStatus());
-
-        event.setStatus("IN_PROGRESS");
-        assertEquals("IN_PROGRESS", event.getStatus());
+        // Act & Assert: parcourir les valeurs de l'enum
+        for (Event.EventStatus s : Event.EventStatus.values()) {
+            event.setStatus(s);
+            assertEquals(s, event.getStatus());
+        }
     }
 
     @Test
