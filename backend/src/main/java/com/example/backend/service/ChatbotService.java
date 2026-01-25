@@ -54,6 +54,10 @@ public class ChatbotService {
 
     private String executeAction(Long userId, String functionName, Map<String, Object> args) {
         switch (functionName) {
+            case "list_today_events":
+                return formatEvents(eventRepository.findByUser_IdAndStartTimeBetween(userId, 
+                    LocalDate.now().atStartOfDay(), LocalDate.now().atTime(23, 59, 59)));
+
             case "list_events_between":
                 return formatEvents(eventRepository.findByUser_IdAndStartTimeBetween(userId, 
                     parseDateTime(args.get("start")), parseDateTime(args.get("end"))));

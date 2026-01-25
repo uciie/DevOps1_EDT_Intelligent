@@ -23,16 +23,17 @@ public class TeamServiceImpl implements TeamService {
 
     private final TeamRepository teamRepository;
     private final UserRepository userRepository;
-    
-    @Autowired
-    private TeamInvitationRepository invitationRepository;
+    private final TeamInvitationRepository invitationRepository;
+    private final TaskRepository taskRepository;
 
-    @Autowired
-    private TaskRepository taskRepository;
-
-    public TeamServiceImpl(TeamRepository teamRepository, UserRepository userRepository) {
+    public TeamServiceImpl(TeamRepository teamRepository,
+                           UserRepository userRepository,
+                           TeamInvitationRepository invitationRepository,
+                           TaskRepository taskRepository) {
         this.teamRepository = teamRepository;
         this.userRepository = userRepository;
+        this.invitationRepository = invitationRepository;
+        this.taskRepository = taskRepository;
     }
 
     @Override
@@ -53,6 +54,10 @@ public class TeamServiceImpl implements TeamService {
     public void inviteMember(Long teamId, Long inviterId, Long invitedUserId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new RuntimeException("Équipe non trouvée"));
+        // Vérifier que l'inviteur a le droit d'inviter (seul le propriétaire pour l'instant)
+        if (!team.getOwnerId().equals(inviterId)) {
+            throw new SecurityException("Vous n'avez pas le droit d'inviter des membres.");
+        }
         
         // 2. Vérifier si une invitation en attente existe déjà
         Optional<TeamInvitation> existingInvitation = invitationRepository
@@ -159,11 +164,15 @@ public class TeamServiceImpl implements TeamService {
     User userToRemove = userRepository.findById(memberIdToRemove)
             .orElseThrow(() -> new IllegalArgumentException("Membre introuvable"));
 
-    // reaattribution des tâches assignées à ce membre au createur de l'équipe ou les libérer
-    List<Task> tasksToUpdate = taskRepository.findByAssignee(userRepository.getById(memberIdToRemove));
+        // réattribution des tâches assignées à ce membre au créateur de l'équipe ou les libérer
+        List<Task> tasksToUpdate = taskRepository.findByAssignee(userToRemove);
     for (Task task : tasksToUpdate) {
-        // Soit on réassigne au créateur, soit on libère (null) si le créateur est aussi le membre supprimé
-        task.setAssignee(task.getUser().getId() != memberIdToRemove ? task.getUser() : null); 
+        User creator = task.getUser();
+        if (creator != null && !creator.getId().equals(memberIdToRemove)) {
+            task.setAssignee(creator);
+        } else {
+            task.setAssignee(null);
+        }
         taskRepository.save(task);
     }
     
