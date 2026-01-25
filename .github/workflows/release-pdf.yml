@@ -1,0 +1,25 @@
+name: Release PDF Documentation
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: doc_technique.tex
+          working_directory: doc/
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: doc/doc_technique.pdf
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

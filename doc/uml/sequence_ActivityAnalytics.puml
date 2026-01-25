@@ -1,0 +1,51 @@
+@startuml
+title Séquence : Analyse d'Activité (Analytics)
+
+actor Utilisateur
+participant "ActivityController" as Ctrl
+participant "ActivityLogService" as Service
+participant "ActivityLogRepository" as LogRepo
+participant "EventRepository" as EventRepo
+participant "ActivityStatsDTO" as DTO
+
+Utilisateur -> Ctrl : GET /api/activity/stats/{userId}?start=...&end=...
+activate Ctrl
+
+note over Ctrl : Validation : \nstart_date < end_date
+
+Ctrl -> Service : getStats(userId, start, end)
+activate Service
+
+Service -> LogRepo : findByUserIdAndPeriod(userId, start, end)
+activate LogRepo
+LogRepo --> Service : List<ActivityLog>
+deactivate LogRepo
+
+Service -> EventRepo : findByUserIdAndPeriod(userId, start, end)
+activate EventRepo
+EventRepo --> Service : List<Event>
+deactivate EventRepo
+
+note over Service : **Fusion & Optimisation**\n1. Combine Logs + Events\n2. Filtre les entrées sans endTime (Null Check)\n3. Calcule la durée (minutes) pour chaque entité
+
+loop Pour chaque activité fusionnée
+    Service -> Service : Classer par ActivityCategory
+    alt Catégorie absente
+        Service -> Service : Assigner catégorie "AUTRE" par défaut
+    end
+    
+    Service -> Service : Sommer les durées par catégorie
+    Service -> Service : Calculer les moyennes et le compte total
+end
+
+create DTO
+Service -> DTO : new(totalMinutes, mapByCategory, averagePerDay)
+DTO --> Service : statsObject
+
+Service --> Ctrl : ActivityStatsDTO
+deactivate Service
+
+Ctrl --> Utilisateur : JSON (Statistiques calculées)
+deactivate Ctrl
+
+@enduml

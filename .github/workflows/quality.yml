@@ -2,7 +2,7 @@ name: CI - Qualité (SonarCloud)
 
 on:
   push:
-    branches: [ "main" , "hotfix/yml" ]
+    branches: [ "main" ]
     paths:
       - 'backend/src/main/**' # Déclenche uniquement si le code métier backend change
       - '.github/workflows/quality.yml' # Toujours utile pour tester la config

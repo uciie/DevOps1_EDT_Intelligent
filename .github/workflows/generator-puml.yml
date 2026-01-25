@@ -1,0 +1,41 @@
+name: Generate UML PUML and PNG
+
+on:
+  push:
+    branches:
+      - main
+      - documentation
+    paths:
+      - 'backend/src/main/java/**'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  update-diagrams:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create directory for diagrams
+        run: mkdir -p doc/uml
+
+      # ÉTAPE CORRIGÉE : Utilisation de Docker pour le rendu au lieu de wget
+      - name: Render PNG from PUML
+        uses: docker://plantuml/plantuml-server:latest
+        with:
+          args: -tpng -o "/github/workspace/doc/uml" "/github/workspace/doc/uml/*.puml"
+
+      - name: Commit and Push changes
+        if: github.event_name == 'push'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add doc/uml/*.png
+          # On vérifie s'il y a des changements avant de commit pour éviter une erreur
+          git diff --quiet && git diff --staged --quiet || git commit -m "docs: update UML diagrams [skip ci]"
+          git push

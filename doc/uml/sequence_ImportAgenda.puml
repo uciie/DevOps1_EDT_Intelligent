@@ -1,0 +1,35 @@
+@startuml
+title Séquence : Import de Calendrier (ICS)
+
+actor Utilisateur
+participant "CalendarImportController" as Ctrl
+participant "CalendarImportService" as Service
+participant "ICalendarParser" as Parser
+participant "EventRepository" as EventRepo
+participant "ScheduleOptimizer" as Optimizer
+
+Utilisateur -> Ctrl : uploadCalendar(file)
+activate Ctrl
+
+Ctrl -> Service : importCalendar(file, user)
+activate Service
+
+Service -> Parser : parse(fileStream)
+activate Parser
+Parser --> Service : List<Event> (cours, examens...)
+deactivate Parser
+
+loop Pour chaque Event
+    Service -> Service : event.setUser(user)
+end
+
+Service -> EventRepo : saveAll(events)
+Service --> Ctrl : eventsImported
+deactivate Service
+
+Ctrl -> Optimizer : reshuffle(userId)
+note right : L'optimiseur va maintenant recalculer\nles tâches autour de ces nouveaux cours fixes.
+
+Ctrl --> Utilisateur : Import réussi (EDT synchronisé)
+deactivate Ctrl
+@enduml
