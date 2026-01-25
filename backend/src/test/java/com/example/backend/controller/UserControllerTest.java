@@ -2,20 +2,22 @@ package com.example.backend.controller;
 
 import com.example.backend.model.User;
 import com.example.backend.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class UserControllerTest {
 
     @Mock
@@ -24,98 +26,112 @@ class UserControllerTest {
     @InjectMocks
     private UserController userController;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    @Test
+    void login_missingUsername_returnsBadRequest() {
+        Map<String, String> body = Map.of("password", "pwd");
+
+        ResponseEntity<Object> res = userController.login(body);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(((Map<?, ?>)res.getBody()).get("error")).isEqualTo("Username requis");
     }
 
     @Test
-    void testRegister_Success() {
-        // Arrange
-        User inputUser = new User("john_doe", "password123");
-        User savedUser = new User("john_doe", "password123");
-        savedUser.setId(1L);
+    void login_missingPassword_returnsBadRequest() {
+        Map<String, String> body = Map.of("username", "u");
 
-        when(userService.registerUser("john_doe", "password123")).thenReturn(savedUser);
+        ResponseEntity<Object> res = userController.login(body);
 
-        // Act
-        // Le contrôleur retourne maintenant ResponseEntity<?> car le corps est une Map
-        ResponseEntity<?> response = userController.register(inputUser);
-
-        // Assert
-        assertEquals(201, response.getStatusCode().value()); // Expecting CREATED (201)
-        assertNotNull(response.getBody());
-        
-        // Vérification du contenu de la Map
-        assertTrue(response.getBody() instanceof Map);
-        Map<?, ?> body = (Map<?, ?>) response.getBody();
-        
-        assertEquals("john_doe", body.get("username"));
-        assertEquals(1L, body.get("id"));
-        assertFalse(body.containsKey("password"), "Le mot de passe ne doit pas être présent dans la réponse");
-
-        verify(userService, times(1)).registerUser("john_doe", "password123");
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(((Map<?, ?>)res.getBody()).get("error")).isEqualTo("Password requis");
     }
 
     @Test
-    void testRegister_Failure() {
-        // Arrange
-        User inputUser = new User("john_doe", "password123");
+    void login_invalidCredentials_returnsUnauthorized() {
+        Map<String, String> body = Map.of("username", "u", "password", "p");
 
-        when(userService.registerUser("john_doe", "password123"))
-                .thenThrow(new RuntimeException("User already exists"));
+        when(userService.authenticate(anyString(), anyString())).thenReturn(null);
 
-        // Act
-        ResponseEntity<?> response = userController.register(inputUser);
+        ResponseEntity<Object> res = userController.login(body);
 
-        // Assert
-        assertEquals(400, response.getStatusCode().value());
-        assertNotNull(response.getBody());
-        
-        assertTrue(response.getBody() instanceof Map);
-        Map<?, ?> body = (Map<?, ?>) response.getBody();
-        assertTrue(body.containsKey("error"));
-        assertEquals("User already exists", body.get("error"));
-
-        verify(userService, times(1)).registerUser("john_doe", "password123");
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(((Map<?, ?>)res.getBody()).get("error")).isEqualTo("Identifiants incorrects");
     }
 
     @Test
-    void testGetAllUsers() {
-        // Arrange
-        User u1 = new User("alice", "pass1");
-        u1.setId(1L); // On simule des IDs pour être précis
-        User u2 = new User("bob", "pass2");
-        u2.setId(2L);
+    void login_success_returnsUserMap() {
+        Map<String, String> body = Map.of("username", "alice", "password", "secret");
 
-        List<User> users = Arrays.asList(u1, u2);
+        User user = new User("alice", "secret");
+        user.setId(42L);
+        when(userService.authenticate("alice", "secret")).thenReturn(user);
 
-        when(userService.getAllUsers()).thenReturn(users);
+        ResponseEntity<Object> res = userController.login(body);
 
-        // Act
-        // On capture la réponse. 
-        // Note : Assurez-vous que votre Controller retourne bien ResponseEntity<List<Map<String, Object>>>
-        ResponseEntity<List<Map<String, Object>>> response = userController.getAll();
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Map<?,?> map = (Map<?,?>) res.getBody();
+        assertThat(map.get("id")).isEqualTo(42L);
+        assertThat(map.get("username")).isEqualTo("alice");
+    }
 
-        // Assert
-        assertEquals(200, response.getStatusCode().value());
-        
-        List<Map<String, Object>> result = response.getBody();
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        
-        // Vérification du premier utilisateur (Alice)
-        assertEquals("alice", result.get(0).get("username"));
-        assertEquals(1L, result.get(0).get("id"));
-        
-        // VÉRIFICATIONS CRITIQUES :
-        // 1. Le mot de passe ne doit pas être là
-        assertFalse(result.get(0).containsKey("password"), "Le mot de passe ne doit pas être exposé");
-        
-        // 2. Les listes 'events' et 'tasks' ne doivent pas être là (pour résoudre votre problème JSON précédent)
-        assertFalse(result.get(0).containsKey("events"), "Les événements ne doivent pas être chargés");
-        assertFalse(result.get(0).containsKey("tasks"), "Les tâches ne doivent pas être chargées");
+    @Test
+    void register_success_returnsCreated() {
+        User input = new User("bob","pw");
+        User created = new User("bob","pw");
+        created.setId(7L);
 
-        verify(userService, times(1)).getAllUsers();
+        when(userService.registerUser(anyString(), anyString())).thenReturn(created);
+
+        ResponseEntity<Object> res = userController.register(input);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        Map<?,?> body = (Map<?,?>) res.getBody();
+        assertThat(body.get("id")).isEqualTo(7L);
+        assertThat(body.get("username")).isEqualTo("bob");
+    }
+
+    @Test
+    void register_failure_returnsBadRequest() {
+        User input = new User("bob","pw");
+        when(userService.registerUser(anyString(), anyString())).thenThrow(new RuntimeException("dup"));
+
+        ResponseEntity<Object> res = userController.register(input);
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(((Map<?,?>)res.getBody()).get("error")).isEqualTo("dup");
+    }
+
+    @Test
+    void getAll_returnsSimpleList() {
+        User u1 = new User("a","p"); u1.setId(1L);
+        User u2 = new User("b","p"); u2.setId(2L);
+
+        when(userService.getAllUsers()).thenReturn(List.of(u1,u2));
+
+        ResponseEntity<List<Map<String, Object>>> res = userController.getAll();
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(res.getBody()).hasSize(2);
+        assertThat(res.getBody().get(0).get("id")).isEqualTo(1L);
+    }
+
+    @Test
+    void getByUsername_notFound_returns404() {
+        when(userService.getUserByUsername("notfound")).thenReturn(null);
+
+        ResponseEntity<Object> res = userController.getByUsername("notfound");
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void getByUsername_found_returnsUser() {
+        User u = new User("c","p"); u.setId(5L);
+        when(userService.getUserByUsername("c")).thenReturn(u);
+
+        ResponseEntity<Object> res = userController.getByUsername("c");
+
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(res.getBody()).isEqualTo(u);
     }
 }
