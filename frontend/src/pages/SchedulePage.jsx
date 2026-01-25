@@ -9,6 +9,7 @@ import { getUserTasks, getDelegatedTasks, createTask, updateTask, deleteTask, pl
 import { createEvent, getUserEvents, updateEvent, deleteEvent } from '../api/eventApi';
 import { getMyTeams, createTeam, inviteUserToTeam, removeMemberFromTeam, deleteTeam } from '../api/teamApi';
 import '../styles/pages/SchedulePage.css';
+import ChatAssistant from '../components/ChatAssistant';
 
 // Helper pour normaliser les données (gérer content, data ou array direct)
 const normalizeData = (response) => {
@@ -573,6 +574,11 @@ function SchedulePage() {
       />
 
       <Notification message={notification?.message} type={notification?.type} onClose={() => setNotification(null)} />
+      
+      {/* Assistant Planificateur flottant */}
+      <div className="chat-assistant-wrapper fixed bottom-6 right-6 z-50">
+        <ChatAssistant />
+      </div>
     </div>
   );
 }
