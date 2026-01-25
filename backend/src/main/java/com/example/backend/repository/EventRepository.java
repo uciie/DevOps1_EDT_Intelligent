@@ -31,6 +31,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     @Query("SELECT COUNT(e) FROM Event e WHERE e.user.id = :userId AND e.startTime >= :start AND e.startTime <= :end")
     long countEventsForDay(Long userId, LocalDateTime start, LocalDateTime end);
-    
+
+    // Replaced title/userId with actual entity field names: "summary" and relation "user"
+    List<Event> findBySummaryContainingAndUser_Id(String summaryFragment, Long userId);
+
+    List<Event> findByUser_IdAndStatusNot(Long userId, Event.EventStatus status);
 
 }
