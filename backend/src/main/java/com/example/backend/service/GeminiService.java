@@ -4,9 +4,9 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
+
+import com.example.backend.http.GeminiHttpClient;
 
 import java.util.List;
 import java.util.Map;
@@ -20,11 +20,11 @@ public class GeminiService {
     @Value("${google.ai.model}")
     private String model;
 
-    private final RestClient restClient;
+    private final GeminiHttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    public GeminiService(RestClient.Builder restClientBuilder, ObjectMapper objectMapper) {
-        this.restClient = restClientBuilder.baseUrl("https://generativelanguage.googleapis.com/v1beta/models").build();
+    public GeminiService(GeminiHttpClient httpClient, ObjectMapper objectMapper) {
+        this.httpClient = httpClient;
         this.objectMapper = objectMapper;
     }
 
@@ -52,13 +52,8 @@ public class GeminiService {
             "tools", tools
         );
 
-        // 3. Appel API
-        return restClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/" + model + ":generateContent").queryParam("key", apiKey).build())
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(requestBody)
-                .retrieve()
-                .body(GeminiResponse.class);
+        // 3. Appel API via wrapper testable
+        return httpClient.generateContent(model, apiKey, requestBody, GeminiResponse.class);
     }
 
     // Helper pour construire la structure JSON verbeuse de Gemini
