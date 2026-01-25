@@ -3,6 +3,317 @@
 top to bottom direction
 skinparam linetype ortho
 skinparam classAttributeIconSize 0
+class TeamInvitation {
+  + getId()
+  + getStatus()
+  + setStatus()
+  + setId()
+  + getInvitedUser()
+  + setInvitedUser()
+  + getInviter()
+  + setInviter()
+  + getTeam()
+  + setTeam()
+}
+TeamInvitation "1" *-- "team" Team
+TeamInvitation "1" *-- "invitedUser" User
+TeamInvitation "1" *-- "inviter" User
+class ActivityLogService {
+  + recordActivity()
+  + getStats()
+}
+class FocusService {
+  + validateDayNotOverloaded()
+  + getOptimizedFocusSlots()
+  + estBloqueParLeFocus()
+  + getPreferences()
+  + findFreeGaps()
+  + updatePreferences()
+}
+class EventController {
+  + getEventById()
+  + createEvent()
+  + updateEvent()
+  + deleteEvent()
+  + getTeamMemberEvents()
+  + getEventsByUser()
+  + getEventsByUserAndPeriod()
+  + recalculateTravelTimes()
+}
+EventController "1" *-- "focusService" FocusService
+class SimpleTravelTimeCalculator {
+  + calculateTravelTime()
+}
+class TaskServiceImpl {
+  + planifyTask()
+  + getTasksByTeam()
+  + getTasksByUserId()
+  + getDelegatedTasks()
+  + createTask()
+  + updateTask()
+  + updateTask()
+  + deleteTask()
+  + getTaskById()
+  + getTasksAssignedToUser()
+}
+TaskServiceImpl "1" *-- "focusService" FocusService
+class CalendarImportController {
+  + importCalendar()
+}
+CalendarImportController "1" *-- "importService" CalendarImportService
+class ScheduleController {
+  + reshuffle()
+}
+class TravelTimeController {
+  + deleteTravelTime()
+  + updateTravelTime()
+  + getTravelTimesByUser()
+  + getTravelTimesByUserAndPeriod()
+  + getTravelTimeById()
+  + calculateTravelTime()
+}
+TravelTimeController "1" *-- "travelTimeService" TravelTimeService
+class FocusController {
+  + getFocusSuggestions()
+}
+FocusController "1" *-- "focusService" FocusService
+class Task {
+  + setPriority()
+  + getPriority()
+  + getId()
+  + getDuration()
+  + getUserId()
+  + getEventId()
+  + setTitle()
+  + getUser()
+  + getStatus()
+  + setStatus()
+  + setUser()
+  + setId()
+  + setEvent()
+  + getTitle()
+  + getEstimatedDuration()
+  + setEstimatedDuration()
+  + getEvent()
+  + getAssignee()
+  + setAssignee()
+  + getTeam()
+  + setTeam()
+  + isDelegated()
+  + isLate()
+  + setLate()
+  + getDeadline()
+  + setDeadline()
+}
+Task "1" *-- "user" User
+Task "1" *-- "event" Event
+Task "1" *-- "assignee" User
+Task "1" *-- "team" Team
+class UserService {
+  + authenticate()
+  + registerUser()
+  + getAllUsers()
+  + getUserByUsername()
+  + existsByUsername()
+  + getUserById()
+}
+class EventServiceImpl {
+  + getEventsByUserId()
+  + getEventsByUserIdAndPeriod()
+  + getEventById()
+  + createEvent()
+  + updateEvent()
+  + deleteEvent()
+  + recalculateAllTravelTimes()
+  + getTeamMemberEvents()
+}
+EventServiceImpl "1" *-- "travelTimeService" TravelTimeService
+class DefaultTaskSelectionStrategy {
+  + selectTask()
+}
+class TeamController {
+  + createTeam()
+  + getTeamMembers()
+  + removeMember()
+  + deleteTeam()
+  + addMember()
+  + getMyTeams()
+  + inviteUser()
+  + getInvitations()
+  + respond()
+}
+class FallbackGeminiHttpClient {
+  + generateContent()
+}
+class ActivityLogController {
+  + recordActivity()
+  + getStats()
+}
+ActivityLogController "1" *-- "activityLogService" ActivityLogService
+class RestGeminiHttpClient {
+  + generateContent()
+}
+class Team {
+  + getName()
+  + setName()
+  + getId()
+  + setDescription()
+  + getDescription()
+  + removeMember()
+  + addMember()
+  + setId()
+  + getMembers()
+  + setMembers()
+  + getOwnerId()
+  + setOwnerId()
+}
+Team "1" *-- "*" User
+class UserFocusPreference {
+  + getUserId()
+  + setUserId()
+  + getMaxEventsPerDay()
+  + getMinFocusDuration()
+  + getPreferredFocusTime()
+  + setMaxEventsPerDay()
+  + setMinFocusDuration()
+  + setPreferredFocusTime()
+  + isFocusModeEnabled()
+  + setFocusModeEnabled()
+}
+class User {
+  + equals()
+  + hashCode()
+  + getId()
+  + getUsername()
+  + getPassword()
+  + setId()
+  + setUsername()
+  + setPassword()
+  + getEvents()
+  + setEvents()
+  + getTasks()
+  + setTasks()
+  + setTeams()
+  + getTeams()
+}
+User "1" *-- "*" Event
+User "1" *-- "*" Task
+User "1" *-- "*" Team
+class CalendarImportService {
+  + importCalendar()
+}
+class TeamServiceImpl {
+  + createTeam()
+  + addMemberByUserId()
+  + getTeamsByUserId()
+  + getTeamMembers()
+  + removeMember()
+  + deleteTeam()
+  + inviteMember()
+  + getPendingInvitations()
+  + respondToInvitation()
+}
+class ChatbotService {
+  + handleUserRequest()
+}
+ChatbotService "1" *-- "geminiService" GeminiService
+class ChatbotController {
+  + handleMessage()
+}
+ChatbotController "1" *-- "chatbotService" ChatbotService
+class DefaultScheduleOptimizerService {
+  + reshuffle()
+}
+DefaultScheduleOptimizerService "1" *-- "travelTimeService" TravelTimeService
+DefaultScheduleOptimizerService "1" *-- "focusService" FocusService
+class Event {
+  + equals()
+  + hashCode()
+  + getLocation()
+  + getId()
+  + getUserId()
+  + getStartTime()
+  + getEndTime()
+  + getUser()
+  + getSummary()
+  + setSummary()
+  + getStatus()
+  + setStatus()
+  + setUser()
+  + setLocation()
+  + getTask()
+  + setTask()
+  + getCategory()
+  + setId()
+  + setStartTime()
+  + setEndTime()
+  + setCategory()
+}
+Event "1" *-- "location" Location
+Event "1" *-- "user" User
+Event "1" *-- "task" Task
+Event "1" *-- "*" TravelTime
+Event "1" *-- "*" TravelTime
+class WebConfig {
+  + corsConfigurer()
+  + restTemplate()
+}
+class TravelTimeService {
+  + calculateAndCreateTravelTime()
+  + deleteTravelTime()
+  + updateTravelTime()
+  + createTravelTime()
+  + getTravelTimesByUserId()
+  + createTravelTimeWithDuration()
+  + estimateDuration()
+  + getTravelTimesByUserIdAndDateRange()
+}
+class TaskController {
+  + planifyTask()
+  + getUserTasks()
+  + createTaskForUser()
+  + getTeamTasks()
+  + getDelegatedTasks()
+  + updateTask()
+  + deleteTask()
+}
+TaskController "1" *-- "focusService" FocusService
+class TravelTime {
+  + getId()
+  + getStartTime()
+  + getEndTime()
+  + getUser()
+  + getFromEvent()
+  + getToEvent()
+  + getDurationMinutes()
+  + getDistanceKm()
+  + getMode()
+  + setUser()
+  + setId()
+  + setStartTime()
+  + setEndTime()
+  + setFromEvent()
+  + setToEvent()
+  + setDurationMinutes()
+  + setDistanceKm()
+  + setMode()
+}
+TravelTime "1" *-- "fromEvent" Event
+TravelTime "1" *-- "toEvent" Event
+TravelTime "1" *-- "user" User
+class UserController {
+  + register()
+  + getAll()
+  + login()
+  + getByUsername()
+}
+UserController "1" *-- "userService" UserService
+class BackendApplication {
+  + main()
+}
+class GeminiService {
+  + chatWithGemini()
+}
 class Location {
   + getName()
   + equals()
@@ -24,290 +335,6 @@ class Location {
   + setAutoCompleted()
   + getFullDescription()
 }
-class TravelTime {
-  + getId()
-  + getStartTime()
-  + getEndTime()
-  + getUser()
-  + getFromEvent()
-  + getToEvent()
-  + getDurationMinutes()
-  + getDistanceKm()
-  + getMode()
-  + setId()
-  + setStartTime()
-  + setEndTime()
-  + setUser()
-  + setFromEvent()
-  + setToEvent()
-  + setDurationMinutes()
-  + setDistanceKm()
-  + setMode()
-}
-TravelTime "1" *-- "fromEvent" Event
-TravelTime "1" *-- "toEvent" Event
-TravelTime "1" *-- "user" User
-class EventServiceImpl {
-  + getEventsByUserId()
-  + getEventsByUserIdAndPeriod()
-  + getEventById()
-  + createEvent()
-  + updateEvent()
-  + deleteEvent()
-  + recalculateAllTravelTimes()
-  + getTeamMemberEvents()
-}
-EventServiceImpl "1" *-- "travelTimeService" TravelTimeService
-class CalendarImportController {
-  + importCalendar()
-}
-CalendarImportController "1" *-- "importService" CalendarImportService
-class SimpleTravelTimeCalculator {
-  + calculateTravelTime()
-}
-class BackendApplication {
-  + main()
-}
-class FocusService {
-  + validateDayNotOverloaded()
-  + getOptimizedFocusSlots()
-  + estBloqueParLeFocus()
-  + getPreferences()
-  + findFreeGaps()
-  + updatePreferences()
-}
-class ActivityLogController {
-  + recordActivity()
-  + getStats()
-}
-ActivityLogController "1" *-- "activityLogService" ActivityLogService
-class Event {
-  + equals()
-  + hashCode()
-  + getLocation()
-  + getId()
-  + getUserId()
-  + getStartTime()
-  + getEndTime()
-  + getUser()
-  + getSummary()
-  + setId()
-  + setStartTime()
-  + setEndTime()
-  + setSummary()
-  + getStatus()
-  + setStatus()
-  + setUser()
-  + setLocation()
-  + getTask()
-  + setTask()
-  + getCategory()
-  + setCategory()
-}
-Event "1" *-- "location" Location
-Event "1" *-- "user" User
-Event "1" *-- "task" Task
-Event "1" *-- "*" TravelTime
-Event "1" *-- "*" TravelTime
-class TravelTimeService {
-  + calculateAndCreateTravelTime()
-  + deleteTravelTime()
-  + updateTravelTime()
-  + getTravelTimesByUserIdAndDateRange()
-  + getTravelTimesByUserId()
-  + createTravelTimeWithDuration()
-  + createTravelTime()
-  + estimateDuration()
-}
-class BiweeklyCalendarParser {
-  + parse()
-}
-class UserService {
-  + authenticate()
-  + registerUser()
-  + getAllUsers()
-  + getUserByUsername()
-  + existsByUsername()
-  + getUserById()
-}
-class ScheduleController {
-  + reshuffle()
-}
-class TaskController {
-  + planifyTask()
-  + getUserTasks()
-  + createTaskForUser()
-  + getTeamTasks()
-  + getDelegatedTasks()
-  + updateTask()
-  + deleteTask()
-}
-TaskController "1" *-- "focusService" FocusService
-class FocusBlock {
-  + getId()
-  + isProtected()
-  + getStartTime()
-  + getEndTime()
-  + getUser()
-  + setId()
-  + setStartTime()
-  + setEndTime()
-  + getStatus()
-  + setStatus()
-  + setUser()
-  + getFlexibility()
-  + setFlexibility()
-  + setProtected()
-  + isSuggestedBySystem()
-  + setSuggestedBySystem()
-}
-FocusBlock "1" *-- "user" User
-class TeamInvitation {
-  + getId()
-  + setId()
-  + getStatus()
-  + setStatus()
-  + getInvitedUser()
-  + setInvitedUser()
-  + getInviter()
-  + setInviter()
-  + getTeam()
-  + setTeam()
-}
-TeamInvitation "1" *-- "team" Team
-TeamInvitation "1" *-- "invitedUser" User
-TeamInvitation "1" *-- "inviter" User
-class Team {
-  + getName()
-  + setName()
-  + getId()
-  + setDescription()
-  + getDescription()
-  + removeMember()
-  + addMember()
-  + setId()
-  + getMembers()
-  + setMembers()
-  + getOwnerId()
-  + setOwnerId()
-}
-Team "1" *-- "*" User
-class User {
-  + equals()
-  + hashCode()
-  + getId()
-  + setId()
-  + getUsername()
-  + getPassword()
-  + setUsername()
-  + setPassword()
-  + getEvents()
-  + setEvents()
-  + getTasks()
-  + setTasks()
-  + setTeams()
-  + getTeams()
-}
-User "1" *-- "*" Event
-User "1" *-- "*" Task
-User "1" *-- "*" Team
-class FocusController {
-  + getFocusSuggestions()
-}
-FocusController "1" *-- "focusService" FocusService
-class EventController {
-  + getEventById()
-  + createEvent()
-  + updateEvent()
-  + deleteEvent()
-  + getTeamMemberEvents()
-  + getEventsByUser()
-  + getEventsByUserAndPeriod()
-  + recalculateTravelTimes()
-}
-EventController "1" *-- "focusService" FocusService
-class UserFocusPreference {
-  + getUserId()
-  + setUserId()
-  + getMaxEventsPerDay()
-  + getMinFocusDuration()
-  + getPreferredFocusTime()
-  + setMaxEventsPerDay()
-  + setMinFocusDuration()
-  + setPreferredFocusTime()
-  + isFocusModeEnabled()
-  + setFocusModeEnabled()
-}
-class WebConfig {
-  + corsConfigurer()
-  + restTemplate()
-}
-class DefaultScheduleOptimizerService {
-  + reshuffle()
-}
-DefaultScheduleOptimizerService "1" *-- "travelTimeService" TravelTimeService
-DefaultScheduleOptimizerService "1" *-- "focusService" FocusService
-class TravelTimeController {
-  + deleteTravelTime()
-  + updateTravelTime()
-  + getTravelTimesByUser()
-  + getTravelTimesByUserAndPeriod()
-  + getTravelTimeById()
-  + calculateTravelTime()
-}
-TravelTimeController "1" *-- "travelTimeService" TravelTimeService
-class CalendarImportService {
-  + importCalendar()
-}
-class Task {
-  + setPriority()
-  + getPriority()
-  + getId()
-  + isDone()
-  + getDuration()
-  + setDone()
-  + getUserId()
-  + getEventId()
-  + setTitle()
-  + getUser()
-  + setEvent()
-  + setId()
-  + setUser()
-  + getTitle()
-  + getEstimatedDuration()
-  + setEstimatedDuration()
-  + getEvent()
-  + getAssignee()
-  + setAssignee()
-  + getTeam()
-  + setTeam()
-  + isDelegated()
-  + isLate()
-  + setLate()
-  + getDeadline()
-  + setDeadline()
-}
-Task "1" *-- "user" User
-Task "1" *-- "event" Event
-Task "1" *-- "assignee" User
-Task "1" *-- "team" Team
-class TaskServiceImpl {
-  + planifyTask()
-  + getTasksByTeam()
-  + getTasksByUserId()
-  + getDelegatedTasks()
-  + createTask()
-  + updateTask()
-  + updateTask()
-  + deleteTask()
-  + getTaskById()
-  + getTasksAssignedToUser()
-}
-TaskServiceImpl "1" *-- "focusService" FocusService
-class ActivityLogService {
-  + recordActivity()
-  + getStats()
-}
 class ActivityLog {
   + getId()
   + getUserId()
@@ -322,36 +349,26 @@ class ActivityLog {
   + setEndTime()
   + setEventId()
 }
-class TeamController {
-  + createTeam()
-  + getTeamMembers()
-  + removeMember()
-  + deleteTeam()
-  + addMember()
-  + getMyTeams()
-  + inviteUser()
-  + getInvitations()
-  + respond()
+class FocusBlock {
+  + getId()
+  + isProtected()
+  + getStartTime()
+  + getEndTime()
+  + getUser()
+  + getStatus()
+  + setStatus()
+  + setUser()
+  + setId()
+  + setStartTime()
+  + setEndTime()
+  + getFlexibility()
+  + setFlexibility()
+  + setProtected()
+  + isSuggestedBySystem()
+  + setSuggestedBySystem()
 }
-class UserController {
-  + register()
-  + getAll()
-  + login()
-  + getByUsername()
-}
-UserController "1" *-- "userService" UserService
-class DefaultTaskSelectionStrategy {
-  + selectTask()
-}
-class TeamServiceImpl {
-  + createTeam()
-  + addMemberByUserId()
-  + getTeamsByUserId()
-  + getTeamMembers()
-  + removeMember()
-  + deleteTeam()
-  + inviteMember()
-  + getPendingInvitations()
-  + respondToInvitation()
+FocusBlock "1" *-- "user" User
+class BiweeklyCalendarParser {
+  + parse()
 }
 @enduml
