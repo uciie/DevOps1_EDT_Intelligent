@@ -41,7 +41,7 @@
 \tableofcontents
 
 \chapter{Introduction}
-Ce document présente l'application \textbf{DevOps1\_EDT\_Intelligent}, un système de gestion d'emploi du temps intelligent. Il détaille l'architecture technique, les processus DevOps mis en place et le guide d'utilisation, en s'appuyant sur les standards de qualité logicielle.
+Ce document présente l'application \textbf{DevOps1\_EDT\_Intelligent}, un système de gestion d'emploi du temps intelligent. Il détaille l'architecture technique, les processus DevOps mis en place et le guide d'utilisation, en s'appuyant sur les standards de qualité logicielle. L'objectif principal est de fournir une plateforme centralisée permettant de gérer ses tâches, son emploi du temps, et d'optimiser ses périodes de travail grâce à l'intelligence artificielle et l'analyse de données.
 
 \chapter{Architecture Technique}
 
@@ -56,229 +56,142 @@ Le diagramme suivant représente la structure globale du backend de l'applicatio
 
 \section{Technologies Utilisées}
 \begin{itemize}
-    \item \textbf{Backend :} Java avec Spring Boot.
-    \item \textbf{Frontend :} React / Vite.
+    \item \textbf{Backend :} Java 21 avec Spring Boot 3.
+    \item \textbf{Frontend :} React / Vite avec Tailwind CSS.
+    \item \textbf{Base de données :} PostgreSQL (H2 pour les tests).
     \item \textbf{Build :} Gradle.
     \item \textbf{CI/CD :} GitHub Actions.
+    \item \textbf{IA :} Google Gemini API.
 \end{itemize}
 
 \section{Intégration Continue (CI)}
-Plusieurs workflows GitHub Actions assurent la stabilité du projet:
+Plusieurs workflows GitHub Actions assurent la stabilité du projet :
 \begin{itemize}
     \item \textbf{Build \& Test :} Compilation et exécution des tests unitaires à chaque push.
-    \item \textbf{Analyse de Qualité :} Utilisation de SonarCloud pour détecter les vulnérabilités.
-    \item \textbf{Couverture de Code :} Génération de rapports Jacoco.
+    \item \textbf{Analyse de Qualité :} Utilisation de SonarCloud pour détecter les vulnérabilités et la dette technique.
+    \item \textbf{Couverture de Code :} Génération de rapports Jacoco avec un seuil minimal de 60\%.
+    \item \textbf{Génération Doc :} Mise à jour automatique des diagrammes UML et de la documentation PDF.
 \end{itemize}
 
 \section{Génération UML Automatique}
-À chaque modification dans \texttt{backend/src/main/java}, un script extrait la structure des classes et met à jour les fichiers \texttt{.puml} et \texttt{.png} dans le dossier \texttt{uml/}.
+À chaque modification dans \texttt{backend/src/main/java}, un workflow spécifique s'exécute :
+\begin{enumerate}
+    \item Une tâche Gradle (\texttt{generatePlantUml}) exécute un utilitaire Java qui scanne les classes et génère le fichier \texttt{diagram\_classes.puml}.
+    \item PlantUML convertit tous les fichiers \texttt{.puml} du dossier \texttt{doc/uml/} en images \texttt{.png}.
+    \item Les changements sont automatiquement "commit" et "push" sur la branche de documentation.
+\end{enumerate}
 
 \chapter{Manuel Utilisateur}
 
 \section{Prérequis et Configuration}
 Avant de procéder à l'installation, assurez-vous que les éléments suivants sont configurés sur votre machine :
 \begin{itemize}
-    \item \textbf{Java Development Kit (JDK) 17 ou supérieur :} Indispensable pour compiler et exécuter le backend Spring Boot.
-    \item \textbf{Node.js (version 18+) et npm :} Requis pour la gestion des dépendances et le lancement du frontend React.
-    \item \textbf{Environnement Git :} Pour cloner le dépôt et gérer les versions.
-    \item \textbf{Docker (optionnel) :} Si vous souhaitez isoler les services ou la base de données.
-    \item \textbf{Variables d'environnement :} Créez un fichier \texttt{.env} dans \texttt{backend/} et \texttt{frontend/} si des clés API (ex: Google Maps) sont nécessaires pour le calcul des temps de trajet. Pour plus de détails, consultez le fichier \texttt{README.md} du projet.
+    \item \textbf{Java Development Kit (JDK) 21 :} Indispensable pour compiler et exécuter le backend.
+    \item \textbf{Node.js (version 18+) et npm :} Requis pour le frontend.
+    \item \textbf{Variables d'environnement :} Créez un fichier \texttt{.env} dans \texttt{backend/} avec les clés \texttt{DB\_URL}, \texttt{DB\_USER}, \texttt{DB\_PASSWORD} et \texttt{GOOGLE\_API\_KEY}.
 \end{itemize}
 
-\section{Installation}
-Pour lancer le projet localement:
+\section{Installation et Lancement}
 \begin{enumerate}
-    \item Cloner le dépôt : \texttt{git clone https://github.com/uciie/DevOps1\_EDT\_Intelligent.git}.
-    \item \textbf{Configuration du Backend :} 
+    \item \textbf{Clonage :} \texttt{git clone https://github.com/uciie/DevOps1\_EDT\_Intelligent.git}.
+    \item \textbf{Backend :} 
     \begin{itemize}
-        \item Accédez au dossier : \texttt{cd backend}
-        \item Lancer le serveur : \texttt{./gradlew bootRun}.
+        \item \texttt{cd backend}
+        \item \texttt{./gradlew bootRun}
     \end{itemize}
-    \item \textbf{Configuration du Frontend :}
+    \item \textbf{Frontend :}
     \begin{itemize}
-        \item Accédez au dossier : \texttt{cd frontend}
-        \item Installer les dépendances : \texttt{npm install}.
-        \item Lancer l'application : \texttt{npm run dev}.
+        \item \texttt{cd frontend}
+        \item \texttt{npm install}
+        \item \texttt{npm run dev}
     \end{itemize}
 \end{enumerate}
 
-\section{Génération UML Automatique}
-À chaque modification dans \texttt{backend/src/main/java}, un script extrait la structure des classes et met à jour les fichiers \texttt{.puml} et \texttt{.png} dans le dossier \texttt{doc/uml/}.
-
-
 \chapter{Fonctionnalités Détaillées \& Implémentation}
 
-%================================================================================
+\section{Gestion des Tâches}
+Le système permet une gestion granulaire des tâches individuelles ou d'équipe.
+\subsection{Implémentation}
+\lstinputlisting[language=Java, firstline=40, lastline=80, caption=Gestion des tâches (Service)]{../backend/src/main/java/com/example/backend/service/impl/TaskServiceImpl.java}
 
-\section{Gestion des Tâches : Attribution, Modification et Suppression}
-Le système permet une gestion granulaire des tâches, qu'elles soient individuelles ou au sein d'une équipe.
-
-\subsection{Règles Métier et Synchronisation du Code}
-\begin{itemize}
-    \item \textbf{Attribution (RM-02/04) :} Par défaut, le créateur est l'assigné. Dans une équipe, une tâche peut être déléguée à un autre membre.
-    \item \textbf{Modification :} Toute modification (durée, priorité) déclenche potentiellement un recalcul de l'emploi du temps via l'optimiseur.
-    \item \textbf{Suppression :} La suppression d'une tâche entraîne le nettoyage automatique de l'événement associé dans l'agenda.
-\end{itemize}
-
-% EXTRACTION DIRECTE DU CODE SOURCE (Synchronisé)
-\lstinputlisting[language=Java, firstline=40, lastline=90, caption=Logique de gestion des tâches (Service)]{backend/src/main/java/com/example/backend/service/impl/TaskServiceImpl.java}
-
-\subsection{Capture d'écran : Liste des tâches}
+\subsection{Diagramme de séquence}
 \begin{figure}[h]
     \centering
-    \vspace{8cm} % ESPACE RÉSERVÉ POUR LA CAPTURE D'ÉCRAN
-    \caption{Interface de gestion et d'assignation des tâches}
+    \includegraphics[width=0.8\textwidth]{uml/sequence_task_lifecycle.png}
+    \caption{Cycle de vie d'une tâche}
 \end{figure}
 
-\subsection{Diagramme de séquence : Cycle de vie d'une tâche}
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.9\textwidth]{uml/sequence_task_lifecycle.png}
-    \caption{Séquence de création, attribution et suppression de tâche}
-\end{figure}
-
-%================================================================================
 \section{Optimisation de l'Emploi du Temps}
-Cette fonctionnalité permet de planifier des sessions de travail intelligentes.
+Cette fonctionnalité planifie des sessions de travail en fonction des trous dans l'agenda.
+\subsection{Algorithme de sélection}
+\lstinputlisting[language=Java, caption=Stratégie de sélection par défaut]{../backend/src/main/java/com/example/backend/service/strategy/DefaultTaskSelectionStrategy.java}
 
-\subsection{Algorithme de sélection des tâches}
-Voici l'implémentation de la stratégie de sélection des tâches utilisée par l'optimiseur :
-
-% SYNCHRONISATION AUTOMATIQUE : pointe vers votre fichier réel
-\lstinputlisting[language=Java, caption=Stratégie de sélection par défaut]{backend/src/main/java/com/example/backend/service/strategy/DefaultTaskSelectionStrategy.java}
-
-\subsection{Capture d'écran de l'interface d'optimisation}
+\subsection{Diagramme de séquence}
 \begin{figure}[h]
     \centering
-    \vspace{8cm} % ESPACE RÉSERVÉ POUR LA CAPTURE D'ÉCRAN
-    \caption{Interface de l'emploi du temps optimisé}
+    \includegraphics[width=0.8\textwidth]{uml/sequence_ScheduleOptimizer.png}
+    \caption{Optimisation intelligente du planning}
 \end{figure}
 
-\subsection{Diagramme de séquence : Optimisation}
+\section{Calcul des Temps de Trajet}
+Le système calcule automatiquement le temps nécessaire pour se rendre d'un événement à un autre.
+\subsection{Implémentation}
+\lstinputlisting[language=Java, firstline=15, lastline=45, caption=Calculateur de trajet simple]{../backend/src/main/java/com/example/backend/service/impl/SimpleTravelTimeCalculator.java}
+
+\subsection{Diagramme de séquence}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\textwidth]{uml/sequence_ScheduleOptimizer.png}
-    \caption{Séquence de calcul d'un emploi du temps intelligent}
+    \includegraphics[width=0.8\textwidth]{uml/sequence_TempsTrajet.png}
+    \caption{Processus de calcul des temps de trajet}
 \end{figure}
 
-%================================================================================
-
-\section{Localisation et Temps de Trajet}
-\subsection{Calculateur de trajet}
-Le code suivant montre comment le système interagit avec les coordonnées géographiques :
-
-\lstinputlisting[language=Java, firstline=10, lastline=40, caption=Calcul des temps de trajet]{backend/src/main/java/com/example/backend/service/impl/SimpleTravelTimeCalculator.java}
-
-\subsection{Diagramme de séquence : Calcul des trajets}
+\section{Chatbot Assistant (Gemini AI)}
+Un assistant virtuel répond aux questions sur le planning via le langage naturel.
+\subsection{Fonctionnement}
+L'assistant utilise l'API Google Gemini et reçoit le contexte de l'utilisateur (événements et tâches).
+\subsection{Diagramme de séquence}
 \begin{figure}[h]
     \centering
-    % L'image sera générée par le workflow à partir du .puml
-    \includegraphics[width=0.9\textwidth]{uml/sequence_TempsTrajet.png}
-    \caption{Processus de calcul des temps de trajet entre événements}
+    \includegraphics[width=0.8\textwidth]{uml/sequence_Chatbot.png}
+    \caption{Interaction avec l'assistant IA}
 \end{figure}
 
-\subsection{Capture d'écran du module de transport}
+\section{Mode Focus et Productivité}
+Le mode Focus aide à identifier les meilleures périodes de concentration.
+\subsection{Implémentation FocusService}
+\lstinputlisting[language=Java, firstline=30, lastline=70, caption=Calcul des créneaux de concentration]{../backend/src/main/java/com/example/backend/service/impl/FocusService.java}
+
+\section{Import d'Agenda (ICS)}
+L'utilisateur peut importer ses calendriers ADE ou Google Calendar via des fichiers .ics.
+\subsection{Implémentation Service}
+\lstinputlisting[language=Java, firstline=20, lastline=50, caption=Logique d'import de calendrier]{../backend/src/main/java/com/example/backend/service/CalendarImportService.java}
+
+\subsection{Diagramme de séquence}
 \begin{figure}[h]
     \centering
-    \vspace{8cm} % ESPACE RÉSERVÉ POUR LA CAPTURE D'ÉCRAN
-    \caption{Visualisation des temps de trajet entre deux cours}
+    \includegraphics[width=0.8\textwidth]{uml/sequence_ImportAgenda.png}
+    \caption{Importation d'événements externes}
 \end{figure}
 
-%================================================================================
-
-\section{Analyse d'Activité et Agrégation}
-Cette fonctionnalité permet de fusionner les données planifiées et réelles pour offrir une vue analytique à l'utilisateur.
-
-\subsection{Règles d'Agrégation}
-Le système applique une logique de fusion stricte :
-\begin{itemize}
-    \item \textbf{Dualité :} Fusion des \texttt{ActivityLogs} (réel) et des \texttt{Events} (planifié).
-    \item \textbf{Robustesse :} Exclusion automatique des sessions sans date de fin pour ne pas fausser les moyennes.
-    \item \textbf{Confidentialité :} Les données sont filtrées par \texttt{userId} ; même au sein d'une équipe, les statistiques de productivité restent privées.
-\end{itemize}
-
-\subsection{Implémentation du Service}
-Le code suivant illustre la récupération et le filtrage des logs :
-% SYNCHRONISATION AUTOMATIQUE
-\lstinputlisting[language=Java, firstline=25, lastline=60, caption=Logique d'agrégation des statistiques]{backend/src/main/java/com/example/backend/service/ActivityLogService.java}
-
-\subsection{Diagramme de séquence : Analytics}
+\section{Gestion d'Équipe et Collaboration}
+Permet de partager des tâches et d'inviter des membres dans une équipe.
+\subsection{Diagramme de séquence}
 \begin{figure}[h]
     \centering
-    % L'image sera générée par le workflow à partir du .puml
-    \includegraphics[width=0.9\textwidth]{uml/sequence_ActivityAnalytics.png}
-    \caption{Processus de fusion et calcul des statistiques d'activité}
+    \includegraphics[width=0.8\textwidth]{uml/sequence_CollabTeam.png}
+    \caption{Flux d'invitation d'équipe}
 \end{figure}
 
-\subsection{Capture d'écran du Dashboard}
-\begin{figure}[h]
-    \centering
-    \vspace{8cm} % ESPACE RÉSERVÉ POUR LA CAPTURE D'ÉCRAN DES GRAPHIQUES
-    \caption{Interface de visualisation des statistiques par catégorie}
-\end{figure}
+\chapter{Tests et Qualité Logicielle}
+Le projet suit une approche de développement piloté par les tests (TDD).
 
-%================================================================================
+\section{Tests Unitaires et Mockito}
+\lstinputlisting[language=Java, firstline=25, lastline=55, caption=Exemple de test de service]{../backend/src/test/java/com/example/backend/service/impl/TaskServiceImplTest.java}
 
-\section{Gestion d'Équipe}
-\subsection{Modèle de données d'équipe}
-Structure synchronisée de l'entité Team :
+\section{Couverture de Code}
+Le rapport Jacoco est généré à chaque build. Nous visons une couverture d'au moins 60\% sur les services critiques.
 
-\lstinputlisting[language=Java, caption=Modèle de données Team]{backend/src/main/java/com/example/backend/service/impl/TeamServiceImpl.java}
-
-\subsection{Diagramme de séquence : Gestion d'équipe}
-\begin{figure}[h]
-    \centering
-    % L'image sera générée par le workflow à partir du .puml
-    \includegraphics[width=0.9\textwidth]{uml/sequence_CollabTeam.png}
-    \caption{Processus de gestion des invitations d'équipe}
-\end{figure}
-
-\subsection{Capture d'écran du Dashboard}
-\begin{figure}[h]
-    \centering
-    \vspace{8cm} % ESPACE RÉSERVÉ POUR LA CAPTURE D'ÉCRAN DES GRAPHIQUES
-    \caption{Interface de gestion des membres de l'équipe}
-\end{figure}
-
-%================================================================================
-\chapter{Tests et Qualité Logicielle (Backend)}
-
-Le backend utilise une stratégie de tests multicouches (Unitaire, Intégration, Repository) pour garantir que chaque règle métier est respectée.
-
-\section{Tests de Logique Métier (Services)}
-Les tests unitaires utilisent \textbf{JUnit 5} et \textbf{Mockito} pour simuler les dépendances et valider les comportements complexes.
-
-\subsection{Optimisation et Planning}
-Les tests du service d'optimisation vérifient que l'algorithme place correctement les tâches sans chevauchement avec les événements importés (ICS).
-\lstinputlisting[language=Java, firstline=30, lastline=70, caption=Tests de l'optimiseur de planning]{backend/src/test/java/com/example/backend/service/impl/DefaultScheduleOptimizerServiceTest.java}
-
-\subsection{Gestion des Tâches}
-Le service des tâches est testé pour valider la création, la modification et surtout les règles d'attribution automatique.
-\lstinputlisting[language=Java, firstline=25, lastline=60, caption=Validation unitaire du TaskService]{backend/src/test/java/com/example/backend/service/impl/TaskServiceImplTest.java}
-
-\section{Tests de Persistance (Repositories)}
-Nous utilisons des tests de repository pour valider les requêtes SQL/JPA personnalisées, notamment pour le filtrage par utilisateur et par période.
-\begin{itemize}
-    \item \textbf{ActivityLogRepositoryTest :} Vérifie l'extraction des logs pour les statistiques.
-    \item \textbf{UserRepositoryTest :} Valide les contraintes d'unicité sur les emails.
-\end{itemize}
-
-\section{Tests d'API (Controllers)}
-Les contrôleurs sont testés avec \texttt{MockMvc} pour s'assurer que les endpoints REST renvoient les bons codes HTTP (200 OK, 201 Created, 404 Not Found).
-\begin{itemize}
-    \item \textbf{ActivityLogControllerTest :} Vérifie que les statistiques sont bien renvoyées au format JSON via le DTO.
-    \item \textbf{TeamControllerTest :} Valide le flux d'invitation et d'acceptation dans une équipe.
-\end{itemize}
-
-\section{Justification de l'étendue des tests}
-Outre les tests des services métier, la suite de tests couvre l'intégralité des couches de l'application pour les raisons suivantes :
-
-\begin{description}
-    \item[Sécurité des points d'entrée :] Les tests de \textit{Controllers} valident les contrats d'interface avec le Frontend, évitant les erreurs de désérialisation JSON.
-    \item[Intégrité des données :] Les tests de \textit{Repositories} garantissent que les règles de persistance et les requêtes personnalisées (JPA) ne produisent pas d'effets de bord en base de données.
-    \item[Robustesse des formats :] Le parsing de fichiers externes (ICS) étant sujet à de nombreuses variations, des tests dédiés (\textit{ParserTests}) assurent que l'application est résiliente face à des données mal formées.
-    \item[Objectif Qualité (SonarCloud) :] Cette granularité permet d'atteindre un taux de couverture élevé, critère indispensable pour valider la \textit{Quality Gate} de notre pipeline CI/CD.
-\end{description}
-
+\chapter{Conclusion}
+L'application \textbf{DevOps1\_EDT\_Intelligent} répond au besoin croissant d'organisation personnelle et collective. L'automatisation des processus DevOps assure une haute qualité logicielle.
 
 \end{document}

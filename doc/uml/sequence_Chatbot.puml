@@ -1,0 +1,53 @@
+@startuml
+!theme plain
+title Séquence Backend : Traitement Chatbot (Gemini AI)
+skinparam classAttributeIconSize 0
+skinparam backgroundColor white
+
+participant "ChatController" as Ctrl << (C,#ADD1B2) Controller >>
+participant "ChatService" as Svc << (S,#98FB98) Service >>
+participant "RestGeminiHttpClient" as Client << (B,#FEFECE) Component >>
+participant "ChatHistoryRepository" as Repo << (R,#B22222) Repository >>
+database "H2/PostgreSQL" as DB
+
+[-> Ctrl : postMessage(chatRequest)
+activate Ctrl
+
+Ctrl -> Svc : getAiResponse(userId, userPrompt)
+activate Svc
+
+Svc -> Repo : findByUserIdOrderByTimestamp(userId)
+activate Repo
+Repo -> DB : SELECT history
+DB --> Repo : historyData
+Repo --> Svc : List<ChatMessage>
+deactivate Repo
+
+Svc -> Client : callGeminiApi(userPrompt, history)
+activate Client
+
+note over Client : Préparation du JSON\n(Modèle, Prompt, Sécurité)
+
+Client -> "Google Gemini API" : POST /v1beta/models/gemini-pro:generateContent
+activate "Google Gemini API"
+"Google Gemini API" --> Client : 200 OK (JSON Response)
+deactivate "Google Gemini API"
+
+Client --> Svc : rawAiText
+deactivate Client
+
+Svc -> Svc : cleanResponse(rawAiText)
+
+Svc -> Repo : save(newAiMessage)
+activate Repo
+Repo -> DB : INSERT aiMessage
+Repo --> Svc : savedEntity
+deactivate Repo
+
+Svc --> Ctrl : chatResponseDTO
+deactivate Svc
+
+[<-- Ctrl : 200 OK (JSON)
+deactivate Ctrl
+
+@enduml

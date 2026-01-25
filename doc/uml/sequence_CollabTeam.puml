@@ -1,0 +1,36 @@
+@startuml
+title Séquence : Gestion d'Équipe (Invitation)
+
+actor Owner as "Propriétaire (User)"
+actor Member as "Invité (User)"
+participant "TeamServiceImpl" as TeamService
+participant "TeamInvitationRepository" as InviteRepo
+participant "UserRepository" as UserRepo
+
+Owner -> TeamService : inviteUserToTeam(teamId, email)
+activate TeamService
+
+TeamService -> TeamService : checkOwnership(userId, teamId)
+note right : Seul l'ownerId de la Team\npeut inviter.
+
+TeamService -> UserRepo : findByEmail(email)
+alt Utilisateur trouvé
+    create participant "TeamInvitation" as Invite
+    TeamService -> Invite : new(team, invitedUser, PENDING)
+    TeamService -> InviteRepo : save(invitation)
+    TeamService --> Owner : Invitation envoyée
+else Non trouvé
+    TeamService --> Owner : Erreur 404
+end
+deactivate TeamService
+
+... Plus tard ...
+
+Member -> TeamService : acceptInvitation(invitationId)
+activate TeamService
+TeamService -> InviteRepo : findById(invitationId)
+TeamService -> TeamService : team.getMembers().add(member)
+TeamService -> Invite : setStatus(ACCEPTED)
+TeamService --> Member : Bienvenue dans l'équipe
+deactivate TeamService
+@enduml
