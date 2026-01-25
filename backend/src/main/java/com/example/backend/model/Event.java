@@ -55,6 +55,7 @@ public class Event {
     @OneToMany(mappedBy = "toEvent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TravelTime> arrivals;
 
+    @Enumerated(EnumType.STRING)
     private EventStatus status = EventStatus.PLANNED;
 
     public enum EventStatus {

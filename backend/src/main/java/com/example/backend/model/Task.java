@@ -34,6 +34,7 @@ public class Task {
     private int priority; // 1 = haute, 2 = moyenne, 3 = basse
 
     @JsonAlias("isDone")
+    @Enumerated(EnumType.STRING)
     private TaskStatus status;
 
     @ManyToOne
@@ -61,7 +62,10 @@ public class Task {
         DONE,
         CANCELLED,
         PENDING_CREATION,
-        CONFIRMED
+        CONFIRMED,
+        // Valeurs présentes en base chez certains enregistrements
+        PENDING,
+        PLANNED
     }
 
     public Task() {
