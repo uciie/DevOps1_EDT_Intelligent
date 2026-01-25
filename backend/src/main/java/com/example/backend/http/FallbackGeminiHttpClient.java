@@ -2,10 +2,9 @@ package com.example.backend.http;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
 
 @Service
-@ConditionalOnMissingBean(RestClient.Builder.class)
+@ConditionalOnMissingBean(GeminiHttpClient.class)
 public class FallbackGeminiHttpClient implements GeminiHttpClient {
 
     @Override

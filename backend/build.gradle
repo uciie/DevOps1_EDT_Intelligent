@@ -34,6 +34,8 @@ dependencies {
     
     // C'est cette dépendance qui permet le Chatbot (via RestClient) et Google Maps
     implementation 'org.springframework.boot:spring-boot-starter-web' //Pour les appels REST vers Google Maps API et Google AI (Gemini)
+    // WebFlux pour WebClient (utilisé par RestGeminiHttpClient)
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
     //implementation 'com.fasterxml.jackson.core:jackson-annotations' // Inclus par défaut dans starter-web

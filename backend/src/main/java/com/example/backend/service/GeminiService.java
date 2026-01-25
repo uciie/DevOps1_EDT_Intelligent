@@ -1,62 +1,65 @@
 package com.example.backend.service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import com.example.backend.http.GeminiHttpClient;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class GeminiService {
 
-    @Value("${google.ai.api.key}")
+    @Value("${google.ai.api-key}")
     private String apiKey;
 
     @Value("${google.ai.model}")
     private String model;
 
     private final GeminiHttpClient httpClient;
-    private final ObjectMapper objectMapper;
 
     public GeminiService(GeminiHttpClient httpClient, ObjectMapper objectMapper) {
         this.httpClient = httpClient;
-        this.objectMapper = objectMapper;
     }
 
     public GeminiResponse chatWithGemini(String userMessage) {
-        // 1. Définition des Outils (Function Definitions)
-        var tools = List.of(Map.of("function_declarations", List.of(
+        // Construction de la requête
+        Map<String, Object> requestBody = new HashMap<>();
+        
+        // 1. Message utilisateur
+        requestBody.put("contents", List.of(
+            Map.of("parts", List.of(Map.of("text", userMessage)))
+        ));
+
+        // 2. Outils (Fonctions de planification)
+        var functionDeclarations = List.of(
             defineTool("cancel_afternoon", "Annule les événements d'un après-midi donné.",
                 Map.of("date", Map.of("type", "STRING", "description", "Date YYYY-MM-DD")), List.of("date")),
             defineTool("move_activity", "Déplace une activité.",
                 Map.of(
                     "activityName", Map.of("type", "STRING", "description", "Nom de l'activité"),
-                    "targetDate", Map.of("type", "STRING", "description", "Nouvelle date YYYY-MM-DD"),
-                    "targetTime", Map.of("type", "STRING", "description", "Nouvelle heure HH:mm")
-                ), List.of("activityName", "targetDate", "targetTime")),
-            defineTool("add_task", "Ajoute une nouvelle tâche à optimiser.",
+                    "targetDate", Map.of("type", "STRING", "description", "Nouvelle date YYYY-MM-DD")
+                ), List.of("activityName", "targetDate")),
+            defineTool("add_task", "Ajoute une nouvelle tâche au backlog.",
                 Map.of(
                     "name", Map.of("type", "STRING", "description", "Nom de la tâche"),
                     "durationMinutes", Map.of("type", "INTEGER", "description", "Durée en minutes")
                 ), List.of("name", "durationMinutes"))
-        )));
-
-        // 2. Construction du Payload
-        var requestBody = Map.of(
-            "contents", List.of(Map.of("parts", List.of(Map.of("text", userMessage)))),
-            "tools", tools
         );
+        
+        requestBody = new HashMap<>();
+        requestBody.put("contents", List.of(
+            Map.of("parts", List.of(Map.of("text", userMessage)))
+        ));
+        //requestBody.put("tools", List.of(Map.of("function_declarations", functionDeclarations)));
 
-        // 3. Appel API via wrapper testable
         return httpClient.generateContent(model, apiKey, requestBody, GeminiResponse.class);
     }
 
-    // Helper pour construire la structure JSON verbeuse de Gemini
     private Map<String, Object> defineTool(String name, String desc, Map<String, Object> props, List<String> required) {
         return Map.of(
             "name", name,
@@ -69,11 +72,23 @@ public class GeminiService {
         );
     }
 
-    // --- DTOs pour Mapper la réponse JSON de Gemini ---
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    // --- DTOs ---
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record GeminiResponse(List<Candidate> candidates) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Candidate(Content content) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Content(List<Part> parts) {}
-    public record Part(String text, FunctionCall functionCall) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public record Part(
+        String text, 
+        @JsonInclude(JsonInclude.Include.NON_NULL)
+        FunctionCall functionCall
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record FunctionCall(String name, Map<String, Object> args) {}
 }
