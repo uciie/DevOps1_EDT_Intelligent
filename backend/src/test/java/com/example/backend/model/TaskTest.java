@@ -29,7 +29,7 @@ class TaskTest {
                 user);
 
         // Création d'une tâche liée à l'utilisateur et à l'événement
-        Task task = new Task("Test Task", 60, 1, false, user, event);
+        Task task = new Task("Test Task", 60, 1, Task.TaskStatus.PENDING_CREATION, user, event);
 
         // L'identifiant n'est pas encore généré (car non persisté)
         assertNull(task.getId());
@@ -38,7 +38,7 @@ class TaskTest {
         assertEquals("Test Task", task.getTitle());
         assertEquals(60, task.getEstimatedDuration());
         assertEquals(1, task.getPriority());
-        assertFalse(task.isDone()); // Tâche non terminée
+        assertNotEquals(Task.TaskStatus.DONE, task.getStatus()); // Tâche non terminée
         assertEquals(user.getId(), task.getUserId());
         assertEquals(event.getId(), task.getEventId());
 
@@ -67,7 +67,7 @@ class TaskTest {
         task.setTitle("Updated Task");
         task.setEstimatedDuration(90);
         task.setPriority(2);
-        task.setDone(true);
+        task.setStatus(Task.TaskStatus.DONE);
         task.setUser(user);
         task.setEvent(event);
 
@@ -75,7 +75,7 @@ class TaskTest {
         assertEquals("Updated Task", task.getTitle());
         assertEquals(90, task.getEstimatedDuration());
         assertEquals(2, task.getPriority());
-        assertTrue(task.isDone());
+        assertEquals(Task.TaskStatus.DONE, task.getStatus());
         assertEquals(user.getId(), task.getUserId());
         assertEquals(event.getId(), task.getEventId());
     }

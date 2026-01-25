@@ -46,7 +46,7 @@ class TaskRepositoryTest {
     @DisplayName("Sauvegarde et récupération d'une tâche")
     void testSaveAndFindTask() {
         // Arrange
-        Task task  = new Task("Faire les courses", 60, 5, false, testUser, (LocalDateTime) null); // CORRIGÉ
+        Task task  = new Task("Faire les courses", 60, 5, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null); // CORRIGÉ
 
         // Act
         Task saved = taskRepository.save(task);
@@ -60,7 +60,7 @@ class TaskRepositoryTest {
         assertEquals("Faire les courses", found.get().getTitle());
         assertEquals(60, found.get().getEstimatedDuration());
         assertEquals(5, found.get().getPriority());
-        assertFalse(found.get().isDone());
+        assertNotEquals(Task.TaskStatus.DONE, found.get().getStatus());
         assertEquals(testUser.getId(), found.get().getUserId());
     }
 
@@ -68,9 +68,9 @@ class TaskRepositoryTest {
     @DisplayName("Recherche des tâches par utilisateur")
     void testFindByUser_Id() {
         // Arrange
-        Task task1 = new Task("Tâche 1", 30, 3, false, testUser, (LocalDateTime) null); // CORRIGÉ
-        Task task2 = new Task("Tâche 2", 45, 4, false, testUser, (LocalDateTime) null); // CORRIGÉ
-        Task task3 = new Task("Tâche 3", 60, 2, false, anotherUser, (LocalDateTime) null); // CORRIGÉ
+        Task task1 = new Task("Tâche 1", 30, 3, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null); // CORRIGÉ
+        Task task2 = new Task("Tâche 2", 45, 4, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null); // CORRIGÉ
+        Task task3 = new Task("Tâche 3", 60, 2, Task.TaskStatus.PENDING_CREATION, anotherUser, (LocalDateTime) null); // CORRIGÉ
 
         taskRepository.save(task1);
         taskRepository.save(task2);
@@ -116,7 +116,7 @@ class TaskRepositoryTest {
         entityManager.persist(event);
         entityManager.flush();
 
-        Task task = new Task("Préparer présentation", 90, 5, false, testUser, event);
+        Task task = new Task("Préparer présentation", 90, 5, Task.TaskStatus.PENDING_CREATION, testUser, event);
 
         // Act
         Task saved = taskRepository.save(task);
@@ -133,7 +133,7 @@ class TaskRepositoryTest {
     @DisplayName("Tâche sans événement associé")
     void testTaskWithoutEvent() {
         // Arrange
-        Task task = new Task("Tâche libre", 45, 3, false, testUser, (LocalDateTime) null); // CORRIGÉ
+        Task task = new Task("Tâche libre", 45, 3, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null); // CORRIGÉ
 
         // Act
         Task saved = taskRepository.save(task);
@@ -149,28 +149,28 @@ class TaskRepositoryTest {
     @DisplayName("Mise à jour du statut d'une tâche")
     void testUpdateTaskStatus() {
         // Arrange
-        Task task  = new Task("À supprimer", 30, 2, false, testUser, (LocalDateTime) null); // CORRIGÉ
+        Task task  = new Task("À supprimer", 30, 2, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null); // CORRIGÉ
         Task saved = taskRepository.save(task);
         entityManager.flush();
         entityManager.clear();
 
         // Act
         Task toUpdate = taskRepository.findById(saved.getId()).orElseThrow();
-        toUpdate.setDone(true);
+        toUpdate.setStatus(Task.TaskStatus.DONE);
         taskRepository.save(toUpdate);
         entityManager.flush();
         entityManager.clear();
 
         // Assert
         Task updated = taskRepository.findById(saved.getId()).orElseThrow();
-        assertTrue(updated.isDone());
+        assertEquals(Task.TaskStatus.DONE, updated.getStatus());
     }
 
     @Test
     @DisplayName("Mise à jour de la priorité")
     void testUpdatePriority() {
         // Arrange
-        Task task = new Task("Tâche", 30, 3, false, testUser, (LocalDateTime) null); 
+        Task task = new Task("Tâche", 30, 3, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null); 
         Task saved = taskRepository.save(task);
         entityManager.flush();
         entityManager.clear();
@@ -191,7 +191,7 @@ class TaskRepositoryTest {
     @DisplayName("Suppression d'une tâche")
     void testDeleteTask() {
         // Arrange
-        Task task = new Task("À supprimer", 30, 2, false, testUser, (LocalDateTime) null); 
+        Task task = new Task("À supprimer", 30, 2, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null); 
         Task saved = taskRepository.save(task);
         entityManager.flush();
         Long taskId = saved.getId();
@@ -209,7 +209,7 @@ class TaskRepositoryTest {
     @DisplayName("Tâche avec durée estimée zéro")
     void testTaskWithZeroDuration() {
         // Arrange
-        Task task = new Task("Tâche rapide", 0, 1, false, testUser, (LocalDateTime) null);
+        Task task = new Task("Tâche rapide", 0, 1, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null);
 
         // Act
         Task saved = taskRepository.save(task);
@@ -225,7 +225,7 @@ class TaskRepositoryTest {
     @DisplayName("Tâche avec priorité négative")
     void testTaskWithNegativePriority() {
         // Arrange
-        Task task = new Task("Tâche", 30, -1, false, testUser, (LocalDateTime) null);
+        Task task = new Task("Tâche", 30, -1, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null);
 
         // Act
         Task saved = taskRepository.save(task);
@@ -244,7 +244,7 @@ class TaskRepositoryTest {
         String longTitle = "Ceci est un titre de tâche extrêmement long qui contient beaucoup " +
                           "de caractères pour tester la capacité de la base de données à gérer " +
                           "des titres de tâches volumineux sans problème";
-        Task task = new Task(longTitle, 60, 3, false, testUser, (LocalDateTime) null);
+        Task task = new Task(longTitle, 60, 3, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null);
 
         // Act
         Task saved = taskRepository.save(task);
@@ -260,9 +260,9 @@ class TaskRepositoryTest {
     @DisplayName("Plusieurs tâches avec différentes priorités")
     void testMultipleTasksWithDifferentPriorities() {
         // Arrange
-        Task lowPriority = new Task("Basse priorité", 30, 1, false, testUser, (LocalDateTime) null); 
-        Task mediumPriority = new Task("Moyenne priorité", 45, 5, false, testUser, (LocalDateTime) null); 
-        Task highPriority = new Task("Haute priorité", 60, 10, false, testUser, (LocalDateTime) null);
+        Task lowPriority = new Task("Basse priorité", 30, 1, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null); 
+        Task mediumPriority = new Task("Moyenne priorité", 45, 5, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null); 
+        Task highPriority = new Task("Haute priorité", 60, 10, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null);
 
         // Act
         taskRepository.save(lowPriority);
@@ -279,9 +279,9 @@ class TaskRepositoryTest {
     @DisplayName("Tâches terminées et non terminées pour le même utilisateur")
     void testDoneAndUndoneTasks() {
         // CORRECTION : Cast explicite pour la deadline
-        Task done1 = new Task("Terminée 1", 30, 3, true, testUser, (LocalDateTime) null); 
-        Task done2 = new Task("Terminée 2", 45, 4, true, testUser, (LocalDateTime) null); 
-        Task undone = new Task("À faire", 60, 5, false, testUser, (LocalDateTime) null); 
+        Task done1 = new Task("Terminée 1", 30, 3, Task.TaskStatus.DONE, testUser, (LocalDateTime) null); 
+        Task done2 = new Task("Terminée 2", 45, 4, Task.TaskStatus.DONE, testUser, (LocalDateTime) null); 
+        Task undone = new Task("À faire", 60, 5, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null); 
         // ...
 
         taskRepository.save(done1);
@@ -294,8 +294,8 @@ class TaskRepositoryTest {
 
         // Assert
         assertEquals(3, allTasks.size());
-        long doneCount = allTasks.stream().filter(Task::isDone).count();
-        long undoneCount = allTasks.stream().filter(t -> !t.isDone()).count();
+        long doneCount = allTasks.stream().filter(t -> t.getStatus().equals(Task.TaskStatus.DONE)).count();
+        long undoneCount = allTasks.stream().filter(t -> !t.getStatus().equals(Task.TaskStatus.DONE)).count();
         assertEquals(2, doneCount);
         assertEquals(1, undoneCount);
     }
@@ -304,7 +304,7 @@ class TaskRepositoryTest {
     @DisplayName("Modification de la durée estimée")
     void testUpdateEstimatedDuration() {
         // Arrange
-        Task task = new Task("Tâche", 30, 3, false, testUser, (LocalDateTime) null);
+        Task task = new Task("Tâche", 30, 3, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null);
         Task saved = taskRepository.save(task);
         entityManager.flush();
         entityManager.clear();
@@ -325,7 +325,7 @@ class TaskRepositoryTest {
     @DisplayName("Modification du titre")
     void testUpdateTitle() {
         // Arrange
-        Task task =  new Task("Titre initial", 30, 3, false, testUser, (LocalDateTime) null);
+        Task task =  new Task("Titre initial", 30, 3, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null);
         Task saved = taskRepository.save(task);
         entityManager.flush();
         entityManager.clear();
@@ -346,9 +346,9 @@ class TaskRepositoryTest {
     @DisplayName("Récupération de toutes les tâches")
     void testFindAll() {
         // Arrange
-        taskRepository.save(new Task("Tâche 1", 30, 1, false, testUser, (LocalDateTime) null)); // CORRIGÉ
-        taskRepository.save(new Task("Tâche 2", 45, 2, false, testUser, (LocalDateTime) null)); // CORRIGÉ
-        taskRepository.save(new Task("Tâche 3", 60, 3, false, anotherUser, (LocalDateTime) null)); // CORRIGÉ
+        taskRepository.save(new Task("Tâche 1", 30, 1, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null)); // CORRIGÉ
+        taskRepository.save(new Task("Tâche 2", 45, 2, Task.TaskStatus.PENDING_CREATION, testUser, (LocalDateTime) null)); // CORRIGÉ
+        taskRepository.save(new Task("Tâche 3", 60, 3, Task.TaskStatus.PENDING_CREATION, anotherUser, (LocalDateTime) null)); // CORRIGÉ
         entityManager.flush();
         // Act
         List<Task> tasks = taskRepository.findAll();

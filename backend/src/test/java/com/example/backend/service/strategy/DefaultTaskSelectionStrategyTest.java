@@ -40,15 +40,15 @@ class DefaultTaskSelectionStrategyTest {
         user.setId(1L);
 
         // Tâche avec priorité 3, durée 30 min, non terminée
-        task1 = new Task("Task 1", 30, 3, false, user, (LocalDateTime) null);
+        task1 = new Task("Task 1", 30, 3, Task.TaskStatus.PENDING_CREATION, user, (LocalDateTime) null);
         task1.setId(1L);
 
         // Tâche avec priorité 2, durée 60 min, non terminée
-        task2 = new Task("Task 2", 60, 2, false, user, (LocalDateTime) null);
+        task2 = new Task("Task 2", 60, 2, Task.TaskStatus.PENDING_CREATION, user, (LocalDateTime) null);
         task2.setId(2L);
 
         // Tâche avec priorité 1, durée 15 min, non terminée
-        task3 = new Task("Task 3", 15, 1, false, user, (LocalDateTime) null);
+        task3 = new Task("Task 3", 15, 1, Task.TaskStatus.PENDING_CREATION, user, (LocalDateTime) null);
         task3.setId(3L);
     }
 
@@ -86,7 +86,7 @@ class DefaultTaskSelectionStrategyTest {
     @Test
     void testSelectTask_FiltersDoneTasks() {
         // Arrange
-        task1.setDone(true);
+        task1.setStatus(Task.TaskStatus.DONE);
         List<Task> tasks = Arrays.asList(task1, task2, task3);
         when(taskRepository.findByUser_Id(1L)).thenReturn(tasks);
 
@@ -96,14 +96,14 @@ class DefaultTaskSelectionStrategyTest {
         // Assert
         assertNotNull(selected);
         assertNotEquals(task1.getId(), selected.getId()); // task1 est terminée
-        assertFalse(selected.isDone());
+        assertNotEquals(Task.TaskStatus.DONE, selected.getStatus());
     }
 
     @Test
     void testSelectTask_FiltersTasksWithCancelledEvent() {
         // Arrange
         Event cancelledEvent = new Event();
-        cancelledEvent.setStatus("CANCELLED");
+        cancelledEvent.setStatus(Event.EventStatus.PENDING_DELETION);
         task1.setEvent(cancelledEvent);
 
         List<Task> tasks = Arrays.asList(task1, task2, task3);
@@ -121,7 +121,7 @@ class DefaultTaskSelectionStrategyTest {
     void testSelectTask_FiltersTasksWithDoneEvent() {
         // Arrange
         Event doneEvent = new Event();
-        doneEvent.setStatus("DONE");
+        doneEvent.setStatus(Event.EventStatus.CONFIRMED);
         task1.setEvent(doneEvent);
 
         List<Task> tasks = Arrays.asList(task1, task2, task3);
@@ -154,7 +154,7 @@ class DefaultTaskSelectionStrategyTest {
     void testSelectTask_AllowsTasksWithActiveEvent() {
         // Arrange
         Event activeEvent = new Event();
-        activeEvent.setStatus("PLANNED");
+        activeEvent.setStatus(Event.EventStatus.PLANNED);
         task1.setEvent(activeEvent);
 
         List<Task> tasks = Arrays.asList(task1, task2, task3);
@@ -183,9 +183,9 @@ class DefaultTaskSelectionStrategyTest {
     @Test
     void testSelectTask_ReturnsNullWhenAllTasksFiltered() {
         // Arrange
-        task1.setDone(true);
-        task2.setDone(true);
-        task3.setDone(true);
+        task1.setStatus(Task.TaskStatus.DONE);
+        task2.setStatus(Task.TaskStatus.DONE);
+        task3.setStatus(Task.TaskStatus.DONE);
         List<Task> tasks = Arrays.asList(task1, task2, task3);
         when(taskRepository.findByUser_Id(1L)).thenReturn(tasks);
 

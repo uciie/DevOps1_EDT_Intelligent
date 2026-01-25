@@ -63,7 +63,7 @@ class UserTest {
         // Création d'un événement et d'une tâche liés à cet utilisateur
         Event e = new Event("Meeting", java.time.LocalDateTime.now(),
                             java.time.LocalDateTime.now().plusHours(1), user);
-        Task t = new Task("Task A", 60, 3, false, user, e);
+        Task t = new Task("Task A", 60, 3, Task.TaskStatus.PENDING_CREATION, user, e);
 
         // Association des événements et tâches à l'utilisateur
         user.setEvents(List.of(e));
