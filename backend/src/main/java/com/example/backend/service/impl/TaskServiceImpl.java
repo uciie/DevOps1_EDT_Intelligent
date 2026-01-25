@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.backend.model.Event;
 import com.example.backend.model.Task;
+import com.example.backend.model.Task.TaskStatus;
 import com.example.backend.model.Team; 
 import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
@@ -41,7 +42,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<Task> getTasksByTeam(Long teamId) {
         // Cette méthode existe déjà dans votre TaskRepository (voir fichier fourni)
-        return taskRepository.findByTeamId(teamId);
+        return taskRepository.findByTeam_Id(teamId);
     }
 
     // --- RM-04 : FILTRES ---
@@ -132,7 +133,7 @@ public class TaskServiceImpl implements TaskService {
             }
         }
 
-        task.setDone(false);
+        task.setStatus(TaskStatus.PENDING_CREATION);
         return taskRepository.save(task);
     }
     // --- RM-03 : DROITS DE MODIFICATION ---
@@ -151,7 +152,7 @@ public class TaskServiceImpl implements TaskService {
             existing.setTitle(updatedTask.getTitle());
             existing.setEstimatedDuration(updatedTask.getEstimatedDuration());
             existing.setPriority(updatedTask.getPriority());
-            existing.setDone(updatedTask.isDone());
+            existing.setStatus(updatedTask.getStatus());
             
             // Réassignation possible par le créateur
             if (updatedTask.getAssignee() != null) {
@@ -166,7 +167,7 @@ public class TaskServiceImpl implements TaskService {
             // L'ASSIGNÉ peut modifier uniquement le statut (Done, Late)
             // On ignore silencieusement les autres changements ou on lance une erreur ? 
             // Ici on applique uniquement les changements autorisés.
-            existing.setDone(updatedTask.isDone());
+            existing.setStatus(updatedTask.getStatus());
             existing.setLate(updatedTask.isLate());
             
         } else {
@@ -185,7 +186,7 @@ public class TaskServiceImpl implements TaskService {
         existing.setTitle(updatedTask.getTitle());
         existing.setEstimatedDuration(updatedTask.getEstimatedDuration());
         existing.setPriority(updatedTask.getPriority());
-        existing.setDone(updatedTask.isDone());
+        existing.setStatus(updatedTask.getStatus());
         return taskRepository.save(existing);
     }
 

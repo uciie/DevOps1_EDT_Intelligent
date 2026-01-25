@@ -23,6 +23,12 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByUserAndAssigneeNot(User creator, User assignee);
 
     // 3. Tâches d'une équipe spécifique (RM-04)
-    List<Task> findByTeamId(Long teamId);
+    List<Task> findByTeam_Id(Long teamId);
+
+    // 4. Tâches par priorité (Chatbot)
+    List<Task> findByUser_IdAndPriority(Long userId, int priority);
+
+    // Suppression par utilisateur + priorité (utilisé par le Chatbot)
+    void deleteByUser_IdAndPriority(Long userId, int priority);
 
 }

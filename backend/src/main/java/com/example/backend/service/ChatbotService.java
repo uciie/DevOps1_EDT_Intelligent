@@ -1,0 +1,138 @@
+package com.example.backend.service;
+
+import com.example.backend.model.Event;
+import com.example.backend.model.Task;
+import com.example.backend.model.User;
+import com.example.backend.repository.EventRepository;
+import com.example.backend.repository.TaskRepository;
+import com.example.backend.repository.UserRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+public class ChatbotService {
+
+    private final GeminiService geminiService;
+    private final EventRepository eventRepository;
+    private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
+
+    public ChatbotService(GeminiService geminiService, EventRepository eventRepository, 
+                          TaskRepository taskRepository, UserRepository userRepository) {
+        this.geminiService = geminiService;
+        this.eventRepository = eventRepository;
+        this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
+    }
+
+    public String handleUserRequest(Long userId, String message) {
+        // Appelle la méthode correcte définie dans GeminiService.java
+        GeminiService.GeminiResponse response = geminiService.chatWithGemini(message);
+
+        if (response != null && !response.candidates().isEmpty()) {
+            GeminiService.Part firstPart = response.candidates().get(0).content().parts().get(0);
+            
+            // Vérifie si Gemini veut appeler une fonction
+            if (firstPart.functionCall() != null) {
+                String functionName = firstPart.functionCall().name();
+                Map<String, Object> args = firstPart.functionCall().args();
+                return executeAction(userId, functionName, args);
+            }
+            
+            // Sinon, retourne simplement le texte
+            return firstPart.text();
+        }
+
+        return "Désolé, je n'ai pas pu traiter votre demande.";
+    }
+
+    private String executeAction(Long userId, String functionName, Map<String, Object> args) {
+        switch (functionName) {
+            case "list_today_events":
+                return formatEvents(eventRepository.findByUser_IdAndStartTimeBetween(userId, 
+                    LocalDate.now().atStartOfDay(), LocalDate.now().atTime(23, 59, 59)));
+
+            case "list_events_between":
+                return formatEvents(eventRepository.findByUser_IdAndStartTimeBetween(userId, 
+                    parseDateTime(args.get("start")), parseDateTime(args.get("end"))));
+
+            case "list_all_tasks":
+                return formatTasks(taskRepository.findByUser_Id(userId));
+
+            case "list_tasks_by_priority":
+                int priorityList = Integer.parseInt(args.get("priority").toString());
+                return formatTasks(taskRepository.findByUser_IdAndPriority(userId, priorityList));
+
+            case "add_task":
+                Task task = new Task();
+                User user = userRepository.findById(userId).orElseThrow();
+                task.setUser(user);
+                task.setTitle(args.get("title").toString());
+                task.setPriority(Integer.parseInt(args.get("priority").toString()));
+                taskRepository.save(task);
+                return "Tâche '" + task.getTitle() + "' ajoutée.";
+
+            case "add_event":
+                User eventUser = userRepository.findById(userId).orElseThrow();
+                String summary = args.get("summary").toString();
+                LocalDateTime s = parseDateTime(args.get("start"));
+                LocalDateTime e = parseDateTime(args.get("end"));
+                Event newEvent = new Event(summary, s, e, eventUser);
+                eventRepository.save(newEvent);
+                return "Événement '" + newEvent.getSummary() + "' ajouté.";
+
+            case "cancel_morning":
+                return deleteEventsInRange(userId, LocalTime.of(8, 0), LocalTime.of(12, 0), "le matin");
+
+            case "cancel_afternoon":
+                return deleteEventsInRange(userId, LocalTime.of(12, 0), LocalTime.of(18, 0), "l'après-midi");
+
+            case "move_activity":
+                Long id = Long.valueOf(args.get("id").toString());
+                Event event = eventRepository.findById(id).orElseThrow();
+                event.setStartTime(parseDateTime(args.get("newStart")));
+                eventRepository.save(event);
+                return "Activité déplacée au " + args.get("newStart");
+
+            case "cancel_tasks_by_priority":
+                int priorityToCancel = Integer.parseInt(args.get("priority").toString());
+                taskRepository.deleteByUser_IdAndPriority(userId, priorityToCancel);
+                return "Tâches de priorité " + priorityToCancel + " supprimées.";
+
+            default:
+                return "Action " + functionName + " exécutée, mais aucun retour spécifique configuré.";
+        }
+    }
+
+    private String deleteEventsInRange(Long userId, LocalTime startT, LocalTime endT, String label) {
+        LocalDateTime start = LocalDate.now().atTime(startT);
+        LocalDateTime end = LocalDate.now().atTime(endT);
+        List<Event> toDelete = eventRepository.findByUser_IdAndStartTimeBetween(userId, start, end);
+        eventRepository.deleteAll(toDelete);
+        return "J'ai annulé " + toDelete.size() + " événements pour " + label + ".";
+    }
+
+    private LocalDateTime parseDateTime(Object val) {
+        return LocalDateTime.parse(val.toString());
+    }
+
+    private String formatEvents(List<Event> events) {
+        if (events.isEmpty()) return "Aucun événement trouvé.";
+        return events.stream()
+                .map(e -> e.getSummary() + " (" + e.getStartTime().toLocalTime() + ")")
+                .collect(Collectors.joining("\n"));
+    }
+
+    private String formatTasks(List<Task> tasks) {
+        if (tasks.isEmpty()) return "Aucune tâche à faire.";
+        return tasks.stream()
+                .map(t -> "- " + t.getTitle() + " [Prio: " + t.getPriority() + "]")
+                .collect(Collectors.joining("\n"));
+    }
+}

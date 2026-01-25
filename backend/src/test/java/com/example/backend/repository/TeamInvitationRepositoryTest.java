@@ -95,7 +95,7 @@ class TeamInvitationRepositoryTest {
         entityManager.persistAndFlush(inv3);
 
         // Act
-        List<TeamInvitation> results = teamInvitationRepository.findByTeamId(team1.getId());
+        List<TeamInvitation> results = teamInvitationRepository.findByTeam_Id(team1.getId());
 
         // Assert
         assertEquals(2, results.size());
@@ -141,7 +141,7 @@ class TeamInvitationRepositoryTest {
         entityManager.persistAndFlush(inv3);
 
         // Act
-        List<TeamInvitation> results = teamInvitationRepository.findByInvitedUserIdAndStatus(
+        List<TeamInvitation> results = teamInvitationRepository.findByInvitedUser_IdAndStatus(
             invited.getId(), TeamInvitation.Status.PENDING);
 
         // Assert
@@ -174,7 +174,7 @@ class TeamInvitationRepositoryTest {
         entityManager.persistAndFlush(invitation);
 
         // Act
-        Optional<TeamInvitation> result = teamInvitationRepository.findByTeamIdAndInvitedUserIdAndStatus(
+        Optional<TeamInvitation> result = teamInvitationRepository.findByTeam_IdAndInvitedUser_IdAndStatus(
             team.getId(), invited.getId(), TeamInvitation.Status.PENDING);
 
         // Assert
@@ -201,7 +201,7 @@ class TeamInvitationRepositoryTest {
         entityManager.persistAndFlush(team);
 
         // Act - Chercher une invitation qui n'existe pas
-        Optional<TeamInvitation> result = teamInvitationRepository.findByTeamIdAndInvitedUserIdAndStatus(
+        Optional<TeamInvitation> result = teamInvitationRepository.findByTeam_IdAndInvitedUser_IdAndStatus(
             team.getId(), invited.getId(), TeamInvitation.Status.PENDING);
 
         // Assert
@@ -231,7 +231,7 @@ class TeamInvitationRepositoryTest {
         entityManager.persistAndFlush(invitation);
 
         // Act - Chercher avec un statut différent
-        Optional<TeamInvitation> result = teamInvitationRepository.findByTeamIdAndInvitedUserIdAndStatus(
+        Optional<TeamInvitation> result = teamInvitationRepository.findByTeam_IdAndInvitedUser_IdAndStatus(
             team.getId(), invited.getId(), TeamInvitation.Status.PENDING);
 
         // Assert

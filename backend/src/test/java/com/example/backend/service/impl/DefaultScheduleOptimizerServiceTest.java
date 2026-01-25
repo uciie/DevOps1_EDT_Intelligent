@@ -174,7 +174,7 @@ class DefaultScheduleOptimizerServiceTest {
     // Helper pour créer des tâches rapidement
     private Task createSimpleTask(String title, int duration, int priority) {
         // On précise (LocalDateTime) devant le null pour lever l'ambiguïté
-        Task t = new Task(title, duration, priority, false, user, (LocalDateTime) null);
+        Task t = new Task(title, duration, priority, Task.TaskStatus.PENDING_CREATION, user, (LocalDateTime) null);
         t.setId((long) (Math.random() * 1000));
         return t;
     }

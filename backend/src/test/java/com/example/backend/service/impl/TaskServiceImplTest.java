@@ -54,8 +54,8 @@ class TaskServiceImplTest {
     void setUp() {
         user = new User("testuser", "password");
         user.setId(1L);
-        // Constructeur: Task(String title, int estimatedDuration, int priority, boolean done, User user)
-        task = new Task("Test Task", 60, 1, false, user, (LocalDateTime) null); 
+        // Constructeur: Task(String title, int estimatedDuration, int priority, TaskStatus status, User user)
+        task = new Task("Test Task", 60, 1, Task.TaskStatus.PENDING_CREATION, user, (LocalDateTime) null);
         
         task.setId(100L);
         user.setTeams(new HashSet<>());
@@ -117,7 +117,7 @@ class TaskServiceImplTest {
         // 3. Vérifications (Then)
         assertNotNull(created);
         assertEquals(100L, created.getId()); // Vérifie que l'ID a bien été "généré"
-        assertFalse(created.isDone()); // Vérifie la logique métier
+        assertNotEquals(Task.TaskStatus.DONE, created.getStatus()); // Vérifie la logique métier
         assertEquals(user, created.getUser()); // Vérifie l'association à l'utilisateur
         
         verify(userRepository).findById(1L);
@@ -137,7 +137,7 @@ class TaskServiceImplTest {
     @Test
     void testUpdateTask() {
         // Given
-        Task updateInfo = new Task("Updated Title", 120, 2, true, user, (LocalDateTime) null);
+        Task updateInfo = new Task("Updated Title", 120, 2, Task.TaskStatus.DONE, user, (LocalDateTime) null);
         when(taskRepository.findById(100L)).thenReturn(Optional.of(task));
         when(taskRepository.save(any(Task.class))).thenReturn(task);
 
@@ -147,7 +147,7 @@ class TaskServiceImplTest {
         // Then
         assertEquals("Updated Title", result.getTitle());
         assertEquals(120, result.getEstimatedDuration());
-        assertTrue(result.isDone());
+        assertEquals(Task.TaskStatus.DONE, result.getStatus());
         verify(taskRepository).save(task);
     }
 

@@ -33,8 +33,9 @@ public class Task {
 
     private int priority; // 1 = haute, 2 = moyenne, 3 = basse
 
-    @JsonAlias("completed")
-    private boolean done;
+    @JsonAlias("isDone")
+    @Enumerated(EnumType.STRING)
+    private TaskStatus status;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
@@ -57,35 +58,45 @@ public class Task {
     @JsonIgnoreProperties({"members", "description"}) // On garde l'ID et le nom, on ignore les détails lourds
     private Team team;
 
-    public Task() {
-
+    public enum TaskStatus {
+        DONE,
+        CANCELLED,
+        PENDING_CREATION,
+        CONFIRMED,
+        // Valeurs présentes en base chez certains enregistrements
+        PENDING,
+        PLANNED
     }
 
-    public Task(String title, int estimatedDuration, int priority, boolean done, User user, LocalDateTime deadline ) {
+    public Task() {
+        this.status = TaskStatus.PENDING_CREATION;
+    }
+
+    public Task(String title, int estimatedDuration, int priority, TaskStatus status, User user, LocalDateTime deadline ) {
         this.title = title;
         this.estimatedDuration = estimatedDuration;
         this.priority = priority;
-        this.done = done;
+        this.status = status;
         this.user = user;
         this.deadline = deadline;
     }
 
-    public Task(String title, int estimatedDuration, int priority, boolean done, User user, Event event) {
+    public Task(String title, int estimatedDuration, int priority, TaskStatus status, User user, Event event) {
         this.title = title;
         this.estimatedDuration = estimatedDuration;
         this.priority = priority;
-        this.done = done;
+        this.status = status;
         this.user = user;
         this.event = event;
     }
 
     // Mettez à jour vos constructeurs pour inclure assignee et team si nécessaire
     // Exemple de mise à jour d'un constructeur :
-    public Task(String title, int estimatedDuration, int priority, boolean done, User creator, User assignee, Team team) {
+    public Task(String title, int estimatedDuration, int priority, TaskStatus status, User creator, User assignee, Team team) {
         this.title = title;
         this.estimatedDuration = estimatedDuration;
         this.priority = priority;
-        this.done = done;
+        this.status = status;
         this.user = creator;
         this.assignee = assignee != null ? assignee : creator; // Par défaut (RM-02), l'assigné est le créateur
         this.team = team;
@@ -123,12 +134,12 @@ public class Task {
         this.priority = priority;
     }
 
-    public boolean isDone() {
-        return done;
+    public TaskStatus getStatus() {
+        return status;
     }
 
-    public void setDone(boolean done) {
-        this.done = done;
+    public void setStatus(TaskStatus status) {
+        this.status = status;
     }
 
     public User getUser() {

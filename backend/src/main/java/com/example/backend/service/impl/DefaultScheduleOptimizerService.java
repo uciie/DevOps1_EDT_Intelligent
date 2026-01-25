@@ -2,6 +2,7 @@ package com.example.backend.service.impl;
 
 import com.example.backend.model.Event;
 import com.example.backend.model.Task;
+import com.example.backend.model.Task.TaskStatus;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.TaskRepository;
 import com.example.backend.service.ScheduleOptimizerService;
@@ -57,7 +58,7 @@ public class DefaultScheduleOptimizerService implements ScheduleOptimizerService
 
         for (Task task : tasks) {
             // Ignorer les tâches déjà faites ou déjà liées à un événement valide
-            if (task.isDone() || task.getEvent() != null) {
+            if (task.getStatus() == TaskStatus.DONE || task.getEvent() != null) {
                 continue;
             }
 

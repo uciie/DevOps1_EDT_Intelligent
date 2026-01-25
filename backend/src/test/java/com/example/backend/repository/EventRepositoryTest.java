@@ -131,12 +131,12 @@ class EventRepositoryTest {
 
         // Act
         event.setSummary("Updated Title");
-        event.setStatus("DONE");
+        event.setStatus(Event.EventStatus.CONFIRMED);
         Event updatedEvent = eventRepository.save(event);
 
         // Assert
         assertEquals("Updated Title", updatedEvent.getSummary());
-        assertEquals("DONE", updatedEvent.getStatus());
+        assertEquals(Event.EventStatus.CONFIRMED, updatedEvent.getStatus());
     }
 
     @Test
@@ -177,14 +177,14 @@ class EventRepositoryTest {
             LocalDateTime.of(2025, 5, 1, 11, 0),
             user
         );
-        event.setStatus("CANCELLED");
+        event.setStatus(Event.EventStatus.PENDING_DELETION);
 
         // Act
         Event savedEvent = eventRepository.save(event);
 
         // Assert
         assertNotNull(savedEvent.getId());
-        assertEquals("CANCELLED", savedEvent.getStatus());
+        assertEquals(Event.EventStatus.PENDING_DELETION, savedEvent.getStatus());
     }
 
     @Test
