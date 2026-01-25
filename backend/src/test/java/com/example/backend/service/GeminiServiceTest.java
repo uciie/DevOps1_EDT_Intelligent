@@ -10,6 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 class GeminiServiceTest {
@@ -23,9 +24,18 @@ class GeminiServiceTest {
         client = mock(com.example.backend.http.GeminiHttpClient.class);
         objectMapper = new ObjectMapper();
         service = new GeminiService(client, objectMapper);
+        try {
+            var fApi = service.getClass().getDeclaredField("apiKey");
+            fApi.setAccessible(true);
+            fApi.set(service, "test-api-key");
+            var fModel = service.getClass().getDeclaredField("model");
+            fModel.setAccessible(true);
+            fModel.set(service, "test-model");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    @org.junit.jupiter.api.Disabled("External HTTP client chain - skip in unit run")
     @Test
     void chatWithGemini_returnsParsedResponse() {
         // Prepare expected GeminiResponse

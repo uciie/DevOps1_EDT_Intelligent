@@ -2,9 +2,11 @@ package com.example.backend.http;
 
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.web.client.RestClient;
 
 @Service
+@ConditionalOnBean(RestClient.Builder.class)
 public class RestGeminiHttpClient implements GeminiHttpClient {
 
     private final RestClient restClient;
