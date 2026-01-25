@@ -56,7 +56,7 @@ public class TeamServiceImpl implements TeamService {
         
         // 2. Vérifier si une invitation en attente existe déjà
         Optional<TeamInvitation> existingInvitation = invitationRepository
-                .findByTeamIdAndInvitedUserIdAndStatus(teamId, invitedUserId, TeamInvitation.Status.PENDING);
+            .findByTeam_IdAndInvitedUser_IdAndStatus(teamId, invitedUserId, TeamInvitation.Status.PENDING);
 
         if (existingInvitation.isPresent()) {
             // MISE À JOUR : On met à jour la date ou l'inviteur si nécessaire
@@ -100,7 +100,7 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public List<TeamInvitation> getPendingInvitations(Long userId) {
-        return invitationRepository.findByInvitedUserIdAndStatus(userId, TeamInvitation.Status.PENDING);
+        return invitationRepository.findByInvitedUser_IdAndStatus(userId, TeamInvitation.Status.PENDING);
     }
 
     @Override
@@ -181,10 +181,10 @@ public class TeamServiceImpl implements TeamService {
             throw new SecurityException("Seul le créateur peut supprimer l'équipe.");
         }
 
-        List<TeamInvitation> invitations = invitationRepository.findByTeamId(teamId); // Suppose l'ajout de cette méthode dans le repo
+        List<TeamInvitation> invitations = invitationRepository.findByTeam_Id(teamId); // Suppose l'ajout de cette méthode dans le repo
         invitationRepository.deleteAll(invitations);
 
-        List<Task> tasks = taskRepository.findByTeamId(teamId); // Suppose l'ajout de cette méthode dans TaskRepository
+        List<Task> tasks = taskRepository.findByTeam_Id(teamId); // Suppose l'ajout de cette méthode dans TaskRepository
         for (Task task : tasks) {
             task.setTeam(null);
             taskRepository.save(task);

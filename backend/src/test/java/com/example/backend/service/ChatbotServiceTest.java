@@ -1,93 +1,95 @@
 package com.example.backend.service;
 
-import com.example.backend.model.Event;
-import com.example.backend.model.Event.EventStatus;
+import com.example.backend.model.Task;
+import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.TaskRepository;
+import com.example.backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
-import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class ChatbotServiceTest {
 
-    EventRepository eventRepository;
-    TaskRepository taskRepository;
-    ChatbotService service;
+    private GeminiService geminiService;
+    private EventRepository eventRepository;
+    private TaskRepository taskRepository;
+    private UserRepository userRepository;
+    private ChatbotService chatbotService;
 
     @BeforeEach
     void setUp() {
+        geminiService = mock(GeminiService.class);
         eventRepository = mock(EventRepository.class);
         taskRepository = mock(TaskRepository.class);
-        service = new ChatbotService(eventRepository, taskRepository);
+        userRepository = mock(UserRepository.class);
+        chatbotService = new ChatbotService(geminiService, eventRepository, taskRepository, userRepository);
     }
 
     @Test
-    void cancelAfternoon_noEvents_returnsMessage() {
-        when(eventRepository.findByUser_IdAndStartTimeBetween(anyLong(), any(), any())).thenReturn(List.of());
+    void handleUserRequest_returnsSimpleText() {
+        // Mocking Gemini text response
+        var part = new GeminiService.Part("Bonjour, comment puis-je vous aider ?", null);
+        var content = new GeminiService.Content(List.of(part));
+        var response = new GeminiService.GeminiResponse(List.of(new GeminiService.Candidate(content)));
+        
+        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
 
-        String res = service.cancelAfternoon(1L, "2026-01-25");
-
-        assertTrue(res.contains("Aucune activité"));
+        String result = chatbotService.handleUserRequest(1L, "Salut");
+        assertEquals("Bonjour, comment puis-je vous aider ?", result);
     }
 
     @Test
-    void cancelAfternoon_withEvents_marksPendingDeletionAndSaves() {
-        Event e = mock(Event.class);
-        when(eventRepository.findByUser_IdAndStartTimeBetween(anyLong(), any(), any())).thenReturn(List.of(e));
+    void handleUserRequest_executesAddTask() {
+        // Mocking Gemini function call response
+        var funcCall = new GeminiService.FunctionCall("add_task", Map.of("title", "Acheter du pain", "priority", "1"));
+        var part = new GeminiService.Part(null, funcCall);
+        var content = new GeminiService.Content(List.of(part));
+        var response = new GeminiService.GeminiResponse(List.of(new GeminiService.Candidate(content)));
 
-        String res = service.cancelAfternoon(1L, "2026-01-25");
+        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(new User()));
 
-        verify(e).setStatus(EventStatus.PENDING_DELETION);
-        verify(eventRepository).save(e);
-        assertTrue(res.contains("activités"));
+        String result = chatbotService.handleUserRequest(1L, "Ajoute la tâche Acheter du pain en priorité 1");
+        
+        assertTrue(result.contains("ajoutée"));
+        verify(taskRepository, times(1)).save(any(Task.class));
     }
 
     @Test
-    void confirmPendingChanges_deletesAndConfirms() {
-        Event e1 = mock(Event.class);
-        Event e2 = mock(Event.class);
-        when(e1.getStatus()).thenReturn(EventStatus.PENDING_DELETION);
-        when(e2.getStatus()).thenReturn(EventStatus.PLANNED);
-        when(eventRepository.findByUser_IdAndStatusNot(anyLong(), any())).thenReturn(List.of(e1, e2));
+    void handleUserRequest_executesListTasks_empty() {
+        var funcCall = new GeminiService.FunctionCall("list_all_tasks", Collections.emptyMap());
+        var part = new GeminiService.Part(null, funcCall);
+        var content = new GeminiService.Content(List.of(part));
+        var response = new GeminiService.GeminiResponse(List.of(new GeminiService.Candidate(content)));
 
-        String res = service.confirmPendingChanges(1L);
+        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
+        when(taskRepository.findByUser_Id(1L)).thenReturn(Collections.emptyList());
 
-        verify(eventRepository).delete(e1);
-        verify(e2).setStatus(EventStatus.CONFIRMED);
-        verify(eventRepository).save(e2);
-        assertTrue(res.contains("modifications"));
+        String result = chatbotService.handleUserRequest(1L, "Liste mes tâches");
+        assertEquals("Aucune tâche à faire.", result);
     }
 
     @Test
-    void addTask_savesTaskAndReturnsMessage() {
-        String res = service.addTask(1L, "Tâche test", 30);
+    void handleUserRequest_executesCancelMorning() {
+        var funcCall = new GeminiService.FunctionCall("cancel_morning", Collections.emptyMap());
+        var part = new GeminiService.Part(null, funcCall);
+        var content = new GeminiService.Content(List.of(part));
+        var response = new GeminiService.GeminiResponse(List.of(new GeminiService.Candidate(content)));
 
-        verify(taskRepository).save(any());
-        assertTrue(res.contains("préparé"));
-    }
+        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
+        when(eventRepository.findByUser_IdAndStartTimeBetween(anyLong(), any(), any())).thenReturn(Collections.emptyList());
 
-    @Test
-    void moveActivity_movesAndSavesEvent() {
-        Event e = mock(Event.class);
-        when(eventRepository.findBySummaryContainingAndUser_Id(anyString(), anyLong())).thenReturn(List.of(e));
-        LocalDateTime start = LocalDateTime.of(2026,1,25,9,0);
-        LocalDateTime end = LocalDateTime.of(2026,1,25,10,0);
-        when(e.getStartTime()).thenReturn(start);
-        when(e.getEndTime()).thenReturn(end);
-
-        String res = service.moveActivity(1L, "nom", "2026-01-26", "14:30");
-
-        ArgumentCaptor<LocalDateTime> startCap = ArgumentCaptor.forClass(LocalDateTime.class);
-        verify(e).setStartTime(startCap.capture());
-        verify(e).setEndTime(any());
-        verify(e).setStatus(EventStatus.PENDING_DELETION);
-        verify(eventRepository).save(e);
-        assertTrue(res.contains("Propose" ) || res.contains("Confirmez" ) || res.contains("déplacer"));
+        String result = chatbotService.handleUserRequest(1L, "Annule ma matinée");
+        assertTrue(result.contains("annulé"));
+        verify(eventRepository).deleteAll(anyList());
     }
 }

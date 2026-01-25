@@ -7,8 +7,8 @@ import java.util.Optional;
 
 // Repository pour gérer les invitations d'équipe
 public interface TeamInvitationRepository extends JpaRepository<TeamInvitation, Long> {
-    List<TeamInvitation> findByTeamId(Long teamId);
-    List<TeamInvitation> findByInvitedUserIdAndStatus(Long userId, TeamInvitation.Status status);
+    List<TeamInvitation> findByTeam_Id(Long teamId);
+    List<TeamInvitation> findByInvitedUser_IdAndStatus(Long userId, TeamInvitation.Status status);
     // Trouver une invitation spécifique en attente
-    Optional<TeamInvitation> findByTeamIdAndInvitedUserIdAndStatus(Long teamId, Long invitedUserId, TeamInvitation.Status status);
+    Optional<TeamInvitation> findByTeam_IdAndInvitedUser_IdAndStatus(Long teamId, Long invitedUserId, TeamInvitation.Status status);
 }

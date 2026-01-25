@@ -29,7 +29,6 @@ class GeminiServiceIntegrationTest {
         // On essaie de récupérer la clé (Priorité variable d'env, sinon config)
         String envKey = System.getenv("CHATBOT_API_KEY");
         String key = (envKey != null && !envKey.isEmpty()) ? envKey : configuredKey;
-        System.out.println(key != null ? key : "Aucune clé API Gemini trouvée pour les tests.");
         // Si aucune clé n'est trouvée, on skip le test
         Assumptions.assumeTrue(key != null && !key.isEmpty(), "Clé API manquante (CHATBOT_API_KEY ou google.ai.api-key)");
 

@@ -42,7 +42,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<Task> getTasksByTeam(Long teamId) {
         // Cette méthode existe déjà dans votre TaskRepository (voir fichier fourni)
-        return taskRepository.findByTeamId(teamId);
+        return taskRepository.findByTeam_Id(teamId);
     }
 
     // --- RM-04 : FILTRES ---
