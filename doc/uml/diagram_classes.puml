@@ -1,661 +1,357 @@
 @startuml
-
 !theme plain
 top to bottom direction
 skinparam linetype ortho
-
-enum ActivityCategory << enumeration >> {
-  + ActivityCategory(): 
-  + valueOf(String): ActivityCategory
-  + values(): ActivityCategory[]
-}
-class ActivityLog {
-  + ActivityLog(): 
-  - eventId: Long
-  - endTime: LocalDateTime
-  - id: Long
-  - startTime: LocalDateTime
-  - userId: Long
-  - activityType: ActivityCategory
-   eventId: Long
-   userId: Long
-   endTime: LocalDateTime
-   id: Long
-   activityType: ActivityCategory
-   startTime: LocalDateTime
-}
-class ActivityLogController {
-  + ActivityLogController(): 
-  + recordActivity(ActivityRecordRequest): ActivityLog
-  + getStats(Long, LocalDateTime, LocalDateTime): List<ActivityStatsDTO>
-}
-interface ActivityLogRepository << interface >> {
-  + findByUserIdAndStartTimeBetween(Long, LocalDateTime, LocalDateTime): List<ActivityLog>
-}
-class ActivityLogService {
-  + ActivityLogService(): 
-  + recordActivity(Long, ActivityCategory, Long, LocalDateTime, LocalDateTime): ActivityLog
-  + getStats(Long, LocalDateTime, LocalDateTime): List<ActivityStatsDTO>
-}
-class ActivityRecordRequest {
-  + ActivityRecordRequest(): 
-  - activityType: ActivityCategory
-  - endTime: LocalDateTime
-  - startTime: LocalDateTime
-  - eventId: Long
-  - userId: Long
-   eventId: Long
-   userId: Long
-   endTime: LocalDateTime
-   activityType: ActivityCategory
-   startTime: LocalDateTime
-}
-class ActivityStatsDTO {
-  + ActivityStatsDTO(ActivityCategory, long, long): 
-  - totalMinutes: long
-  - category: ActivityCategory
-  - count: long
-  - averageMinutes: long
-   count: long
-   category: ActivityCategory
-   averageMinutes: long
-   totalMinutes: long
-}
-class BackendApplication {
-  + BackendApplication(): 
-  + main(String[]): void
-}
-class BiweeklyCalendarParser {
-  + BiweeklyCalendarParser(): 
-  + parse(InputStream): List<Event>
-}
-class CalendarImportController {
-  + CalendarImportController(CalendarImportService): 
-  + importCalendar(MultipartFile, User): ResponseEntity<String>
-}
-class CalendarImportService {
-  + CalendarImportService(EventRepository, ICalendarParser): 
-  + importCalendar(MultipartFile, User): List<Event>
-}
-class DefaultScheduleOptimizerService {
-  + DefaultScheduleOptimizerService(EventRepository, TaskRepository, TaskSelectionStrategy, TravelTimeService, FocusService): 
-  + reshuffle(Long): void
-  - findCollision(LocalDateTime, LocalDateTime, List<Event>): Event
-}
-class DefaultTaskSelectionStrategy {
-  + DefaultTaskSelectionStrategy(TaskRepository): 
-  + selectTask(Long, long): Task
-}
-class Event {
-  + Event(String, LocalDateTime, LocalDateTime): 
-  + Event(String, LocalDateTime, LocalDateTime, User): 
-  + Event(): 
-  - category: ActivityCategory
-  - endTime: LocalDateTime
-  - location: Location
-  - summary: String
-  - id: Long
-  - startTime: LocalDateTime
-  - user: User
-  - task: Task
-  - status: String
-  - preRemove(): void
-  + hashCode(): int
-  + equals(Object): boolean
-   endTime: LocalDateTime
-   summary: String
-   id: Long
-   startTime: LocalDateTime
-   task: Task
-   userId: Long
-   status: String
-   location: Location
-   category: ActivityCategory
-   user: User
-}
-class EventController {
-  + EventController(EventService, FocusService): 
-  + getEventsByUserAndPeriod(Long, String, String): ResponseEntity<List<Event>>
-  + recalculateTravelTimes(Long, Boolean): ResponseEntity<?>
-  + getEventsByUser(Long): ResponseEntity<List<Event>>
-  + getEventById(Long): ResponseEntity<?>
-  + updateEvent(Long, EventRequest): ResponseEntity<Event>
-  + getTeamMemberEvents(Long, Long): ResponseEntity<List<Event>>
-  + createEvent(EventRequest): ResponseEntity<?>
-  + deleteEvent(Long): ResponseEntity<?>
-}
-interface EventRepository << interface >> {
-  + findByUser_IdOrderByStartTime(Long): List<Event>
-  + countEventsForDay(Long, LocalDateTime, LocalDateTime): long
-  + findByUser_Id(Long): List<Event>
-  + findByUser_IdAndStartTimeBetween(Long, LocalDateTime, LocalDateTime): List<Event>
-}
-class EventRequest {
-  + EventRequest(): 
-  - startTime: LocalDateTime
-  - transportMode: String
-  - useGoogleMaps: Boolean
-  - category: String
-  - endTime: LocalDateTime
-  - location: LocationRequest
-  - summary: String
-  - userId: Long
-   endTime: LocalDateTime
-   useGoogleMaps: Boolean
-   summary: String
-   transportMode: String
-   startTime: LocalDateTime
-   location: LocationRequest
-   userId: Long
-   category: String
-}
-interface EventService << interface >> {
-  + getEventsByUserId(Long): List<Event>
-  + getEventsByUserIdAndPeriod(Long, LocalDateTime, LocalDateTime): List<Event>
-  + getTeamMemberEvents(Long, Long): List<Event>
-  + updateEvent(Long, EventRequest): Event
-  + recalculateAllTravelTimes(Long, Boolean): void
-  + deleteEvent(Long): void
-  + createEvent(EventRequest): Event
-  + getEventById(Long): Event
-}
-class EventServiceImpl {
-  + EventServiceImpl(EventRepository, UserRepository, TravelTimeService, TravelTimeRepository, TravelTimeCalculator, TravelTimeCalculator, TeamRepository): 
-  + createEvent(EventRequest): Event
-  - getCalculator(Boolean): TravelTimeCalculator
-  + getEventById(Long): Event
-  + deleteEvent(Long): void
-  + updateEvent(Long, EventRequest): Event
-  + getEventsByUserIdAndPeriod(Long, LocalDateTime, LocalDateTime): List<Event>
-  + recalculateAllTravelTimes(Long, Boolean): void
-  + getTeamMemberEvents(Long, Long): List<Event>
-  + getEventsByUserId(Long): List<Event>
-}
-class FocusBlock {
-  + FocusBlock(): 
-  + FocusBlock(User, LocalDateTime, LocalDateTime): 
-  - status: String
-  - flexibility: int
-  - startTime: LocalDateTime
-  - user: User
-  - endTime: LocalDateTime
-  - id: Long
-  - isProtected: boolean
-  - suggestedBySystem: boolean
-   endTime: LocalDateTime
-   id: Long
-   startTime: LocalDateTime
-   status: String
-   suggestedBySystem: boolean
-   flexibility: int
-   isProtected: boolean
-   user: User
-}
-interface FocusBlockRepository << interface >> {
-  + findByUser_IdAndStartTimeBetween(Long, LocalDateTime, LocalDateTime): List<FocusBlock>
-}
-class FocusController {
-  + FocusController(): 
-  + getFocusSuggestions(Long, LocalDate): ResponseEntity<List<TimeSlot>>
-}
-class FocusService {
-  + FocusService(): 
-  + getPreferences(Long): UserFocusPreference
-  + getOptimizedFocusSlots(Long, LocalDate): List<TimeSlot>
-  + updatePreferences(Long, UserFocusPreference): UserFocusPreference
-  + validateDayNotOverloaded(Long, LocalDateTime): void
-  + findFreeGaps(Long, LocalDate): List<TimeSlot>
-  + estBloqueParLeFocus(Long, LocalDateTime, LocalDateTime): boolean
-}
-enum FocusTimePreference << enumeration >> {
-  + FocusTimePreference(): 
-  + values(): FocusTimePreference[]
-  + valueOf(String): FocusTimePreference
-}
-class GoogleMapsTravelTimeCalculator {
-  + GoogleMapsTravelTimeCalculator(RestTemplateBuilder): 
-  + GoogleMapsTravelTimeCalculator(RestTemplate, SimpleTravelTimeCalculator, ObjectMapper): 
-  - formatLocation(Location): String
-  - logElementError(String, JsonNode): void
-  - mapTransportMode(TransportMode): String
-  + calculateTravelTime(Location, Location, TransportMode): int
-  - logGlobalError(JsonNode): void
-}
-interface ICalendarParser << interface >> {
-  + parse(InputStream): List<Event>
-}
+skinparam classAttributeIconSize 0
 class Location {
-  + Location(): 
-  + Location(String, Double, Double): 
-  + Location(Double, Double): 
-  + Location(String): 
-  - longitude: Double
-  - name: String
-  - id: Long
-  - address: String
-  - latitude: Double
-  - autoCompleted: boolean
-  + hasCoordinates(): boolean
-  + toString(): String
-  + hasGeneratedAddress(): boolean
-  + hashCode(): int
-  - validateAddress(String): void
-  + equals(Object): boolean
-  - validateCoordinates(Double, Double): void
-   name: String
-   latitude: Double
-   id: Long
-   fullDescription: String
-   address: String
-   displayName: String
-   autoCompleted: boolean
-   longitude: Double
-}
-interface LocationRepository << interface >> {
-  + findByAddress(String): Optional<Location>
-  + findFirstByName(String): Optional<Location>
-  + findByName(String): Optional<Location>
-}
-class LocationRequest {
-  + LocationRequest(): 
-  - latitude: Double
-  - name: String
-  - address: String
-  - longitude: Double
-  + toLocation(): Location
-   name: String
-   address: String
-   latitude: Double
-   longitude: Double
-}
-entity ScheduleBlock << record >> {
-  - ScheduleBlock(LocalDateTime, LocalDateTime): 
-  + end(): LocalDateTime
-  + start(): LocalDateTime
-}
-class ScheduleController {
-  + ScheduleController(ScheduleOptimizerService): 
-  + reshuffle(Long): ResponseEntity<String>
-}
-interface ScheduleOptimizerService << interface >> {
-  + reshuffle(Long): void
-}
-class SimpleTravelTimeCalculator {
-  + SimpleTravelTimeCalculator(): 
-  - calculateDistance(Location, Location): double
-  + calculateTravelTime(Location, Location, TransportMode): int
-  - getSpeed(TransportMode, double): double
-}
-enum Status << enumeration >> {
-  + Status(): 
-  + values(): Status[]
-  + valueOf(String): Status
-}
-class Task {
-  + Task(String, int, int, boolean, User, LocalDateTime): 
-  + Task(String, int, int, boolean, User, Event): 
-  + Task(): 
-  + Task(String, int, int, boolean, User, User, Team): 
-  - late: boolean
-  - team: Team
-  - deadline: LocalDateTime
-  - title: String
-  - assignee: User
-  - priority: int
-  - user: User
-  - done: boolean
-  - event: Event
-  - estimatedDuration: int
-  - id: Long
-   late: boolean
-   id: Long
-   priority: int
-   userId: Long
-   assignee: User
-   event: Event
-   user: User
-   estimatedDuration: int
-   eventId: Long
-   done: boolean
-   delegated: boolean
-   deadline: LocalDateTime
-   title: String
-   duration: int
-   team: Team
-}
-class TaskController {
-  + TaskController(TaskService, FocusService): 
-  + planifyTask(Long, LocalDateTime, LocalDateTime): ResponseEntity<?>
-  + getDelegatedTasks(Long): ResponseEntity<List<Task>>
-  + updateTask(Long, Task, Long): ResponseEntity<Task>
-  + getTeamTasks(Long): ResponseEntity<List<Task>>
-  + getUserTasks(Long): ResponseEntity<List<Task>>
-  + deleteTask(Long, Long): ResponseEntity<Void>
-  + createTaskForUser(Long, Task): ResponseEntity<Task>
-}
-interface TaskRepository << interface >> {
-  + findByUser_Id(Long): List<Task>
-  + findByTeamId(Long): List<Task>
-  + findByUserAndAssigneeNot(User, User): List<Task>
-  + findByAssignee(User): List<Task>
-}
-interface TaskSelectionStrategy << interface >> {
-  + selectTask(Long, long): Task
-}
-interface TaskService << interface >> {
-  + getTasksByUserId(Long): List<Task>
-  + createTask(Task, Long): Task
-  + deleteTask(Long, Long): void
-  + getTasksByTeam(Long): List<Task>
-  + getTaskById(Long): Task
-  + getDelegatedTasks(Long): List<Task>
-  + updateTask(Long, Task, Long): Task
-  + planifyTask(Long, LocalDateTime, LocalDateTime): Task
-  + getTasksAssignedToUser(Long): List<Task>
-  + updateTask(Long, Task): Task
-}
-class TaskServiceImpl {
-  + TaskServiceImpl(TaskRepository, EventRepository, UserRepository, TeamRepository, FocusService): 
-  + createTask(Task, Long): Task
-  + updateTask(Long, Task): Task
-  + getTasksByUserId(Long): List<Task>
-  + getDelegatedTasks(Long): List<Task>
-  + getTasksByTeam(Long): List<Task>
-  + getTasksAssignedToUser(Long): List<Task>
-  + deleteTask(Long, Long): void
-  + updateTask(Long, Task, Long): Task
-  + getTaskById(Long): Task
-  + planifyTask(Long, LocalDateTime, LocalDateTime): Task
-}
-class Team {
-  + Team(String, String, Long): 
-  + Team(): 
-  - id: Long
-  - name: String
-  - ownerId: Long
-  - members: Set<User>
-  - description: String
-  + addMember(User): void
-  + removeMember(User): void
-   name: String
-   description: String
-   members: Set<User>
-   ownerId: Long
-   id: Long
-}
-class TeamController {
-  + TeamController(TeamService): 
-  + createTeam(Team, Long): ResponseEntity<Team>
-  + removeMember(Long, Long, Long): ResponseEntity<?>
-  + deleteTeam(Long, Long): ResponseEntity<?>
-  + getTeamMembers(Long): ResponseEntity<Set<User>>
-  + getMyTeams(Long): ResponseEntity<List<Team>>
-  + respond(Long, boolean): ResponseEntity<?>
-  + inviteUser(Long, Long, Long): ResponseEntity<TeamInvitation>
-  + addMember(Long, Long): ResponseEntity<Team>
-  + getInvitations(Long): List<TeamInvitation>
-}
-class TeamInvitation {
-  + TeamInvitation(): 
-  - invitedUser: User
-  - id: Long
-  - team: Team
-  - status: Status
-  - inviter: User
-   inviter: User
-   team: Team
-   id: Long
-   invitedUser: User
-   status: Status
-}
-interface TeamInvitationRepository << interface >> {
-  + findByTeamId(Long): List<TeamInvitation>
-  + findByInvitedUserIdAndStatus(Long, Status): List<TeamInvitation>
-  + findByTeamIdAndInvitedUserIdAndStatus(Long, Long, Status): Optional<TeamInvitation>
-}
-interface TeamRepository << interface >>
-interface TeamService << interface >> {
-  + getTeamsByUserId(Long): List<Team>
-  + getTeamMembers(Long): Set<User>
-  + getPendingInvitations(Long): List<TeamInvitation>
-  + addMemberByUserId(Long, Long): Team
-  + respondToInvitation(Long, boolean): void
-  + deleteTeam(Long, Long): void
-  + removeMember(Long, Long, Long): void
-  + createTeam(String, String, Long): Team
-  + inviteMember(Long, Long, Long): void
-}
-class TeamServiceImpl {
-  + TeamServiceImpl(TeamRepository, UserRepository): 
-  + getPendingInvitations(Long): List<TeamInvitation>
-  + getTeamsByUserId(Long): List<Team>
-  + removeMember(Long, Long, Long): void
-  + respondToInvitation(Long, boolean): void
-  + inviteMember(Long, Long, Long): void
-  + addMemberByUserId(Long, Long): Team
-  + getTeamMembers(Long): Set<User>
-  + createTeam(String, String, Long): Team
-  + deleteTeam(Long, Long): void
-}
-entity TimeSlot << record >> {
-  + TimeSlot(LocalDateTime, LocalDateTime): 
-  + start(): LocalDateTime
-  + end(): LocalDateTime
-   durationMinutes: long
-}
-enum TransportMode << enumeration >> {
-  + TransportMode(): 
-  + values(): TransportMode[]
-  + valueOf(String): TransportMode
+  + getName()
+  + equals()
+  + toString()
+  + hashCode()
+  + setName()
+  + getId()
+  + getAddress()
+  + getDisplayName()
+  + setId()
+  + hasGeneratedAddress()
+  + hasCoordinates()
+  + setAddress()
+  + getLatitude()
+  + setLatitude()
+  + getLongitude()
+  + setLongitude()
+  + isAutoCompleted()
+  + setAutoCompleted()
+  + getFullDescription()
 }
 class TravelTime {
-  + TravelTime(Event, Event, User, LocalDateTime, int): 
-  + TravelTime(): 
-  - fromEvent: Event
-  - startTime: LocalDateTime
-  - user: User
-  - mode: TransportMode
-  - id: Long
-  - toEvent: Event
-  - durationMinutes: int
-  - endTime: LocalDateTime
-  - distanceKm: Double
-   mode: TransportMode
-   distanceKm: Double
-   endTime: LocalDateTime
-   id: Long
-   startTime: LocalDateTime
-   durationMinutes: int
-   toEvent: Event
-   fromEvent: Event
-   user: User
+  + getId()
+  + getStartTime()
+  + getEndTime()
+  + getUser()
+  + getFromEvent()
+  + getToEvent()
+  + getDurationMinutes()
+  + getDistanceKm()
+  + getMode()
+  + setId()
+  + setStartTime()
+  + setEndTime()
+  + setUser()
+  + setFromEvent()
+  + setToEvent()
+  + setDurationMinutes()
+  + setDistanceKm()
+  + setMode()
 }
-interface TravelTimeCalculator << interface >> {
-  + calculateTravelTime(Location, Location, TransportMode): int
+TravelTime "1" *-- "fromEvent" Event
+TravelTime "1" *-- "toEvent" Event
+TravelTime "1" *-- "user" User
+class EventServiceImpl {
+  + getEventsByUserId()
+  + getEventsByUserIdAndPeriod()
+  + getEventById()
+  + createEvent()
+  + updateEvent()
+  + deleteEvent()
+  + recalculateAllTravelTimes()
+  + getTeamMemberEvents()
 }
-class TravelTimeController {
-  + TravelTimeController(TravelTimeRepository, TravelTimeService): 
-  + deleteTravelTime(Long): ResponseEntity<Void>
-  + getTravelTimesByUserAndPeriod(Long, LocalDateTime, LocalDateTime): ResponseEntity<List<Map<String, Object>>>
-  + getTravelTimeById(Long): ResponseEntity<Map<String, Object>>
-  - convertToMap(TravelTime): Map<String, Object>
-  + updateTravelTime(Long, Map<String, String>): ResponseEntity<Map<String, Object>>
-  + calculateTravelTime(Map<String, Object>): ResponseEntity<Map<String, Object>>
-  + getTravelTimesByUser(Long): ResponseEntity<List<Map<String, Object>>>
+EventServiceImpl "1" *-- "travelTimeService" TravelTimeService
+class CalendarImportController {
+  + importCalendar()
 }
-interface TravelTimeRepository << interface >> {
-  + findByFromEventAndToEvent(Event, Event): Optional<TravelTime>
-  + findByUser_IdAndStartTimeBetween(Long, LocalDateTime, LocalDateTime): List<TravelTime>
-  + findByUser_Id(Long): List<TravelTime>
-  + findByToEvent(Event): List<TravelTime>
+CalendarImportController "1" *-- "importService" CalendarImportService
+class SimpleTravelTimeCalculator {
+  + calculateTravelTime()
 }
+class BackendApplication {
+  + main()
+}
+class FocusService {
+  + validateDayNotOverloaded()
+  + getOptimizedFocusSlots()
+  + estBloqueParLeFocus()
+  + getPreferences()
+  + findFreeGaps()
+  + updatePreferences()
+}
+class ActivityLogController {
+  + recordActivity()
+  + getStats()
+}
+ActivityLogController "1" *-- "activityLogService" ActivityLogService
+class Event {
+  + equals()
+  + hashCode()
+  + getLocation()
+  + getId()
+  + getUserId()
+  + getStartTime()
+  + getEndTime()
+  + getUser()
+  + getSummary()
+  + setId()
+  + setStartTime()
+  + setEndTime()
+  + setSummary()
+  + getStatus()
+  + setStatus()
+  + setUser()
+  + setLocation()
+  + getTask()
+  + setTask()
+  + getCategory()
+  + setCategory()
+}
+Event "1" *-- "location" Location
+Event "1" *-- "user" User
+Event "1" *-- "task" Task
+Event "1" *-- "*" TravelTime
+Event "1" *-- "*" TravelTime
 class TravelTimeService {
-  + TravelTimeService(TravelTimeRepository, TravelTimeCalculator, EventRepository): 
-  - saveTravelTimeInternal(Event, Event, TransportMode, int): TravelTime
-  + deleteTravelTime(Long): void
-  + createTravelTimeWithDuration(Event, Event, TransportMode, int): TravelTime
-  + estimateDuration(Location, Location, TransportMode): int
-  + calculateAndCreateTravelTime(Long, Long, TransportMode): TravelTime
-  + updateTravelTime(Long, LocalDateTime): void
-  + getTravelTimesByUserId(Long): List<TravelTime>
-  + getTravelTimesByUserIdAndDateRange(Long, LocalDateTime, LocalDateTime): List<TravelTime>
-  + createTravelTime(Event, Event, TransportMode): TravelTime
-  - calculateDistance(Location, Location): double
+  + calculateAndCreateTravelTime()
+  + deleteTravelTime()
+  + updateTravelTime()
+  + getTravelTimesByUserIdAndDateRange()
+  + getTravelTimesByUserId()
+  + createTravelTimeWithDuration()
+  + createTravelTime()
+  + estimateDuration()
 }
-class User {
-  + User(): 
-  + User(String, String): 
-  - password: String
-  - id: Long
-  - events: List<Event>
-  - tasks: List<Task>
-  - teams: List<Team>
-  - username: String
-  + equals(Object): boolean
-  + hashCode(): int
-   password: String
-   username: String
-   teams: List<Team>
-   tasks: List<Task>
-   id: Long
-   events: List<Event>
-}
-class UserController {
-  + UserController(UserService): 
-  + login(Map<String, String>): ResponseEntity<?>
-  + getByUsername(String): ResponseEntity<User>
-  + register(User): ResponseEntity<?>
-   all: ResponseEntity<List<Map<String, Object>>>
-}
-class UserFocusPreference {
-  + UserFocusPreference(): 
-  + UserFocusPreference(Long): 
-  - userId: Long
-  - minFocusDuration: int
-  - focusModeEnabled: boolean
-  - maxEventsPerDay: int
-  - preferredFocusTime: FocusTimePreference
-   minFocusDuration: int
-   userId: Long
-   preferredFocusTime: FocusTimePreference
-   focusModeEnabled: boolean
-   maxEventsPerDay: int
-}
-interface UserFocusPreferenceRepository << interface >>
-interface UserRepository << interface >> {
-  + findByUsername(String): Optional<User>
-  + existsByUsername(String): boolean
-  + findById(Long): Optional<User>
+class BiweeklyCalendarParser {
+  + parse()
 }
 class UserService {
-  + UserService(UserRepository): 
-  + getUserByUsername(String): User
-  + getUserById(Long): User
-  + existsByUsername(String): boolean
-  + registerUser(String, String): User
-  + authenticate(String, String): User
-   allUsers: List<User>
+  + authenticate()
+  + registerUser()
+  + getAllUsers()
+  + getUserByUsername()
+  + existsByUsername()
+  + getUserById()
+}
+class ScheduleController {
+  + reshuffle()
+}
+class TaskController {
+  + planifyTask()
+  + getUserTasks()
+  + createTaskForUser()
+  + getTeamTasks()
+  + getDelegatedTasks()
+  + updateTask()
+  + deleteTask()
+}
+TaskController "1" *-- "focusService" FocusService
+class FocusBlock {
+  + getId()
+  + isProtected()
+  + getStartTime()
+  + getEndTime()
+  + getUser()
+  + setId()
+  + setStartTime()
+  + setEndTime()
+  + getStatus()
+  + setStatus()
+  + setUser()
+  + getFlexibility()
+  + setFlexibility()
+  + setProtected()
+  + isSuggestedBySystem()
+  + setSuggestedBySystem()
+}
+FocusBlock "1" *-- "user" User
+class TeamInvitation {
+  + getId()
+  + setId()
+  + getStatus()
+  + setStatus()
+  + getInvitedUser()
+  + setInvitedUser()
+  + getInviter()
+  + setInviter()
+  + getTeam()
+  + setTeam()
+}
+TeamInvitation "1" *-- "team" Team
+TeamInvitation "1" *-- "invitedUser" User
+TeamInvitation "1" *-- "inviter" User
+class Team {
+  + getName()
+  + setName()
+  + getId()
+  + setDescription()
+  + getDescription()
+  + removeMember()
+  + addMember()
+  + setId()
+  + getMembers()
+  + setMembers()
+  + getOwnerId()
+  + setOwnerId()
+}
+Team "1" *-- "*" User
+class User {
+  + equals()
+  + hashCode()
+  + getId()
+  + setId()
+  + getUsername()
+  + getPassword()
+  + setUsername()
+  + setPassword()
+  + getEvents()
+  + setEvents()
+  + getTasks()
+  + setTasks()
+  + setTeams()
+  + getTeams()
+}
+User "1" *-- "*" Event
+User "1" *-- "*" Task
+User "1" *-- "*" Team
+class FocusController {
+  + getFocusSuggestions()
+}
+FocusController "1" *-- "focusService" FocusService
+class EventController {
+  + getEventById()
+  + createEvent()
+  + updateEvent()
+  + deleteEvent()
+  + getTeamMemberEvents()
+  + getEventsByUser()
+  + getEventsByUserAndPeriod()
+  + recalculateTravelTimes()
+}
+EventController "1" *-- "focusService" FocusService
+class UserFocusPreference {
+  + getUserId()
+  + setUserId()
+  + getMaxEventsPerDay()
+  + getMinFocusDuration()
+  + getPreferredFocusTime()
+  + setMaxEventsPerDay()
+  + setMinFocusDuration()
+  + setPreferredFocusTime()
+  + isFocusModeEnabled()
+  + setFocusModeEnabled()
 }
 class WebConfig {
-  + WebConfig(): 
-  + restTemplate(): RestTemplate
-  + corsConfigurer(): WebMvcConfigurer
+  + corsConfigurer()
+  + restTemplate()
 }
-
-ActivityLog                     "1" *-[#595959,plain]-> "activityType\n1" ActivityCategory                
-ActivityLogController           "1" *-[#595959,plain]-> "activityLogService\n1" ActivityLogService              
-ActivityLogService               -[#595959,dashed]->  ActivityLog                     : "«create»"
-ActivityLogService              "1" *-[#595959,plain]-> "activityLogRepository\n1" ActivityLogRepository           
-ActivityLogService              "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository                 
-ActivityRecordRequest           "1" *-[#595959,plain]-> "activityType\n1" ActivityCategory                
-ActivityRecordRequest            +-[#820000,plain]-  ActivityLogController           
-ActivityStatsDTO                "1" *-[#595959,plain]-> "category\n1" ActivityCategory                
-BiweeklyCalendarParser           -[#595959,dashed]->  Event                           : "«create»"
-BiweeklyCalendarParser           -[#008200,dashed]-^  ICalendarParser                 
-CalendarImportController        "1" *-[#595959,plain]-> "importService\n1" CalendarImportService           
-CalendarImportService           "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository                 
-CalendarImportService           "1" *-[#595959,plain]-> "parser\n1" ICalendarParser                 
-DefaultScheduleOptimizerService  -[#595959,dashed]->  Event                           : "«create»"
-DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository                 
-DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "focusService\n1" FocusService                    
-DefaultScheduleOptimizerService  -[#008200,dashed]-^  ScheduleOptimizerService        
-DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository                  
-DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "taskSelectionStrategy\n1" TaskSelectionStrategy           
-DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService               
-DefaultTaskSelectionStrategy    "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository                  
-DefaultTaskSelectionStrategy     -[#008200,dashed]-^  TaskSelectionStrategy           
-Event                           "1" *-[#595959,plain]-> "category\n1" ActivityCategory                
-Event                           "1" *-[#595959,plain]-> "location\n1" Location                        
-Event                           "1" *-[#595959,plain]-> "task\n1" Task                            
-Event                           "1" *-[#595959,plain]-> "departures\n*" TravelTime                      
-Event                           "1" *-[#595959,plain]-> "user\n1" User                            
-EventController                 "1" *-[#595959,plain]-> "eventService\n1" EventService                    
-EventController                 "1" *-[#595959,plain]-> "focusService\n1" FocusService                    
-EventRequest                     +-[#820000,plain]-  EventController                 
-EventRequest                    "1" *-[#595959,plain]-> "location\n1" LocationRequest                 
-EventServiceImpl                 -[#595959,dashed]->  Event                           : "«create»"
-EventServiceImpl                "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository                 
-EventServiceImpl                 -[#008200,dashed]-^  EventService                    
-EventServiceImpl                "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository                  
-EventServiceImpl                "1" *-[#595959,plain]-> "primaryCalculator\n1" TravelTimeCalculator            
-EventServiceImpl                "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRepository            
-EventServiceImpl                "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService               
-EventServiceImpl                "1" *-[#595959,plain]-> "userRepository\n1" UserRepository                  
-FocusBlock                      "1" *-[#595959,plain]-> "user\n1" User                            
-FocusController                 "1" *-[#595959,plain]-> "focusService\n1" FocusService                    
-FocusService                    "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository                 
-FocusService                     -[#595959,dashed]->  ScheduleBlock                   : "«create»"
-FocusService                     -[#595959,dashed]->  UserFocusPreference             : "«create»"
-FocusService                    "1" *-[#595959,plain]-> "preferenceRepository\n1" UserFocusPreferenceRepository   
-FocusTimePreference              +-[#820000,plain]-  UserFocusPreference             
-GoogleMapsTravelTimeCalculator   -[#595959,dashed]->  SimpleTravelTimeCalculator      : "«create»"
-GoogleMapsTravelTimeCalculator  "1" *-[#595959,plain]-> "fallbackCalculator\n1" SimpleTravelTimeCalculator      
-GoogleMapsTravelTimeCalculator   -[#008200,dashed]-^  TravelTimeCalculator            
-LocationRequest                  +-[#820000,plain]-  EventController                 
-LocationRequest                  -[#595959,dashed]->  Location                        : "«create»"
-ScheduleBlock                    +-[#820000,plain]-  FocusService                    
-ScheduleController              "1" *-[#595959,plain]-> "optimizerService\n1" ScheduleOptimizerService        
-SimpleTravelTimeCalculator       -[#008200,dashed]-^  TravelTimeCalculator            
-Status                           +-[#820000,plain]-  TeamInvitation                  
-Task                            "1" *-[#595959,plain]-> "event\n1" Event                           
-Task                            "1" *-[#595959,plain]-> "team\n1" Team                            
-Task                            "1" *-[#595959,plain]-> "user\n1" User                            
-TaskController                  "1" *-[#595959,plain]-> "focusService\n1" FocusService                    
-TaskController                  "1" *-[#595959,plain]-> "taskService\n1" TaskService                     
-TaskServiceImpl                  -[#595959,dashed]->  Event                           : "«create»"
-TaskServiceImpl                 "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository                 
-TaskServiceImpl                 "1" *-[#595959,plain]-> "focusService\n1" FocusService                    
-TaskServiceImpl                 "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository                  
-TaskServiceImpl                  -[#008200,dashed]-^  TaskService                     
-TaskServiceImpl                 "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository                  
-TaskServiceImpl                 "1" *-[#595959,plain]-> "userRepository\n1" UserRepository                  
-Team                            "1" *-[#595959,plain]-> "members\n*" User                            
-TeamController                  "1" *-[#595959,plain]-> "teamService\n1" TeamService                     
-TeamInvitation                  "1" *-[#595959,plain]-> "status\n1" Status                          
-TeamInvitation                  "1" *-[#595959,plain]-> "team\n1" Team                            
-TeamInvitation                  "1" *-[#595959,plain]-> "invitedUser\n1" User                            
-TeamServiceImpl                 "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository                  
-TeamServiceImpl                  -[#595959,dashed]->  Team                            : "«create»"
-TeamServiceImpl                  -[#595959,dashed]->  TeamInvitation                  : "«create»"
-TeamServiceImpl                 "1" *-[#595959,plain]-> "invitationRepository\n1" TeamInvitationRepository        
-TeamServiceImpl                 "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository                  
-TeamServiceImpl                  -[#008200,dashed]-^  TeamService                     
-TeamServiceImpl                 "1" *-[#595959,plain]-> "userRepository\n1" UserRepository                  
-TransportMode                    +-[#820000,plain]-  TravelTime                      
-TravelTime                      "1" *-[#595959,plain]-> "fromEvent\n1" Event                           
-TravelTime                      "1" *-[#595959,plain]-> "mode\n1" TransportMode                   
-TravelTime                      "1" *-[#595959,plain]-> "user\n1" User                            
-TravelTimeController            "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRepository            
-TravelTimeController            "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService               
-TravelTimeService               "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository                 
-TravelTimeService                -[#595959,dashed]->  TravelTime                      : "«create»"
-TravelTimeService               "1" *-[#595959,plain]-> "travelTimeCalculator\n1" TravelTimeCalculator            
-TravelTimeService               "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRepository            
-User                            "1" *-[#595959,plain]-> "events\n*" Event                           
-User                            "1" *-[#595959,plain]-> "tasks\n*" Task                            
-User                            "1" *-[#595959,plain]-> "teams\n*" Team                            
-UserController                  "1" *-[#595959,plain]-> "userService\n1" UserService                     
-UserFocusPreference             "1" *-[#595959,plain]-> "preferredFocusTime\n1" FocusTimePreference             
-UserService                      -[#595959,dashed]->  User                            : "«create»"
-UserService                     "1" *-[#595959,plain]-> "userRepository\n1" UserRepository                  
+class DefaultScheduleOptimizerService {
+  + reshuffle()
+}
+DefaultScheduleOptimizerService "1" *-- "travelTimeService" TravelTimeService
+DefaultScheduleOptimizerService "1" *-- "focusService" FocusService
+class TravelTimeController {
+  + deleteTravelTime()
+  + updateTravelTime()
+  + getTravelTimesByUser()
+  + getTravelTimesByUserAndPeriod()
+  + getTravelTimeById()
+  + calculateTravelTime()
+}
+TravelTimeController "1" *-- "travelTimeService" TravelTimeService
+class CalendarImportService {
+  + importCalendar()
+}
+class Task {
+  + setPriority()
+  + getPriority()
+  + getId()
+  + isDone()
+  + getDuration()
+  + setDone()
+  + getUserId()
+  + getEventId()
+  + setTitle()
+  + getUser()
+  + setEvent()
+  + setId()
+  + setUser()
+  + getTitle()
+  + getEstimatedDuration()
+  + setEstimatedDuration()
+  + getEvent()
+  + getAssignee()
+  + setAssignee()
+  + getTeam()
+  + setTeam()
+  + isDelegated()
+  + isLate()
+  + setLate()
+  + getDeadline()
+  + setDeadline()
+}
+Task "1" *-- "user" User
+Task "1" *-- "event" Event
+Task "1" *-- "assignee" User
+Task "1" *-- "team" Team
+class TaskServiceImpl {
+  + planifyTask()
+  + getTasksByTeam()
+  + getTasksByUserId()
+  + getDelegatedTasks()
+  + createTask()
+  + updateTask()
+  + updateTask()
+  + deleteTask()
+  + getTaskById()
+  + getTasksAssignedToUser()
+}
+TaskServiceImpl "1" *-- "focusService" FocusService
+class ActivityLogService {
+  + recordActivity()
+  + getStats()
+}
+class ActivityLog {
+  + getId()
+  + getUserId()
+  + getActivityType()
+  + getEventId()
+  + getStartTime()
+  + getEndTime()
+  + setId()
+  + setUserId()
+  + setActivityType()
+  + setStartTime()
+  + setEndTime()
+  + setEventId()
+}
+class TeamController {
+  + createTeam()
+  + getTeamMembers()
+  + removeMember()
+  + deleteTeam()
+  + addMember()
+  + getMyTeams()
+  + inviteUser()
+  + getInvitations()
+  + respond()
+}
+class UserController {
+  + register()
+  + getAll()
+  + login()
+  + getByUsername()
+}
+UserController "1" *-- "userService" UserService
+class DefaultTaskSelectionStrategy {
+  + selectTask()
+}
+class TeamServiceImpl {
+  + createTeam()
+  + addMemberByUserId()
+  + getTeamsByUserId()
+  + getTeamMembers()
+  + removeMember()
+  + deleteTeam()
+  + inviteMember()
+  + getPendingInvitations()
+  + respondToInvitation()
+}
 @enduml
