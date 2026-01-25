@@ -14,7 +14,7 @@ import java.util.Map;
 @Service
 public class GeminiService {
 
-    @Value("${google.ai.api-key}")
+    @Value("${google.ai.api.key}")
     private String apiKey;
 
     @Value("${google.ai.model}")
