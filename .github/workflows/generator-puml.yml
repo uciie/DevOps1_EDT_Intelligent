@@ -7,9 +7,7 @@ on:
       - documentation
     paths:
       - 'backend/src/main/java/**'
-  pull_request:
-    branches:
-      - main
+      - 'doc/uml/*.puml'
 
 permissions:
   contents: write
@@ -17,25 +15,38 @@ permissions:
 jobs:
   update-diagrams:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create directory for diagrams
-        run: mkdir -p doc/uml
-
-      # ÉTAPE CORRIGÉE : Utilisation de Docker pour le rendu au lieu de wget
-      - name: Render PNG from PUML
-        uses: docker://plantuml/plantuml-server:latest
+      - name: Set up Java
+        uses: actions/setup-java@v4
         with:
-          args: -tpng -o "/github/workspace/doc/uml" "/github/workspace/doc/uml/*.puml"
+          distribution: 'temurin'
+          java-version: '21' # Utilise la version 21 comme dans ton build.gradle
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y graphviz fonts-dejavu openjdk-17-jre-headless
+
+      - name: Download PlantUML
+        run: wget -O plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2024.3/plantuml-1.2024.3.jar
+
+      - name: Generate PUML from Java
+        run: |
+          cd backend
+          chmod +x gradlew
+          ./gradlew generatePlantUml
 
       - name: Commit and Push changes
         if: github.event_name == 'push'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add doc/uml/*.png
-          # On vérifie s'il y a des changements avant de commit pour éviter une erreur
-          git diff --quiet && git diff --staged --quiet || git commit -m "docs: update UML diagrams [skip ci]"
-          git push
+          git add doc/uml/*.puml doc/uml/*.png
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: auto-update diagrams [skip ci]"
+            git push
+          fi

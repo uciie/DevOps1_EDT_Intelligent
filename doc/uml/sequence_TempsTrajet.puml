@@ -1,12 +1,13 @@
 @startuml
 title Séquence : Calcul du Temps de Trajet
 
+participant "Client" as Client
 participant "TravelTimeService" as TTService
 participant "TravelTimeCalculator" as Calculator
 participant "Event" as Event
 participant "TravelTimeRepository" as TTRepo
 
-[-> TTService : createTravelTime(fromEvent, toEvent, mode)
+Client -> TTService : createTravelTime(fromEvent, toEvent, mode)
 activate TTService
 
 TTService -> Event : getLocation() (Origin & Destination)
@@ -22,9 +23,9 @@ alt Localisations présentes
     TTService -> TT : new(from, to, startTime, duration)
     
     TTService -> TTRepo : save(travelTime)
-    TTService --> [ : TravelTime créé
+    TTService -> Client : TravelTime créé
 else Localisation manquante
-    TTService --> [ : Throw IllegalArgumentException
+    TTService -> Client : Throw IllegalArgumentException
 end
 deactivate TTService
 @enduml

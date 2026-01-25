@@ -47,6 +47,7 @@ dependencies {
     implementation 'org.postgresql:postgresql'
     // SDK Google AI Studio pour Gemini
     implementation 'com.google.genai:google-genai:1.17.0' 
+    implementation 'io.github.livingdocumentation:dot-diagram:1.1'
 }
 
 tasks.named('test') {
@@ -97,21 +98,14 @@ sonarqube {
     }
 }
 
-task generateUML(type: JavaExec) {
+task generatePlantUml(type: JavaExec) {
     group = "documentation"
-    description = "Génère les diagrammes UML à partir des fichiers .puml"
-
-    classpath = configurations.plantuml
-    mainClass = "net.sourceforge.plantuml.Run"
-    
-    // Arguments : dossier source et format
-    args = ["-tpng", "-o", "../uml", "../uml/*.puml"]
-    
-    // Optionnel : permet de ne pas échouer si le dossier est vide
-    doFirst {
-        file("../uml").mkdirs()
-    }
+    description = "Génère le fichier .puml à partir des entités Java."
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.example.backend.utils.UmlGenerator'
+    // L'argument définit où le fichier .puml sera écrit
+    args = ["${projectDir}/../doc/uml/diagram_classes.puml"]
 }
 
-build.dependsOn generateUML
-// ./gradlew generateUML pour générer manuellement les diagrammes UML
+build.dependsOn generatePlantUml
+// ./gradlew generatePlantUml pour générer manuellement les diagrammes UML
