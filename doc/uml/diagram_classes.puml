@@ -1,374 +1,576 @@
 @startuml
+
 !theme plain
 top to bottom direction
 skinparam linetype ortho
-skinparam classAttributeIconSize 0
+
 class TeamInvitation {
-  + getId()
-  + getStatus()
-  + setStatus()
-  + setId()
-  + getInvitedUser()
-  + setInvitedUser()
-  + getInviter()
-  + setInviter()
-  + getTeam()
-  + setTeam()
+  + TeamInvitation(): 
+  - id: Long
+  - team: Team
+  - invitedUser: User
+  - inviter: User
+  - status: Status
+   id: Long
+   team: Team
+   invitedUser: User
+   inviter: User
+   status: Status
 }
-TeamInvitation "1" *-- "team" Team
-TeamInvitation "1" *-- "invitedUser" User
-TeamInvitation "1" *-- "inviter" User
-class ActivityLogService {
-  + recordActivity()
-  + getStats()
-}
-class FocusService {
-  + validateDayNotOverloaded()
-  + getOptimizedFocusSlots()
-  + estBloqueParLeFocus()
-  + getPreferences()
-  + findFreeGaps()
-  + updatePreferences()
-}
-class EventController {
-  + getEventById()
-  + createEvent()
-  + updateEvent()
-  + deleteEvent()
-  + getTeamMemberEvents()
-  + getEventsByUser()
-  + getEventsByUserAndPeriod()
-  + recalculateTravelTimes()
-}
-EventController "1" *-- "focusService" FocusService
-class SimpleTravelTimeCalculator {
-  + calculateTravelTime()
-}
-class TaskServiceImpl {
-  + planifyTask()
-  + getTasksByTeam()
-  + getTasksByUserId()
-  + getDelegatedTasks()
-  + createTask()
-  + updateTask()
-  + updateTask()
-  + deleteTask()
-  + getTaskById()
-  + getTasksAssignedToUser()
-}
-TaskServiceImpl "1" *-- "focusService" FocusService
-class CalendarImportController {
-  + importCalendar()
-}
-CalendarImportController "1" *-- "importService" CalendarImportService
-class ScheduleController {
-  + reshuffle()
-}
-class TravelTimeController {
-  + deleteTravelTime()
-  + updateTravelTime()
-  + getTravelTimesByUser()
-  + getTravelTimesByUserAndPeriod()
-  + getTravelTimeById()
-  + calculateTravelTime()
-}
-TravelTimeController "1" *-- "travelTimeService" TravelTimeService
-class FocusController {
-  + getFocusSuggestions()
-}
-FocusController "1" *-- "focusService" FocusService
-class Task {
-  + setPriority()
-  + getPriority()
-  + getId()
-  + getDuration()
-  + getUserId()
-  + getEventId()
-  + setTitle()
-  + getUser()
-  + getStatus()
-  + setStatus()
-  + setUser()
-  + setId()
-  + setEvent()
-  + getTitle()
-  + getEstimatedDuration()
-  + setEstimatedDuration()
-  + getEvent()
-  + getAssignee()
-  + setAssignee()
-  + getTeam()
-  + setTeam()
-  + isDelegated()
-  + isLate()
-  + setLate()
-  + getDeadline()
-  + setDeadline()
-}
-Task "1" *-- "user" User
-Task "1" *-- "event" Event
-Task "1" *-- "assignee" User
-Task "1" *-- "team" Team
-class UserService {
-  + authenticate()
-  + registerUser()
-  + getAllUsers()
-  + getUserByUsername()
-  + existsByUsername()
-  + getUserById()
-}
-class EventServiceImpl {
-  + getEventsByUserId()
-  + getEventsByUserIdAndPeriod()
-  + getEventById()
-  + createEvent()
-  + updateEvent()
-  + deleteEvent()
-  + recalculateAllTravelTimes()
-  + getTeamMemberEvents()
-}
-EventServiceImpl "1" *-- "travelTimeService" TravelTimeService
-class DefaultTaskSelectionStrategy {
-  + selectTask()
-}
-class TeamController {
-  + createTeam()
-  + getTeamMembers()
-  + removeMember()
-  + deleteTeam()
-  + addMember()
-  + getMyTeams()
-  + inviteUser()
-  + getInvitations()
-  + respond()
-}
-class FallbackGeminiHttpClient {
-  + generateContent()
-}
-class ActivityLogController {
-  + recordActivity()
-  + getStats()
-}
-ActivityLogController "1" *-- "activityLogService" ActivityLogService
-class RestGeminiHttpClient {
-  + generateContent()
-}
-class Team {
-  + getName()
-  + setName()
-  + getId()
-  + setDescription()
-  + getDescription()
-  + removeMember()
-  + addMember()
-  + setId()
-  + getMembers()
-  + setMembers()
-  + getOwnerId()
-  + setOwnerId()
-}
-Team "1" *-- "*" User
-class UserFocusPreference {
-  + getUserId()
-  + setUserId()
-  + getMaxEventsPerDay()
-  + getMinFocusDuration()
-  + getPreferredFocusTime()
-  + setMaxEventsPerDay()
-  + setMinFocusDuration()
-  + setPreferredFocusTime()
-  + isFocusModeEnabled()
-  + setFocusModeEnabled()
-}
+
 class User {
-  + equals()
-  + hashCode()
-  + getId()
-  + getUsername()
-  + getPassword()
-  + setId()
-  + setUsername()
-  + setPassword()
-  + getEvents()
-  + setEvents()
-  + getTasks()
-  + setTasks()
-  + setTeams()
-  + getTeams()
+  + User(): 
+  - id: Long
+  - username: String
+  - password: String
+  - events: List
+  - tasks: List
+  - teams: Set
+   id: Long
+   username: String
+   password: String
+   events: List
+   tasks: List
+   teams: Set
 }
-User "1" *-- "*" Event
-User "1" *-- "*" Task
-User "1" *-- "*" Team
-class CalendarImportService {
-  + importCalendar()
+
+class Task {
+  + Task(): 
+  - id: Long
+  - deadline: LocalDateTime
+  - late: boolean
+  - title: String
+  - estimatedDuration: int
+  - priority: int
+  - status: TaskStatus
+  - user: User
+  - event: Event
+  - assignee: User
+  - team: Team
+   priority: int
+   id: Long
+   duration: int
+   team: Team
+   status: TaskStatus
+   title: String
+   estimatedDuration: int
+   user: User
+   userId: Long
+   event: Event
+   eventId: Long
+   assignee: User
+   deadline: LocalDateTime
 }
-class TeamServiceImpl {
-  + createTeam()
-  + addMemberByUserId()
-  + getTeamsByUserId()
-  + getTeamMembers()
-  + removeMember()
-  + deleteTeam()
-  + inviteMember()
-  + getPendingInvitations()
-  + respondToInvitation()
+
+class Team {
+  + Team(): 
+  - id: Long
+  - name: String
+  - description: String
+  - ownerId: Long
+  - members: Set
+   name: String
+   id: Long
+   description: String
+   members: Set
+   ownerId: Long
 }
-class ChatbotService {
-  + handleUserRequest()
-}
-ChatbotService "1" *-- "geminiService" GeminiService
-class ChatbotController {
-  + handleMessage()
-}
-ChatbotController "1" *-- "chatbotService" ChatbotService
-class DefaultScheduleOptimizerService {
-  + reshuffle()
-}
-DefaultScheduleOptimizerService "1" *-- "travelTimeService" TravelTimeService
-DefaultScheduleOptimizerService "1" *-- "focusService" FocusService
-class Event {
-  + equals()
-  + hashCode()
-  + getLocation()
-  + getId()
-  + getUserId()
-  + getStartTime()
-  + getEndTime()
-  + getUser()
-  + getSummary()
-  + setSummary()
-  + getStatus()
-  + setStatus()
-  + setUser()
-  + setLocation()
-  + getTask()
-  + setTask()
-  + getCategory()
-  + setId()
-  + setStartTime()
-  + setEndTime()
-  + setCategory()
-}
-Event "1" *-- "location" Location
-Event "1" *-- "user" User
-Event "1" *-- "task" Task
-Event "1" *-- "*" TravelTime
-Event "1" *-- "*" TravelTime
-class WebConfig {
-  + corsConfigurer()
-  + restTemplate()
-}
-class TravelTimeService {
-  + calculateAndCreateTravelTime()
-  + deleteTravelTime()
-  + updateTravelTime()
-  + createTravelTime()
-  + getTravelTimesByUserId()
-  + createTravelTimeWithDuration()
-  + estimateDuration()
-  + getTravelTimesByUserIdAndDateRange()
-}
-class TaskController {
-  + planifyTask()
-  + getUserTasks()
-  + createTaskForUser()
-  + getTeamTasks()
-  + getDelegatedTasks()
-  + updateTask()
-  + deleteTask()
-}
-TaskController "1" *-- "focusService" FocusService
-class TravelTime {
-  + getId()
-  + getStartTime()
-  + getEndTime()
-  + getUser()
-  + getFromEvent()
-  + getToEvent()
-  + getDurationMinutes()
-  + getDistanceKm()
-  + getMode()
-  + setUser()
-  + setId()
-  + setStartTime()
-  + setEndTime()
-  + setFromEvent()
-  + setToEvent()
-  + setDurationMinutes()
-  + setDistanceKm()
-  + setMode()
-}
-TravelTime "1" *-- "fromEvent" Event
-TravelTime "1" *-- "toEvent" Event
-TravelTime "1" *-- "user" User
-class UserController {
-  + register()
-  + getAll()
-  + login()
-  + getByUsername()
-}
-UserController "1" *-- "userService" UserService
-class BackendApplication {
-  + main()
-}
-class GeminiService {
-  + chatWithGemini()
-}
-class Location {
-  + getName()
-  + equals()
-  + toString()
-  + hashCode()
-  + setName()
-  + getId()
-  + getAddress()
-  + getDisplayName()
-  + setId()
-  + hasGeneratedAddress()
-  + hasCoordinates()
-  + setAddress()
-  + getLatitude()
-  + setLatitude()
-  + getLongitude()
-  + setLongitude()
-  + isAutoCompleted()
-  + setAutoCompleted()
-  + getFullDescription()
-}
-class ActivityLog {
-  + getId()
-  + getUserId()
-  + getActivityType()
-  + getEventId()
-  + getStartTime()
-  + getEndTime()
-  + setId()
-  + setUserId()
-  + setActivityType()
-  + setStartTime()
-  + setEndTime()
-  + setEventId()
-}
+
 class FocusBlock {
-  + getId()
-  + isProtected()
-  + getStartTime()
-  + getEndTime()
-  + getUser()
-  + getStatus()
-  + setStatus()
-  + setUser()
-  + setId()
-  + setStartTime()
-  + setEndTime()
-  + getFlexibility()
-  + setFlexibility()
-  + setProtected()
-  + isSuggestedBySystem()
-  + setSuggestedBySystem()
+  + FocusBlock(): 
+  - id: Long
+  - user: User
+  - startTime: LocalDateTime
+  - endTime: LocalDateTime
+  - flexibility: int
+  - isProtected: boolean
+  - status: String
+  - suggestedBySystem: boolean
+   id: Long
+   status: String
+   user: User
+   startTime: LocalDateTime
+   endTime: LocalDateTime
+   flexibility: int
 }
-FocusBlock "1" *-- "user" User
+
+class Location {
+  + Location(): 
+  - id: Long
+  - address: String
+  - latitude: Double
+  - longitude: Double
+  - name: String
+  - autoCompleted: boolean
+   name: String
+   id: Long
+   address: String
+   displayName: String
+   latitude: Double
+   longitude: Double
+   fullDescription: String
+}
+
+class TravelTime {
+  + TravelTime(): 
+  - id: Long
+  - fromEvent: Event
+  - toEvent: Event
+  - user: User
+  - startTime: LocalDateTime
+  - endTime: LocalDateTime
+  - durationMinutes: int
+  - distanceKm: Double
+  - mode: TransportMode
+   id: Long
+   user: User
+   startTime: LocalDateTime
+   endTime: LocalDateTime
+   fromEvent: Event
+   toEvent: Event
+   durationMinutes: int
+   distanceKm: Double
+   mode: TransportMode
+}
+
+class UserFocusPreference {
+  + UserFocusPreference(): 
+  - userId: Long
+  - maxEventsPerDay: int
+  - minFocusDuration: int
+  - focusModeEnabled: boolean
+  - preferredFocusTime: FocusTimePreference
+   userId: Long
+   maxEventsPerDay: int
+   minFocusDuration: int
+   preferredFocusTime: FocusTimePreference
+}
+
+class ActivityLog {
+  + ActivityLog(): 
+  - id: Long
+  - userId: Long
+  - activityType: ActivityCategory
+  - startTime: LocalDateTime
+  - endTime: LocalDateTime
+  - eventId: Long
+   id: Long
+   userId: Long
+   eventId: Long
+   startTime: LocalDateTime
+   endTime: LocalDateTime
+   activityType: ActivityCategory
+}
+
+class Event {
+  + Event(): 
+  - id: Long
+  - summary: String
+  - startTime: LocalDateTime
+  - endTime: LocalDateTime
+  - category: ActivityCategory
+  - location: Location
+  - user: User
+  - task: Task
+  - departures: List
+  - arrivals: List
+  - status: EventStatus
+   location: Location
+   id: Long
+   status: EventStatus
+   user: User
+   userId: Long
+   startTime: LocalDateTime
+   endTime: LocalDateTime
+   summary: String
+   task: Task
+   category: ActivityCategory
+}
+
+enum ActivityCategory << enumeration >> {
+  + ActivityCategory(): 
+  + TRAVAIL
+  + ETUDE
+  + SPORT
+  + LOISIR
+  + MENAGER
+  + RENCONTRE
+  + AUTRE
+}
+
+class UmlGenerator {
+  + UmlGenerator(): 
+}
+
+class TimeSlot {
+  + TimeSlot(): 
+  - start: LocalDateTime
+  - end: LocalDateTime
+   durationMinutes: long
+}
+
+class ActivityStatsDTO {
+  + ActivityStatsDTO(): 
+  - category: ActivityCategory
+  - count: long
+  - totalMinutes: long
+  - averageMinutes: long
+   count: long
+   totalMinutes: long
+   averageMinutes: long
+   category: ActivityCategory
+}
+
+interface EventService << interface >> {
+  + EventService(): 
+}
+
+interface TeamService << interface >> {
+  + TeamService(): 
+}
+
+class ActivityLogService {
+  + ActivityLogService(): 
+  - activityLogRepository: ActivityLogRepository
+  - eventRepository: EventRepository
+}
+
+interface TravelTimeCalculator << interface >> {
+  + TravelTimeCalculator(): 
+}
+
+interface TaskSelectionStrategy << interface >> {
+  + TaskSelectionStrategy(): 
+}
+
+class DefaultTaskSelectionStrategy {
+  + DefaultTaskSelectionStrategy(): 
+  - taskRepository: TaskRepository
+}
+
+class CalendarImportService {
+  + CalendarImportService(): 
+  - eventRepository: EventRepository
+  - parser: ICalendarParser
+}
+
+interface ScheduleOptimizerService << interface >> {
+  + ScheduleOptimizerService(): 
+}
+
+class GeminiService {
+  + GeminiService(): 
+  - apiKey: String
+  - model: String
+  - httpClient: GeminiHttpClient
+}
+
+class TravelTimeService {
+  + TravelTimeService(): 
+  - travelTimeRepository: TravelTimeRepository
+  - travelTimeCalculator: TravelTimeCalculator
+  - eventRepository: EventRepository
+}
+
 class BiweeklyCalendarParser {
-  + parse()
+  + BiweeklyCalendarParser(): 
 }
+
+interface ICalendarParser << interface >> {
+  + ICalendarParser(): 
+}
+
+interface TaskService << interface >> {
+  + TaskService(): 
+}
+
+class DefaultScheduleOptimizerService {
+  + DefaultScheduleOptimizerService(): 
+  - eventRepository: EventRepository
+  - taskRepository: TaskRepository
+  - taskSelectionStrategy: TaskSelectionStrategy
+  - travelTimeService: TravelTimeService
+  - focusService: FocusService
+}
+
+class EventServiceImpl {
+  + EventServiceImpl(): 
+  - eventRepository: EventRepository
+  - userRepository: UserRepository
+  - travelTimeService: TravelTimeService
+  - travelTimeRepository: TravelTimeRepository
+  - teamRepository: TeamRepository
+  - primaryCalculator: TravelTimeCalculator
+  - simpleCalculator: TravelTimeCalculator
+}
+
+class GoogleMapsTravelTimeCalculator {
+  + GoogleMapsTravelTimeCalculator(): 
+  - apiKey: String
+  - restTemplate: RestTemplate
+  - fallbackCalculator: SimpleTravelTimeCalculator
+  - mapper: ObjectMapper
+}
+
+class FocusService {
+  + FocusService(): 
+  - eventRepository: EventRepository
+  - preferenceRepository: UserFocusPreferenceRepository
+}
+
+class TaskServiceImpl {
+  + TaskServiceImpl(): 
+  - taskRepository: TaskRepository
+  - eventRepository: EventRepository
+  - userRepository: UserRepository
+  - teamRepository: TeamRepository
+  - focusService: FocusService
+}
+
+class SimpleTravelTimeCalculator {
+  + SimpleTravelTimeCalculator(): 
+}
+
+class TeamServiceImpl {
+  + TeamServiceImpl(): 
+  - teamRepository: TeamRepository
+  - userRepository: UserRepository
+  - invitationRepository: TeamInvitationRepository
+  - taskRepository: TaskRepository
+}
+
+class ChatbotService {
+  + ChatbotService(): 
+  - geminiService: GeminiService
+  - eventRepository: EventRepository
+  - taskRepository: TaskRepository
+  - userRepository: UserRepository
+}
+
+class UserService {
+  + UserService(): 
+  - userRepository: UserRepository
+   allUsers: List
+}
+
+class BackendApplication {
+  + BackendApplication(): 
+}
+
+class LegacyProfileEnvProcessor {
+  + LegacyProfileEnvProcessor(): 
+}
+
+class WebConfig {
+  + WebConfig(): 
+}
+
+class ChatbotController {
+  + ChatbotController(): 
+  - chatbotService: ChatbotService
+}
+
+class TravelTimeController {
+  + TravelTimeController(): 
+  - travelTimeRepository: TravelTimeRepository
+  - travelTimeService: TravelTimeService
+}
+
+class ScheduleController {
+  + ScheduleController(): 
+  - optimizerService: ScheduleOptimizerService
+}
+
+class FocusController {
+  + FocusController(): 
+  - focusService: FocusService
+}
+
+class ActivityLogController {
+  + ActivityLogController(): 
+  - activityLogService: ActivityLogService
+}
+
+class UserController {
+  + UserController(): 
+  - userService: UserService
+  - username: String
+  - password: String
+  - id: String
+   all: ResponseEntity
+}
+
+class TaskController {
+  + TaskController(): 
+  - taskService: TaskService
+  - focusService: FocusService
+}
+
+class CalendarImportController {
+  + CalendarImportController(): 
+  - importService: CalendarImportService
+}
+
+class EventController {
+  + EventController(): 
+  - eventService: EventService
+  - focusService: FocusService
+}
+
+class TeamController {
+  + TeamController(): 
+  - teamService: TeamService
+}
+
+class RestGeminiHttpClient {
+  + RestGeminiHttpClient(): 
+  - webClient: WebClient
+}
+
+class FallbackGeminiHttpClient {
+  + FallbackGeminiHttpClient(): 
+}
+
+interface GeminiHttpClient << interface >> {
+  + GeminiHttpClient(): 
+}
+
+interface FocusBlockRepository << interface >> {
+  + FocusBlockRepository(): 
+}
+
+interface ActivityLogRepository << interface >> {
+  + ActivityLogRepository(): 
+}
+
+interface UserRepository << interface >> {
+  + UserRepository(): 
+}
+
+interface TeamRepository << interface >> {
+  + TeamRepository(): 
+}
+
+interface TravelTimeRepository << interface >> {
+  + TravelTimeRepository(): 
+}
+
+interface UserFocusPreferenceRepository << interface >> {
+  + UserFocusPreferenceRepository(): 
+}
+
+interface LocationRepository << interface >> {
+  + LocationRepository(): 
+}
+
+interface EventRepository << interface >> {
+  + EventRepository(): 
+}
+
+interface TaskRepository << interface >> {
+  + TaskRepository(): 
+}
+
+interface TeamInvitationRepository << interface >> {
+  + TeamInvitationRepository(): 
+}
+
+TeamInvitation "1" *-[#595959,plain]-> "team\n1" Team
+TeamInvitation "1" *-[#595959,plain]-> "invitedUser\n1" User
+TeamInvitation "1" *-[#595959,plain]-> "inviter\n1" User
+User "1" *-[#595959,plain]-> "events\n*" Event
+User "1" *-[#595959,plain]-> "tasks\n*" Task
+User "1" *-[#595959,plain]-> "teams\n*" Team
+Task "1" *-[#595959,plain]-> "user\n1" User
+Task "1" *-[#595959,plain]-> "event\n1" Event
+Task "1" *-[#595959,plain]-> "assignee\n1" User
+Task "1" *-[#595959,plain]-> "team\n1" Team
+Team "1" *-[#595959,plain]-> "members\n*" User
+FocusBlock "1" *-[#595959,plain]-> "user\n1" User
+TravelTime "1" *-[#595959,plain]-> "fromEvent\n1" Event
+TravelTime "1" *-[#595959,plain]-> "toEvent\n1" Event
+TravelTime "1" *-[#595959,plain]-> "user\n1" User
+ActivityLog "1" *-[#595959,plain]-> "activityType\n1" ActivityCategory
+Event "1" *-[#595959,plain]-> "category\n1" ActivityCategory
+Event "1" *-[#595959,plain]-> "location\n1" Location
+Event "1" *-[#595959,plain]-> "user\n1" User
+Event "1" *-[#595959,plain]-> "task\n1" Task
+Event "1" *-[#595959,plain]-> "departures\n*" TravelTime
+Event "1" *-[#595959,plain]-> "arrivals\n*" TravelTime
+ActivityCategory "1" *-[#595959,plain]-> "TRAVAIL\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "ETUDE\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "SPORT\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "LOISIR\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "MENAGER\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "RENCONTRE\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "AUTRE\n1" ActivityCategory
+ActivityStatsDTO "1" *-[#595959,plain]-> "category\n1" ActivityCategory
+ActivityLogService "1" *-[#595959,plain]-> "activityLogRepository\n1" ActivityLogRepository
+ActivityLogService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+TaskSelectionStrategy <|.. DefaultTaskSelectionStrategy
+DefaultTaskSelectionStrategy "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
+CalendarImportService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+CalendarImportService "1" *-[#595959,plain]-> "parser\n1" ICalendarParser
+GeminiService "1" *-[#595959,plain]-> "httpClient\n1" GeminiHttpClient
+TravelTimeService "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRepository
+TravelTimeService "1" *-[#595959,plain]-> "travelTimeCalculator\n1" TravelTimeCalculator
+TravelTimeService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+ICalendarParser <|.. BiweeklyCalendarParser
+ScheduleOptimizerService <|.. DefaultScheduleOptimizerService
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "taskSelectionStrategy\n1" TaskSelectionStrategy
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "focusService\n1" FocusService
+EventService <|.. EventServiceImpl
+EventServiceImpl "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+EventServiceImpl "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+EventServiceImpl "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService
+EventServiceImpl "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRepository
+EventServiceImpl "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository
+EventServiceImpl "1" *-[#595959,plain]-> "primaryCalculator\n1" TravelTimeCalculator
+EventServiceImpl "1" *-[#595959,plain]-> "simpleCalculator\n1" TravelTimeCalculator
+TravelTimeCalculator <|.. GoogleMapsTravelTimeCalculator
+GoogleMapsTravelTimeCalculator "1" *-[#595959,plain]-> "fallbackCalculator\n1" SimpleTravelTimeCalculator
+FocusService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+FocusService "1" *-[#595959,plain]-> "preferenceRepository\n1" UserFocusPreferenceRepository
+TaskService <|.. TaskServiceImpl
+TaskServiceImpl "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
+TaskServiceImpl "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+TaskServiceImpl "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+TaskServiceImpl "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository
+TaskServiceImpl "1" *-[#595959,plain]-> "focusService\n1" FocusService
+TravelTimeCalculator <|.. SimpleTravelTimeCalculator
+TeamService <|.. TeamServiceImpl
+TeamServiceImpl "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository
+TeamServiceImpl "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+TeamServiceImpl "1" *-[#595959,plain]-> "invitationRepository\n1" TeamInvitationRepository
+TeamServiceImpl "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
+ChatbotService "1" *-[#595959,plain]-> "geminiService\n1" GeminiService
+ChatbotService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+ChatbotService "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
+ChatbotService "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+UserService "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+ChatbotController "1" *-[#595959,plain]-> "chatbotService\n1" ChatbotService
+TravelTimeController "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRepository
+TravelTimeController "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService
+ScheduleController "1" *-[#595959,plain]-> "optimizerService\n1" ScheduleOptimizerService
+FocusController "1" *-[#595959,plain]-> "focusService\n1" FocusService
+ActivityLogController "1" *-[#595959,plain]-> "activityLogService\n1" ActivityLogService
+UserController "1" *-[#595959,plain]-> "userService\n1" UserService
+TaskController "1" *-[#595959,plain]-> "taskService\n1" TaskService
+TaskController "1" *-[#595959,plain]-> "focusService\n1" FocusService
+CalendarImportController "1" *-[#595959,plain]-> "importService\n1" CalendarImportService
+EventController "1" *-[#595959,plain]-> "eventService\n1" EventService
+EventController "1" *-[#595959,plain]-> "focusService\n1" FocusService
+TeamController "1" *-[#595959,plain]-> "teamService\n1" TeamService
+GeminiHttpClient <|.. RestGeminiHttpClient
+GeminiHttpClient <|.. FallbackGeminiHttpClient
+
 @enduml
+!pragma useVerticalIf on
+skinparam dpi 300
+allow_mixing
+set maxMessageSize 8192
+skinparam nodesep 50
+skinparam ranksep 50
