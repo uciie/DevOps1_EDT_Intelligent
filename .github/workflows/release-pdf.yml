@@ -6,58 +6,39 @@ on:
   workflow_dispatch:  # Permet de tester manuellement
 
 jobs:
-  # Job 1: Appeler le workflow de génération UML
+  # Job 1: Génération des diagrammes UML nécessaires à la doc
   generate-uml:
     uses: ./.github/workflows/generator-puml.yml
     permissions:
       contents: write
     
-  # Job 2: Convertir Markdown en PDF
+  # Job 2: Conversion du Markdown en PDF
   build-pdf:
     needs: generate-uml
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    permissions:
+      contents: write
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Verify PNG files exist
-        run: |
-          echo "Checking for PNG files..."
-          ls -lh doc/uml/*.png || echo "⚠️  No PNG files found"
-
-      - name: Convert Markdown to PDF using Pandoc
-        uses: docker://pandoc/latex:latest
+      - name: Convert Markdown to PDF
+        uses: baileyjm02/markdown-to-pdf@v1
         with:
-          args: >-
-            --from=markdown
-            --to=pdf
-            --output=doc/doc_technique.pdf
-            --pdf-engine=xelatex
-            --toc
-            --toc-depth=3
-            --number-sections
-            --highlight-style=tango
-            --variable=geometry:margin=2.5cm
-            --variable=fontsize=12pt
-            --variable=mainfont="DejaVu Sans"
-            --variable=monofont="DejaVu Sans Mono"
-            --standalone
-            doc/doc_technique.md
-
-      - name: Verify PDF was created
-        run: |
-          if [ -f "doc/doc_technique.pdf" ]; then
-            echo "✓ PDF successfully created!"
-            ls -lh doc/doc_technique.pdf
-          else
-            echo "❌ ERROR: PDF was not created"
-            exit 1
-          fi
+          input_path: doc/doc_technique.md
+          build_html: true
 
       - name: Upload PDF to Release
-        uses: softprops/action-gh-release@v1
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
         with:
           files: doc/doc_technique.pdf
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Artifact (pour test manuel)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: doc-technique-pdf
+          path: doc/doc_technique.pdf
