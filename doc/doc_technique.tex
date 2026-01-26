@@ -9,6 +9,9 @@
 \usepackage{color}
 \geometry{margin=2.5cm}
 
+% Definir le chemin de base pour les graphiques
+\graphicspath{{./}{uml/}}
+
 % Configuration pour le code Java
 \definecolor{dkgreen}{rgb}{0,0.6,0}
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
@@ -32,7 +35,7 @@
 }
 
 \title{Dossier Technique \& Manuel Utilisateur \\ \Large Projet DevOps - DevOps1\_EDT\_Intelligent}
-\author{Équipe EDT Intelligent \\ Université Paris Nanterre}
+\author{Equipe EDT Intelligent \\ Universite Paris Nanterre}
 \date{\today}
 
 \begin{document}
@@ -41,54 +44,54 @@
 \tableofcontents
 
 \chapter{Introduction}
-Ce document présente l'application \textbf{DevOps1\_EDT\_Intelligent}, un système de gestion d'emploi du temps intelligent. Il détaille l'architecture technique, les processus DevOps mis en place et le guide d'utilisation, en s'appuyant sur les standards de qualité logicielle. L'objectif principal est de fournir une plateforme centralisée permettant de gérer ses tâches, son emploi du temps, et d'optimiser ses périodes de travail grâce à l'intelligence artificielle et l'analyse de données.
+Ce document presente l'application \textbf{DevOps1\_EDT\_Intelligent}, un systeme de gestion d'emploi du temps intelligent. Il detaille l'architecture technique, les processus DevOps mis en place et le guide d'utilisation, en s'appuyant sur les standards de qualite logicielle. L'objectif principal est de fournir une plateforme centralisee permettant de gerer ses taches, son emploi du temps, et d'optimiser ses periodes de travail grace a l'intelligence artificielle et l'analyse de donnees.
 
 \chapter{Architecture Technique}
 
 \section{Diagramme de Classes UML}
-Le diagramme suivant représente la structure globale du backend de l'application. Il est généré automatiquement à chaque modification du code Java.
+Le diagramme suivant represente la structure globale du backend de l'application. Il est genere automatiquement a chaque modification du code Java.
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{uml/diagram_classes.png}
+    \includegraphics[width=0.8\textwidth]{diagram_classes.png}
     \caption{Diagramme de classes automatique}
 \end{figure}
 
-\section{Technologies Utilisées}
+\section{Technologies Utilisees}
 \begin{itemize}
     \item \textbf{Backend :} Java 21 avec Spring Boot 3.
     \item \textbf{Frontend :} React / Vite avec Tailwind CSS.
-    \item \textbf{Base de données :} PostgreSQL (H2 pour les tests).
+    \item \textbf{Base de donnees :} PostgreSQL (H2 pour les tests).
     \item \textbf{Build :} Gradle.
     \item \textbf{CI/CD :} GitHub Actions.
     \item \textbf{IA :} Google Gemini API.
 \end{itemize}
 
-\section{Intégration Continue (CI)}
-Plusieurs workflows GitHub Actions assurent la stabilité du projet :
+\section{Integration Continue (CI)}
+Plusieurs workflows GitHub Actions assurent la stabilite du projet :
 \begin{itemize}
-    \item \textbf{Build \& Test :} Compilation et exécution des tests unitaires à chaque push.
-    \item \textbf{Analyse de Qualité :} Utilisation de SonarCloud pour détecter les vulnérabilités et la dette technique.
-    \item \textbf{Couverture de Code :} Génération de rapports Jacoco avec un seuil minimal de 60\%.
-    \item \textbf{Génération Doc :} Mise à jour automatique des diagrammes UML et de la documentation PDF.
+    \item \textbf{Build \& Test :} Compilation et execution des tests unitaires a chaque push.
+    \item \textbf{Analyse de Qualite :} Utilisation de SonarCloud pour detecter les vulnerabilites et la dette technique.
+    \item \textbf{Couverture de Code :} Generation de rapports Jacoco avec un seuil minimal de 60\%.
+    \item \textbf{Generation Doc :} Mise a jour automatique des diagrammes UML et de la documentation PDF.
 \end{itemize}
 
-\section{Génération UML Automatique}
-À chaque modification dans \texttt{backend/src/main/java}, un workflow spécifique s'exécute :
+\section{Generation UML Automatique}
+A chaque modification dans \texttt{backend/src/main/java}, un workflow specifique s'execute :
 \begin{enumerate}
-    \item Une tâche Gradle (\texttt{generatePlantUml}) exécute un utilitaire Java qui scanne les classes et génère le fichier \texttt{diagram\_classes.puml}.
+    \item Une tache Gradle (\texttt{generatePlantUml}) execute un utilitaire Java qui scanne les classes et genere le fichier \texttt{diagram\_classes.puml}.
     \item PlantUML convertit tous les fichiers \texttt{.puml} du dossier \texttt{doc/uml/} en images \texttt{.png}.
     \item Les changements sont automatiquement "commit" et "push" sur la branche de documentation.
 \end{enumerate}
 
 \chapter{Manuel Utilisateur}
 
-\section{Prérequis et Configuration}
-Avant de procéder à l'installation, assurez-vous que les éléments suivants sont configurés sur votre machine :
+\section{Prerequis et Configuration}
+Avant de proceder a l'installation, assurez-vous que les elements suivants sont configures sur votre machine :
 \begin{itemize}
-    \item \textbf{Java Development Kit (JDK) 21 :} Indispensable pour compiler et exécuter le backend.
+    \item \textbf{Java Development Kit (JDK) 21 :} Indispensable pour compiler et executer le backend.
     \item \textbf{Node.js (version 18+) et npm :} Requis pour le frontend.
-    \item \textbf{Variables d'environnement :} Créez un fichier \texttt{.env} dans \texttt{backend/} avec les clés \texttt{DB\_URL}, \texttt{DB\_USER}, \texttt{DB\_PASSWORD} et \texttt{GOOGLE\_API\_KEY}.
+    \item \textbf{Variables d'environnement :} Creez un fichier \texttt{.env} dans \texttt{backend/} avec les cles \texttt{DB\_URL}, \texttt{DB\_USER}, \texttt{DB\_PASSWORD} et \texttt{GOOGLE\_API\_KEY}.
 \end{itemize}
 
 \section{Installation et Lancement}
@@ -107,91 +110,91 @@ Avant de procéder à l'installation, assurez-vous que les éléments suivants s
     \end{itemize}
 \end{enumerate}
 
-\chapter{Fonctionnalités Détaillées \& Implémentation}
+\chapter{Fonctionnalites Detaillees \& Implementation}
 
-\section{Gestion des Tâches}
-Le système permet une gestion granulaire des tâches individuelles ou d'équipe.
-\subsection{Implémentation}
-\lstinputlisting[language=Java, firstline=40, lastline=80, caption=Gestion des tâches (Service)]{../backend/src/main/java/com/example/backend/service/impl/TaskServiceImpl.java}
+\section{Gestion des Taches}
+Le systeme permet une gestion granulaire des taches individuelles ou d'equipe.
+\subsection{Implementation}
+Les extraits de code source sont disponibles dans le depot GitHub. La classe \texttt{TaskServiceImpl} implemente la logique metier pour la creation, modification et suppression des taches.
 
-\subsection{Diagramme de séquence}
+\subsection{Diagramme de sequence}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{uml/sequence_task_lifecycle.png}
-    \caption{Cycle de vie d'une tâche}
+    \includegraphics[width=0.8\textwidth]{sequence_task_lifecycle.png}
+    \caption{Cycle de vie d'une tache}
 \end{figure}
 
 \section{Optimisation de l'Emploi du Temps}
-Cette fonctionnalité planifie des sessions de travail en fonction des trous dans l'agenda.
-\subsection{Algorithme de sélection}
-\lstinputlisting[language=Java, caption=Stratégie de sélection par défaut]{../backend/src/main/java/com/example/backend/service/strategy/DefaultTaskSelectionStrategy.java}
+Cette fonctionnalite planifie des sessions de travail en fonction des trous dans l'agenda.
+\subsection{Algorithme de selection}
+La strategie de selection par defaut priorise les taches selon leur deadline et leur importance. Le code source est disponible dans \texttt{DefaultTaskSelectionStrategy.java}.
 
-\subsection{Diagramme de séquence}
+\subsection{Diagramme de sequence}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{uml/sequence_ScheduleOptimizer.png}
+    \includegraphics[width=0.8\textwidth]{sequence_ScheduleOptimizer.png}
     \caption{Optimisation intelligente du planning}
 \end{figure}
 
 \section{Calcul des Temps de Trajet}
-Le système calcule automatiquement le temps nécessaire pour se rendre d'un événement à un autre.
-\subsection{Implémentation}
-\lstinputlisting[language=Java, firstline=15, lastline=45, caption=Calculateur de trajet simple]{../backend/src/main/java/com/example/backend/service/impl/SimpleTravelTimeCalculator.java}
+Le systeme calcule automatiquement le temps necessaire pour se rendre d'un evenement a un autre.
+\subsection{Implementation}
+Le calculateur de trajet simple estime le temps de deplacement entre deux localisations. Pour plus de details, consultez \texttt{SimpleTravelTimeCalculator.java}.
 
-\subsection{Diagramme de séquence}
+\subsection{Diagramme de sequence}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{uml/sequence_TempsTrajet.png}
+    \includegraphics[width=0.8\textwidth]{sequence_TempsTrajet.png}
     \caption{Processus de calcul des temps de trajet}
 \end{figure}
 
 \section{Chatbot Assistant (Gemini AI)}
-Un assistant virtuel répond aux questions sur le planning via le langage naturel.
+Un assistant virtuel repond aux questions sur le planning via le langage naturel.
 \subsection{Fonctionnement}
-L'assistant utilise l'API Google Gemini et reçoit le contexte de l'utilisateur (événements et tâches).
-\subsection{Diagramme de séquence}
+L'assistant utilise l'API Google Gemini et recoit le contexte de l'utilisateur (evenements et taches).
+\subsection{Diagramme de sequence}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{uml/sequence_Chatbot.png}
+    \includegraphics[width=0.8\textwidth]{sequence_Chatbot.png}
     \caption{Interaction avec l'assistant IA}
 \end{figure}
 
-\section{Mode Focus et Productivité}
-Le mode Focus aide à identifier les meilleures périodes de concentration.
-\subsection{Implémentation FocusService}
-\lstinputlisting[language=Java, firstline=30, lastline=70, caption=Calcul des créneaux de concentration]{../backend/src/main/java/com/example/backend/service/impl/FocusService.java}
+\section{Mode Focus et Productivite}
+Le mode Focus aide a identifier les meilleures periodes de concentration.
+\subsection{Implementation FocusService}
+Le service Focus analyse les preferences utilisateur et suggere des creneaux optimaux. Consultez \texttt{FocusService.java} pour l'implementation complete.
 
 \section{Import d'Agenda (ICS)}
 L'utilisateur peut importer ses calendriers ADE ou Google Calendar via des fichiers .ics.
-\subsection{Implémentation Service}
-\lstinputlisting[language=Java, firstline=20, lastline=50, caption=Logique d'import de calendrier]{../backend/src/main/java/com/example/backend/service/CalendarImportService.java}
+\subsection{Implementation Service}
+Le service d'import parse les fichiers ICS et synchronise les evenements. La logique est implementee dans \texttt{CalendarImportService.java}.
 
-\subsection{Diagramme de séquence}
+\subsection{Diagramme de sequence}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{uml/sequence_ImportAgenda.png}
-    \caption{Importation d'événements externes}
+    \includegraphics[width=0.8\textwidth]{sequence_ImportAgenda.png}
+    \caption{Importation d'evenements externes}
 \end{figure}
 
-\section{Gestion d'Équipe et Collaboration}
-Permet de partager des tâches et d'inviter des membres dans une équipe.
-\subsection{Diagramme de séquence}
+\section{Gestion d'Equipe et Collaboration}
+Permet de partager des taches et d'inviter des membres dans une equipe.
+\subsection{Diagramme de sequence}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.8\textwidth]{uml/sequence_CollabTeam.png}
-    \caption{Flux d'invitation d'équipe}
+    \includegraphics[width=0.8\textwidth]{sequence_CollabTeam.png}
+    \caption{Flux d'invitation d'equipe}
 \end{figure}
 
-\chapter{Tests et Qualité Logicielle}
-Le projet suit une approche de développement piloté par les tests (TDD).
+\chapter{Tests et Qualite Logicielle}
+Le projet suit une approche de developpement pilote par les tests (TDD).
 
 \section{Tests Unitaires et Mockito}
-\lstinputlisting[language=Java, firstline=25, lastline=55, caption=Exemple de test de service]{../backend/src/test/java/com/example/backend/service/impl/TaskServiceImplTest.java}
+Tous les services critiques disposent de tests unitaires utilisant JUnit 5 et Mockito. Les tests sont disponibles dans le package \texttt{src/test/java}.
 
 \section{Couverture de Code}
-Le rapport Jacoco est généré à chaque build. Nous visons une couverture d'au moins 60\% sur les services critiques.
+Le rapport Jacoco est genere a chaque build. Nous visons une couverture d'au moins 60\% sur les services critiques.
 
 \chapter{Conclusion}
-L'application \textbf{DevOps1\_EDT\_Intelligent} répond au besoin croissant d'organisation personnelle et collective. L'automatisation des processus DevOps assure une haute qualité logicielle.
+L'application \textbf{DevOps1\_EDT\_Intelligent} repond au besoin croissant d'organisation personnelle et collective. L'automatisation des processus DevOps assure une haute qualite logicielle.
 
 \end{document}

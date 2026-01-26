@@ -3,23 +3,59 @@ name: Release PDF Documentation
 on:
   release:
     types: [created]
+  workflow_dispatch:  # Permet de tester manuellement
 
 jobs:
-  build:
+  # Job 1: Appeler le workflow de génération UML
+  generate-uml:
+    uses: ./.github/workflows/generator-puml.yml
+    permissions:
+      contents: write
+    
+  # Job 2: Convertir Markdown en PDF
+  build-pdf:
+    needs: generate-uml
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Compile LaTeX
-        uses: xu-cheng/latex-action@v3
-        with:
-          root_file: doc_technique.tex
-          working_directory: doc
-          # L'option -shell-escape est parfois nécessaire pour listings selon la config
-          args: "-interaction=nonstopmode -file-line-error"
+      - name: Verify PNG files exist
+        run: |
+          echo "Checking for PNG files..."
+          ls -lh doc/uml/*.png || echo "⚠️  No PNG files found"
 
-      - name: Upload to Release
+      - name: Convert Markdown to PDF using Pandoc
+        uses: docker://pandoc/latex:latest
+        with:
+          args: >-
+            --from=markdown
+            --to=pdf
+            --output=doc/doc_technique.pdf
+            --pdf-engine=xelatex
+            --toc
+            --toc-depth=3
+            --number-sections
+            --highlight-style=tango
+            --variable=geometry:margin=2.5cm
+            --variable=fontsize=12pt
+            --variable=mainfont="DejaVu Sans"
+            --variable=monofont="DejaVu Sans Mono"
+            --standalone
+            doc/doc_technique.md
+
+      - name: Verify PDF was created
+        run: |
+          if [ -f "doc/doc_technique.pdf" ]; then
+            echo "✓ PDF successfully created!"
+            ls -lh doc/doc_technique.pdf
+          else
+            echo "❌ ERROR: PDF was not created"
+            exit 1
+          fi
+
+      - name: Upload PDF to Release
         uses: softprops/action-gh-release@v1
         with:
           files: doc/doc_technique.pdf

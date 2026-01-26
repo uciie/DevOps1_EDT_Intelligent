@@ -8,6 +8,8 @@ on:
     paths:
       - 'backend/src/main/java/**'
       - 'doc/uml/*.puml'
+  workflow_call:  # Permet d'être appelé par d'autres workflows
+  workflow_dispatch:  # Permet de déclencher manuellement
 
 permissions:
   contents: write
@@ -48,6 +50,11 @@ jobs:
           # - diagram_classes.puml (fraîchement généré)
           # - sequence_*.puml (vos fichiers existants)
           java -Djava.awt.headless=true -DPLANTUML_LIMIT_SIZE=8192 -jar plantuml.jar -tpng "doc/uml/*.puml"
+
+      - name: List generated files
+        run: |
+          echo "Generated PNG files:"
+          ls -lh doc/uml/*.png || echo "No PNG files found"
 
       - name: Commit and Push changes
         if: github.event_name == 'push'
