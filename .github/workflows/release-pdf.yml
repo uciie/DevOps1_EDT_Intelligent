@@ -3,42 +3,51 @@ name: Release PDF Documentation
 on:
   release:
     types: [created]
-  workflow_dispatch:  # Permet de tester manuellement
+  workflow_dispatch:
 
 jobs:
-  # Job 1: Génération des diagrammes UML nécessaires à la doc
+  # On s'assure que les images UML existent avant la conversion
   generate-uml:
     uses: ./.github/workflows/generator-puml.yml
     permissions:
       contents: write
-    
-  # Job 2: Conversion du Markdown en PDF
+
   build-pdf:
     needs: generate-uml
     runs-on: ubuntu-latest
+    # Correction 1 : Ajout des permissions explicites pour écrire dans la release
     permissions:
       contents: write
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Convert Markdown to PDF
-        uses: baileyjm02/markdown-to-pdf@v1
+      # Étape de vérification (Debug) pour voir si le dossier doc existe
+      - name: Prepare environment
+        run: mkdir -p doc
+
+      - name: Render PDF with Pandoc
+        uses: docker://pandoc/latex:latest
         with:
-          input_path: doc/doc_technique.md
-          build_html: true
+          args: >-
+            --from=markdown
+            --to=pdf
+            --output=doc/doc_technique.pdf
+            --pdf-engine=pdflatex
+            --resource-path=.:doc
+            --standalone
+            doc/doc_technique.md
+
+      # Correction 2 : Vérification de l'existence du fichier avant l'upload
+      - name: Check file existence
+        run: ls -l doc/doc_technique.pdf
 
       - name: Upload PDF to Release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
+          # Utilisation de GITHUB_TOKEN automatique
           files: doc/doc_technique.pdf
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Artifact (pour test manuel)
-        if: github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v4
-        with:
-          name: doc-technique-pdf
-          path: doc/doc_technique.pdf
