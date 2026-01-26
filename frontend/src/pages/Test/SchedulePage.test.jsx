@@ -1,11 +1,10 @@
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SchedulePage from '../../pages/SchedulePage';
 import * as authApi from '../../api/authApi';
 import * as taskApi from '../../api/taskApi';
 import * as eventApi from '../../api/eventApi';
 import * as teamApi from '../../api/teamApi';
-import * as userApi from '../../api/userApi';
 
 // --- MOCK DES COMPOSANTS ENFANTS ---
 
