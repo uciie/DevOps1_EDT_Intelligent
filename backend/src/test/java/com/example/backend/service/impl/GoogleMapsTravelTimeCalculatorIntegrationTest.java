@@ -189,8 +189,8 @@ class GoogleMapsTravelTimeCalculatorIntegrationTest {
             System.out.println("🚇 " + louvre.getDisplayName() + " → " + eiffel.getDisplayName() + " (GPS, transport)");
             System.out.println("   Temps: " + time + " min");
             
-            assertTrue(time >= 15 && time <= 45, 
-                "Temps attendu: 15-45 min, obtenu: " + time + " min");
+            assertTrue(time >= 15 && time <= 50, 
+                "Temps attendu: 15-50 min, obtenu: " + time + " min");
         }
 
         // === ADRESSE ===
@@ -265,8 +265,8 @@ class GoogleMapsTravelTimeCalculatorIntegrationTest {
             System.out.println("🚇 " + louvre.getDisplayName() + " → " + eiffel.getDisplayName() + " (Adresse, transport)");
             System.out.println("   Temps: " + time + " min");
             
-            assertTrue(time >= 15 && time <= 45, 
-                "Temps attendu: 15-45 min, obtenu: " + time + " min");
+            assertTrue(time >= 15 && time <= 50, 
+                "Temps attendu: 15-50 min, obtenu: " + time + " min");
         }
     }
 

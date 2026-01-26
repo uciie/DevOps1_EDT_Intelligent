@@ -22,18 +22,19 @@ public class UmlGenerator {
         }
 
         String packageName = "com.example.backend";
-        // Destination demandée : DevOps1_EDT_Intelligent/doc/uml/diagram_classes.plantuml
+        // Destination par défaut : DevOps1_EDT_Intelligent/doc/uml/diagram_classes.puml
         // On remonte de 'backend' vers la racine pour atteindre 'doc'
         File outputFile = new File(srcDir.getParentFile().getParentFile().getParentFile(), "../doc/uml/diagram_classes.puml");
-        
+
+        // Si un chemin de sortie est fourni en argument, l'utiliser (utile pour les tests)
+        if (args != null && args.length > 0 && args[0] != null && !args[0].isEmpty()) {
+            outputFile = new File(args[0]);
+        }
+
         try {
             List<Class<?>> classes = findAllClasses(srcDir.getAbsolutePath(), packageName);
-            
-            if (classes.isEmpty()) {
-                System.out.println("Erreur : Aucune classe trouvée dans " + srcDir.getAbsolutePath());
-                return;
-            }
 
+            // Ne pas retourner si aucune classe trouvée : écrire au moins les marqueurs PlantUML
             generatePlantUml(classes, outputFile.getAbsolutePath());
             System.out.println("Succès : " + classes.size() + " classes analysées.");
             System.out.println("Fichier généré : " + outputFile.getAbsolutePath());
