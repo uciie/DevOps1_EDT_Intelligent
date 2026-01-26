@@ -24,7 +24,6 @@ export default function ChatAssistant() {
   const [isLoading, setIsLoading] = useState(false);
   
   const currentUser = getCurrentUser();
-  const userInitial = (currentUser?.username || "U")[0]?.toUpperCase() || "U";
 
   // Détection de la clé API (pour afficher le statut)
   const apiKey = import.meta.env.VITE_CHATBOT_API_KEY || null;
@@ -56,7 +55,7 @@ export default function ChatAssistant() {
   }
 
   // Fonction pour envoyer un message utilisateur
-  async function sendMessage(text, author = "user") {
+  async function sendMessage(text) {
     if (!text || !text.trim()) return;
     if (!currentUser) {
       addMessage("Vous devez être connecté pour utiliser l'assistant.", "assistant");

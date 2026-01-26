@@ -43,7 +43,7 @@ jobs:
         run: ./gradlew assemble --no-daemon
   
   frontend:
-    name: ⚛️ Frontend (Lint, Test & Build)
+    name:  Frontend (Lint, Test & Build)
     runs-on: ubuntu-latest
 
     steps:

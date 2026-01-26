@@ -20,7 +20,7 @@ const normalizeData = (response) => {
     if (typeof response === 'string') {
         try {
             response = JSON.parse(response);
-        } catch (e) {
+        } catch (e){
             console.error("Erreur parsing JSON dans normalizeData:", e);
             return [];
         }
@@ -175,7 +175,7 @@ function SchedulePage() {
           setNewTeamName('');
           setShowCreateTeam(false);
           showNotification(`Équipe "${newTeam.name}" créée !`, "success");
-      } catch (error) {
+      } catch {
           showNotification("Erreur création équipe", "error");
       }
   };
@@ -187,7 +187,7 @@ function SchedulePage() {
           await inviteUserToTeam(teamId, userMemberId, currentUser.id);
           showNotification(`Invitation envoyée à ${inviteUsername}`, "success");
           setInviteUsername('');
-      } catch (error) {
+      } catch {
           showNotification("Utilisateur introuvable ou erreur serveur", "error");
       }
   };
@@ -210,7 +210,7 @@ function SchedulePage() {
             setSelectedTeam(updatedTeams.find(t => t.id === teamId));
         }
         showNotification("Membre retiré avec succès.", "success");
-    } catch (error) {
+    } catch (error){
         const msg = error.response?.data || "Impossible de retirer le membre.";
         showNotification(msg, "error");
     }
@@ -246,7 +246,7 @@ function SchedulePage() {
       setTasks([...tasks, createdTask]);
       showNotification("Tâche ajoutée avec succès !", "success");
       return createdTask;
-    } catch (err) {
+    } catch (err){
       showNotification("Impossible d'ajouter la tâche", "error");
       throw err;
     }
@@ -282,7 +282,7 @@ function SchedulePage() {
         }
         showNotification("Tâche modifiée !", "success");
       }
-    } catch (err) {
+    } catch {
       showNotification("Impossible de modifier la tâche", "error");
     }
   };
@@ -295,7 +295,7 @@ function SchedulePage() {
       console.log("Mise à jour de la tâche :", updatedTask);
       await updateTask(taskId, updatedTask, currentUser.id);
       setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
-    } catch (err) {
+    } catch {
       showNotification("Impossible de mettre à jour la tâche", "error");
     }
   };
@@ -306,12 +306,12 @@ function SchedulePage() {
       setTasks(tasks.filter(t => t.id !== taskId));
       setEvents(events.filter(e => e.taskId !== taskId));
       showNotification("Tâche supprimée", "success");
-    } catch (err) {
+    } catch {
       showNotification("Impossible de supprimer la tâche", "error");
     }
   };
 
-  const handleDropTaskOnCalendar = async (taskId, day, hour) => {
+  const handleDropTaskOnCalendar = async (taskId) => {
     try {
       // 2. Appeler le service backend 'planifyTask' avec NULL pour déclencher la logique First-Fit.
       const plannedTask = await planifyTask(taskId, null, null); 
@@ -334,7 +334,7 @@ function SchedulePage() {
       
       setEvents([...events, newEvent]);
       showNotification("Tâche planifiée automatiquement !", "success");
-    } catch (err) {
+    } catch {
       showNotification("Impossible de planifier la tâche automatiquement", "error");
     }
   };
@@ -375,7 +375,7 @@ function SchedulePage() {
       }
       setIsEventFormOpen(false);
       setEventToEdit(null);
-    } catch (error) {
+    } catch (error){
       const msg = error.response?.data || "Impossible de sauvegarder l'événement";
       showNotification(msg, "error");
     }
@@ -396,7 +396,7 @@ function SchedulePage() {
       }
       setEvents(events.filter(e => e.id !== eventId));
       showNotification("Événement supprimé", "success");
-    } catch (err) {
+    } catch {
       showNotification("Impossible de supprimer l'événement", "error");
     }
   };
@@ -425,7 +425,7 @@ function SchedulePage() {
       await updateTask(event.taskId, updatedTask, currentUser.id);
       setEvents(events.map(e => e.id === eventId ? updatedEvent : e));
       setTasks(tasks.map(t => t.id === event.taskId ? updatedTask : t));
-    } catch (err) {
+    } catch {
       showNotification("Impossible de déplacer l'événement", "error");
     }
   };
@@ -447,7 +447,7 @@ function SchedulePage() {
 
       setEvents(updatedEvents);
       showNotification("Agenda réorganisé avec succès !", "success");
-    } catch (err) {
+    } catch {
       showNotification("Erreur lors de la réorganisation", "error");
     } finally {
       setLoading(false);
