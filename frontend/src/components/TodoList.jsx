@@ -2,12 +2,9 @@ import { useState, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import { getUserTasks, getDelegatedTasks, getTeamTasks } from '../api/taskApi';
 import Notification from './Notification';
+import { ITEM_TYPES } from '../constants';
 
 import '../styles/components/TodoList.css';
-
-const ITEM_TYPES = {
-  TASK: 'task'
-};
 
 // Composant pour une tâche draggable
 function DraggableTask({ 
