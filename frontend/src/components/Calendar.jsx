@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useDrop } from 'react-dnd';
-import { ITEM_TYPES } from './TodoList';
+import { ITEM_TYPES } from '../constants';
 import '../styles/components/Calendar.css';
 
 // Composant pour une cellule de calendrier
