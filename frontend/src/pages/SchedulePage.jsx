@@ -20,7 +20,7 @@ const normalizeData = (response) => {
     if (typeof response === 'string') {
         try {
             response = JSON.parse(response);
-        } catch {
+        } catch (e){
             console.error("Erreur parsing JSON dans normalizeData:", e);
             return [];
         }
@@ -146,12 +146,12 @@ function SchedulePage() {
             const teamsResponse = await getMyTeams(user.id);
             const myTeams = normalizeData(teamsResponse);
             setTeams(myTeams);
-        } catch {
+        } catch (teamErr) {
             console.warn("Impossible de charger les équipes", teamErr);
             setTeams([]); 
         }
 
-      } catch {
+      } catch (err) {
         console.error("Erreur lors du chargement des données:", err);
         setPageError("Impossible de charger vos données");
       } finally {
@@ -210,7 +210,7 @@ function SchedulePage() {
             setSelectedTeam(updatedTeams.find(t => t.id === teamId));
         }
         showNotification("Membre retiré avec succès.", "success");
-    } catch {
+    } catch (error){
         const msg = error.response?.data || "Impossible de retirer le membre.";
         showNotification(msg, "error");
     }
@@ -226,7 +226,7 @@ function SchedulePage() {
             setSelectedTeam(null);
         }
         showNotification("Équipe supprimée.", "success");
-    } catch {
+    } catch (error) {
         showNotification(error.response?.data?.message || "Erreur suppression équipe", "error");
     }
   };
@@ -246,7 +246,7 @@ function SchedulePage() {
       setTasks([...tasks, createdTask]);
       showNotification("Tâche ajoutée avec succès !", "success");
       return createdTask;
-    } catch {
+    } catch (err){
       showNotification("Impossible d'ajouter la tâche", "error");
       throw err;
     }
@@ -375,7 +375,7 @@ function SchedulePage() {
       }
       setIsEventFormOpen(false);
       setEventToEdit(null);
-    } catch {
+    } catch (error){
       const msg = error.response?.data || "Impossible de sauvegarder l'événement";
       showNotification(msg, "error");
     }
