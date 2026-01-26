@@ -7,29 +7,28 @@ const InvitationList = ({ userId }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Définition de la fonction à l'intérieur de l'effet
+        const loadInvitations = async () => {
+            try {
+                const res = await getPendingInvitations(userId);
+                setInvitations(res.data || res); 
+            } catch (err) { // Ou simplement 'catch' sans variable si supporté, sinon 'err' (non utilisé mais souvent toléré si préfixé par _)
+                console.error("Erreur lors du chargement des invitations", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         if (userId) {
             loadInvitations();
         }
     }, [userId]);
 
-    const loadInvitations = async () => {
-        try {
-            const res = await getPendingInvitations(userId);
-            // On s'assure de récupérer les données correctement selon la structure de réponse API
-            setInvitations(res.data || res); 
-        } catch (error) {
-            console.error("Erreur lors du chargement des invitations", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     const handleAction = async (id, accept) => {
         try {
             await respondToInvitation(id, accept);
-            // Mise à jour instantanée de l'interface
             setInvitations(prev => prev.filter(invit => invit.id !== id));
-        } catch (error) {
+        } catch { // Retirez '(error)' ici
             alert("Erreur lors de la réponse à l'invitation");
         }
     };

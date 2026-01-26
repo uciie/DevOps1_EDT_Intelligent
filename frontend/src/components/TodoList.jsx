@@ -243,7 +243,7 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
       await onEditTask(taskId, data);
       setEditingTaskId(null); // Fermer le mode édition
       triggerNotification("Tâche modifiée avec succès !", "success");
-    } catch (error) {
+    } catch {
       triggerNotification("Erreur lors de la modification.", "error");
     }
   };
@@ -253,7 +253,7 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
       try {
         await onDeleteTask(taskId);
         triggerNotification("Tâche supprimée avec succès !", "success");
-      } catch (error) {
+      } catch {
         triggerNotification("Erreur lors de la suppression.", "error");
       }
     }
@@ -464,5 +464,3 @@ export default function TodoList({ onAddTask, onToggleTask, onDeleteTask, onEdit
     </div>
   );
 }
-
-export { ITEM_TYPES };
