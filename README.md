@@ -56,6 +56,8 @@ Ce projet a été réalisé dans le cadre de notre cursus DevOps, avec pour obje
 1.  **Importe** vos contraintes existantes (cours, réunions) via des fichiers `.ics` (ex: ENT universitaire, Google Calendar).
 2.  **Analyse** les créneaux libres.
 3.  **Optimise et insère automatiquement** vos tâches à faire (To-Do List) dans les "trous" de votre emploi du temps, selon des règles de priorité et de durée.
+4.  **Calcul des temps de trajet** : Intégration avec Google Maps pour prévoir vos déplacements entre deux événements.
+5.  **Collaboration** : Système de gestion d'équipe avec invitations et partage d'activités.
 
 ###  Public visé
 * **Étudiants :** Pour jongler entre les cours, les révisions et les projets de groupe sans conflit.
@@ -143,6 +145,12 @@ Avant de configurer le projet, vous devez installer les environnements d'exécut
 Le backend utilise **Spring Boot 3.5.6**, qui nécessite Java 21.
 
 * **Installation :** Téléchargez le JDK 21 (via [Oracle](https://www.oracle.com/java/technologies/downloads/) ou [Adoptium](https://adoptium.net/)).
+```bash
+# Mise à jour
+sudo apt update
+# Installation de java/javac 21
+sudo apt install openjdk-21-jdk
+```
 * **Vérification :** Ouvrez un terminal et tapez :
 ```bash
 java -version
@@ -156,6 +164,14 @@ java -version
 Le frontend nécessite Node.js pour gérer les dépendances et le serveur de développement Vite.
 
 * **Installation :** Téléchargez la version LTS (ou v22) sur [nodejs.org](https://nodejs.org/).
+```bash
+# Ajouter le dépôt NodeSource pour Node.js 22
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+# Installer Node.js
+sudo apt-get install -y nodejs
+# Installer npm
+sudo apt install npm
+```
 * **Vérification :**
 ```bash
 node -v
@@ -196,8 +212,8 @@ DB_USER=<votre-user>
 DB_PASSWORD=<votre-password>
 # Clé API : contacter l'équipe pour l'accès ou utiliser votre propre clé
 GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
-GOOGLE_MAPS_INTEGRATION_TESTS=true
 SPRING_PROFILES=external-api
+CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI
 ```
 
 ### 3. Configuration du Frontend (React + Vite)
@@ -208,15 +224,19 @@ Vite utilise des variables d'environnement préfixées par `VITE_` pour des rais
 2. Créez un fichier nommé `.env`.
 3. Ajoutez la clé API Google Maps (nécessaire pour le composant de carte) :
 ```properties
-VITE_GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE # le même que celui du backend
+# les même que celles du backend
+VITE_GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
+VITE_CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI 
 ```
 
 ### 4. Comment Obtenir les configurations du fichier .env
-`DB_URL`, `DB_USER`, `DB_PASSWORD` On l'obtient en allant sur le site de Neon (Neon.tech), on se connecte avec son compte Neon (Ou on créer) créer un nouveau projet, en haut à droite appuyer sur le bouton connect, on change ensuite le langage en java, et on obtient une ligne de texte qui contient l'URL, l'user, et le password
+`DB_URL`, `DB_USER`, `DB_PASSWORD` On l'obtient en allant sur le site de [Neon](https://neon.com/), on se connecte avec son compte Neon (Ou on créer) créer un nouveau projet, en haut à droite appuyer sur le bouton connect, on change ensuite le langage en java, et on obtient une ligne de texte qui contient l'URL, l'user, et le password
 
 DB_URL devrait ressembler à : `jdbc:postgresql:///neondb?sslmode=require&channel_binding=require DB_USER` devrait ressembler à : `neondb_owner`
 
-Pour obtenir l'api de google maps, il faut aller sur google cloud, rechercher `distance matrix api`, cliquer sur `enable`/`activer`, ensuite vérifier votre identité sur le site de google, et voila!
+Pour obtenir l'api de google maps, [voir la documentation](./doc/README-MAPS.md)
+
+Pour obtenir l'api de google ai studio, [voir la documentation](./doc/README-AI.md)
 
 ---
 
@@ -272,5 +292,6 @@ npm run dev
 [Kanban](https://trello.com/invite/b/696e35985f2da4aedf80f810/ATTIfd33f201485e160c93be5212ebf775a6130CAEEF/devopsprof)
 
 > Projet universitaire M1 MIAGE 2024-2025 — Université Paris Nanterre.
+
 
 
