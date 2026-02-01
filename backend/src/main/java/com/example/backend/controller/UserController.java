@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,5 +134,25 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         return ResponseEntity.ok(user);
+    }
+
+    /**
+     * Recevoir le code d'autorisation Google OAuth2.
+     * POST /api/users/{id}/google-auth
+     * 
+     * @param id l'ID de l'utilisateur
+     * @param payload Map contenant le code d'autorisation
+     * @return ResponseEntity avec l'utilisateur mis à jour ou une erreur
+     */
+    @PostMapping("/{id}/google-auth")
+    public ResponseEntity<?> handleGoogleCallback(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+        String code = payload.get("code");
+        try {
+            User updatedUser = userService.saveGoogleTokens(id, code);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur lors de l'échange du code Google: " + e.getMessage());
+        }
     }
 }
