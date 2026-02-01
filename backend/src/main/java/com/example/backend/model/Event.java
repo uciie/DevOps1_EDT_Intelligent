@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -57,6 +58,30 @@ public class Event {
 
     @Enumerated(EnumType.STRING)
     private EventStatus status = EventStatus.PLANNED;
+
+    @Column(name = "google_event_id", unique = true)
+    private String googleEventId;
+
+    @Column(name = "last_synced_at")
+    private LocalDateTime lastSyncedAt;
+
+    @Enumerated(EnumType.STRING)
+    private EventSource source = EventSource.LOCAL; // LOCAL ou GOOGLE
+
+    @Column(name = "sync_status")
+    @Enumerated(EnumType.STRING)
+    private SyncStatus syncStatus = SyncStatus.SYNCED; // SYNCED, PENDING, CONFLICT
+
+    public enum EventSource {
+        LOCAL,
+        GOOGLE
+    }
+
+    public enum SyncStatus {
+        SYNCED,
+        PENDING,
+        CONFLICT
+    }
 
     public enum EventStatus {
         PLANNED,
@@ -159,6 +184,18 @@ public class Event {
     public void setCategory(ActivityCategory category) {
         this.category = category;
     }
+
+    public String getGoogleEventId() { return googleEventId; }
+    public void setGoogleEventId(String googleEventId) { this.googleEventId = googleEventId; }
+
+    public LocalDateTime getLastSyncedAt() { return lastSyncedAt; }
+    public void setLastSyncedAt(LocalDateTime lastSyncedAt) { this.lastSyncedAt = lastSyncedAt; }
+
+    public EventSource getSource() { return source; }
+    public void setSource(EventSource source) { this.source = source; }
+
+    public SyncStatus getSyncStatus() { return syncStatus; }
+    public void setSyncStatus(SyncStatus syncStatus) { this.syncStatus = syncStatus; }
 
     // --- Méthodes standard ---
 
