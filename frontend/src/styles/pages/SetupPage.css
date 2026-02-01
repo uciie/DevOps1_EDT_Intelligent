@@ -116,6 +116,76 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+/* --- Séparateur --- */
+.setup-divider {
+  border: none;
+  border-top: 1px solid var(--neutral-200);
+  margin: 0.5rem 0;
+}
+
+/* --- Section Intégrations --- */
+.integrations-section h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary-700);
+}
+
+.integrations-section .setting-item {
+  border-bottom: none;
+}
+
+.integrations-section .setting-info span {
+  color: var(--neutral-600);
+  font-size: 0.9rem;
+}
+
+.integrations-section .setting-info strong {
+  color: var(--neutral-900);
+}
+
+/* --- Bouton Google --- */
+.btn-google {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px; /* Espace entre l'icône et le texte */
+    padding: 10px 24px;
+    background-color: #ffffff;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+    border-radius: 20px; /* Style arrondi moderne */
+    font-family: 'Google Sans', Roboto, Arial, sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color .2s, box-shadow .2s, border-color .2s;
+}
+
+.google-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+.btn-google:hover {
+    background-color: #f8f9fa;
+    border-color: #d2e3fc;
+    box-shadow: 0 1px 3px 0 rgba(60,64,67,0.30), 0 4px 8px 3px rgba(60,64,67,0.15);
+}
+
+.btn-google:active {
+    background-color: #eeeeee;
+}
+
+/* État quand l'utilisateur est déjà connecté */
+.btn-google.connected {
+    background-color: #34A853;
+    color: white;
+    border: none;
+}
+
+.btn-google.connected:hover {
+    background-color: #2d8e47;
+    box-shadow: 0 4px 12px rgba(52, 168, 83, 0.3);
+}
+
 .status-message {
   min-height: 40px;
   margin-top: 1rem;
