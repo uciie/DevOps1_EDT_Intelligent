@@ -60,9 +60,18 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private EventStatus status = EventStatus.PLANNED;
 
-    @Column(name = "google_event_id", unique = true)
     @Index(name = "idx_google_event_id")
     private String googleEventId;
+
+    @Column(name = "last_synced_at")
+    private LocalDateTime lastSyncedAt;
+
+    @Enumerated(EnumType.STRING)
+    private EventSource source = EventSource.LOCAL; // LOCAL ou GOOGLE
+
+    @Column(name = "sync_status")
+    @Enumerated(EnumType.STRING)
+    private SyncStatus syncStatus = SyncStatus.SYNCED; // SYNCED, PENDING, CONFLICT
 
     public enum EventSource {
         LOCAL,
@@ -177,13 +186,18 @@ public class Event {
         this.category = category;
     }
 
-    public String getGoogleEventId() {
-        return googleEventId;
-    }
+    public String getGoogleEventId() { return googleEventId; }
+    public void setGoogleEventId(String googleEventId) { this.googleEventId = googleEventId; }
 
-    public void setGoogleEventId(String googleEventId) {
-        this.googleEventId = googleEventId;
-    }
+    public LocalDateTime getLastSyncedAt() { return lastSyncedAt; }
+    public void setLastSyncedAt(LocalDateTime lastSyncedAt) { this.lastSyncedAt = lastSyncedAt; }
+
+    public EventSource getSource() { return source; }
+    public void setSource(EventSource source) { this.source = source; }
+
+    public SyncStatus getSyncStatus() { return syncStatus; }
+    public void setSyncStatus(SyncStatus syncStatus) { this.syncStatus = syncStatus; }
+
     // --- Méthodes standard ---
 
     @Override

@@ -42,4 +42,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     // méthode de recherche pour éviter les doublons lors des synchronisations futures
     Optional<Event> findByGoogleEventId(String googleEventId);
 
+    // Pour récupérer ce qui doit être envoyé vers Google
+    List<Event> findByUser_IdAndSourceAndSyncStatus(Long userId, Event.EventSource source, Event.SyncStatus status);
+
+    // Pour le nettoyage ou les logs
+    List<Event> findByUser_IdAndLastSyncedAtAfter(Long userId, LocalDateTime since);
 }
