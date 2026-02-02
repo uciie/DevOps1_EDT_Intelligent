@@ -16,6 +16,7 @@ import com.example.backend.model.ActivityLog;
 import com.example.backend.model.Event;
 import com.example.backend.repository.ActivityLogRepository;
 import com.example.backend.repository.EventRepository;
+
 @Service
 public class ActivityLogService {
     @Autowired

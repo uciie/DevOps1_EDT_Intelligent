@@ -2,6 +2,7 @@ package com.example.backend.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -36,5 +37,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findBySummaryContainingAndUser_Id(String summaryFragment, Long userId);
 
     List<Event> findByUser_IdAndStatusNot(Long userId, Event.EventStatus status);
+
+    // Trouve un événement par son ID Google
+    // méthode de recherche pour éviter les doublons lors des synchronisations futures
+    Optional<Event> findByGoogleEventId(String googleEventId);
 
 }

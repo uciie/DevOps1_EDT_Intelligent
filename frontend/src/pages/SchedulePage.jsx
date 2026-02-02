@@ -8,6 +8,7 @@ import { getUserId} from '../api/userApi';
 import { getUserTasks, getDelegatedTasks, createTask, updateTask, deleteTask, planifyTask, reshuffleSchedule } from '../api/taskApi';
 import { createEvent, getUserEvents, updateEvent, deleteEvent } from '../api/eventApi';
 import { getMyTeams, createTeam, inviteUserToTeam, removeMemberFromTeam, deleteTeam } from '../api/teamApi';
+import { syncGoogleCalendar } from '../api/syncApi';
 import '../styles/pages/SchedulePage.css';
 import ChatAssistant from '../components/ChatAssistant';
 
@@ -97,69 +98,62 @@ function SchedulePage() {
       day: date.toISOString().split('T')[0], // Utilisé pour comparer les jours
       hour: date.getHours(),   // Utilisé pour placer dans la grille horaire
       // Assure qu'on a toujours un texte à afficher (Backend utilise 'summary', Task utilise 'title')
-      summary: evt.summary || evt.title || "Sans titre"
+      summary: evt.summary || evt.title || "Sans titre",
+      source: evt.source || 'LOCAL' // Important pour l'affichage conditionnel
     };
   };
 
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
+  // Fonction extraite pour pouvoir être rappelée après une synchro
+  const loadUserData = async (userOverride = null) => {
+    const user = userOverride || currentUser;
+    if (!user) return;
+
+    try {
         setLoading(true);
-        setPageError(null);
-
-        const user = getCurrentUser();
-        if (!user) {
-          setPageError("Utilisateur non connecté");
-          return;
-        }
-
-        setCurrentUser(user);
-
-        // --- 1. CHARGEMENT DES DONNÉES UTILISATEUR (Tâches + Events) ---
-        
-        //Chargement parallèle des tâches assignées ET déléguées
+        // 1. Tâches
         const [rawTasksResponse, rawDelegatedResponse] = await Promise.all([
           getUserTasks(user.id),
           getDelegatedTasks(user.id)
         ]);
-
         const myTasks = normalizeData(rawTasksResponse);
         const delegatedTasks = normalizeData(rawDelegatedResponse);
-
-        // Fusionner les listes en évitant les doublons (via Map par ID)
         const allTasksMap = new Map();
         myTasks.forEach(t => allTasksMap.set(t.id, t));
         delegatedTasks.forEach(t => allTasksMap.set(t.id, t));
-
-        // Convertir la Map en tableau pour le state
         setTasks(Array.from(allTasksMap.values()));
 
-        // --- 2. CHARGEMENT DES ÉVÉNEMENTS ---
+        // 2. Événements
         const rawEventsData = await getUserEvents(user.id);
         const eventsArray = Array.isArray(rawEventsData) ? rawEventsData : [];
-
         const loadedEvents = eventsArray.map(evt => formatEventForCalendar(evt));
         setEvents(loadedEvents);
 
-        // --- CHARGEMENT DES ÉQUIPES ---
-        try {
-            const teamsResponse = await getMyTeams(user.id);
-            const myTeams = normalizeData(teamsResponse);
-            setTeams(myTeams);
-        } catch (teamErr) {
-            console.warn("Impossible de charger les équipes", teamErr);
-            setTeams([]); 
+        // 3. Équipes (seulement au premier chargement si nécessaire)
+        if(!teams.length) {
+            try {
+                const teamsResponse = await getMyTeams(user.id);
+                setTeams(normalizeData(teamsResponse));
+            } catch (teamErr) { setTeams([]); }
         }
-
-      } catch (err) {
-        console.error("Erreur lors du chargement des données:", err);
-        setPageError("Impossible de charger vos données");
-      } finally {
+    } catch (err) {
+        console.error("Erreur loadUserData:", err);
+        setPageError("Impossible de charger les données");
+    } finally {
         setLoading(false);
-      }
-    };
+    }
+  };
 
-    loadUserData();
+  useEffect(() => {
+    const init = async () => {
+        const user = getCurrentUser();
+        if (!user) {
+            setPageError("Utilisateur non connecté");
+            return;
+        }
+        setCurrentUser(user);
+        await loadUserData(user);
+    };
+    init();
   }, []);
 
   // --- GESTION DES ÉQUIPES ---
@@ -330,6 +324,7 @@ function SchedulePage() {
         startTime: plannedTask.event.startTime, 
         endTime: plannedTask.event.endTime,
         priority: plannedTask.priority,
+        source: 'LOCAL'
       });
       
       setEvents([...events, newEvent]);
@@ -454,6 +449,27 @@ function SchedulePage() {
     }
   };
 
+  // --- GESTION SYNCHRO GOOGLE CALENDAR ---
+  const handleSyncGoogle = async () => {
+    if (!currentUser) return;
+    try {
+      setNotification({ message: "Synchronisation avec Google en cours...", type: "info" });
+      setLoading(true); // Bloque l'UI pendant la synchro
+      
+      await syncGoogleCalendar(currentUser.id);
+      
+      // RECHARGEMENT IMPORTANT : Récupérer les nouveaux événements importés
+      await loadDataUserData(currentUser); 
+      
+      setNotification({ message: "Calendrier synchronisé avec succès !", type: "success" });
+    } catch (error) {
+      console.error(error);
+      setNotification({ message: "Échec de la synchronisation.", type: "error" });
+    } finally {
+        setLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="schedule-page">
@@ -484,7 +500,13 @@ function SchedulePage() {
                 {selectedTeam ? `Espace de travail : ${selectedTeam.name}` : "Votre espace personnel"}
             </p>
           </div>
-          <button className="btn-reshuffle" onClick={handleReshuffle}>Réorganiser l'agenda ⚡</button>
+          <div className="action-buttons">
+            <button className="btn-reshuffle" onClick={handleReshuffle}>⚡ Réorganiser</button>
+            {/* Bouton Synchro corrigé */}
+            <button className="btn-sync" onClick={handleSyncGoogle} disabled={loading}>
+                {loading ? '...' : '🔄 Synchro Google'}
+            </button>
+          </div>
         </div>
       )}
 

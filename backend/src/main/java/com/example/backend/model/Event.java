@@ -6,8 +6,10 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.Index;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -57,6 +59,21 @@ public class Event {
 
     @Enumerated(EnumType.STRING)
     private EventStatus status = EventStatus.PLANNED;
+
+    @Column(name = "google_event_id", unique = true)
+    @Index(name = "idx_google_event_id")
+    private String googleEventId;
+
+    public enum EventSource {
+        LOCAL,
+        GOOGLE
+    }
+
+    public enum SyncStatus {
+        SYNCED,
+        PENDING,
+        CONFLICT
+    }
 
     public enum EventStatus {
         PLANNED,
@@ -160,6 +177,13 @@ public class Event {
         this.category = category;
     }
 
+    public String getGoogleEventId() {
+        return googleEventId;
+    }
+
+    public void setGoogleEventId(String googleEventId) {
+        this.googleEventId = googleEventId;
+    }
     // --- Méthodes standard ---
 
     @Override
