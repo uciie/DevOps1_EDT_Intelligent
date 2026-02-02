@@ -1,15 +1,19 @@
 package com.example.backend.service;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import com.example.backend.http.GeminiHttpClient;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import com.example.backend.http.GeminiHttpClient;
+import com.example.backend.model.ChatMessage;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 @Service
 public class GeminiService {
@@ -26,7 +30,7 @@ public class GeminiService {
         this.httpClient = httpClient;
     }
 
-    public GeminiResponse chatWithGemini(String userMessage) {
+    public GeminiResponse chatWithGemini(String userMessage, List<ChatMessage> history) {
         // Injection de la date actuelle dans le prompt système
         String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy (EEEE)", java.util.Locale.FRENCH));
         
@@ -45,6 +49,23 @@ public class GeminiService {
             2. Si une information est manquante (ex: l'heure pour un événement), demande-la précisément.
             3. Confirme toujours l'action réalisée à l'utilisateur de manière concise.
             """, currentDate);
+        
+        List<Map<String, Object>> contents = new ArrayList<>();
+
+        contents.add(Map.of("role", "user", "parts", List.of(Map.of("text", systemPrompt))));
+        contents.add(Map.of("role", "model", "parts", List.of(Map.of("text", "Compris. J'utiliserai les fonctions appropriées..."))));
+
+        List<ChatMessage> chronologicalHistory = new ArrayList<>(history);
+        Collections.reverse(chronologicalHistory); // Remet les messages dans l'ordre chronologique (ancien -> récent)
+
+        for (ChatMessage msg : chronologicalHistory) {
+            contents.add(Map.of(
+                "role", msg.getRole(),
+                "parts", List.of(Map.of("text", msg.getContent()))
+            ));
+        }
+
+        contents.add(Map.of("role", "user", "parts", List.of(Map.of("text", userMessage))));
 
         // Définition des outils disponibles
         var functionDeclarations = List.of(
@@ -101,13 +122,7 @@ public class GeminiService {
                 ), 
                 List.of("name", "durationMinutes"))
         );
-
-        // Construction de la conversation avec système + utilisateur
-        var contents = List.of(
-            Map.of("role", "user", "parts", List.of(Map.of("text", systemPrompt))),
-            Map.of("role", "model", "parts", List.of(Map.of("text", "Compris. J'utiliserai les fonctions appropriées pour répondre aux demandes de planification."))),
-            Map.of("role", "user", "parts", List.of(Map.of("text", userMessage)))
-        );
+        
 
         // Payload final avec outils activés
         var requestBody = Map.of(
