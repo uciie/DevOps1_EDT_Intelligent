@@ -91,7 +91,7 @@ Pour garantir la qualité et la maintenabilité du code, nous avons mis en place
 
 ##  Stack Technique et Outils
 
-Cette section détaille les technologies et librairies clés utilisées pour le développement, le build et les tests du projet.
+Cette section détaille les technologies et librairies clés utilisées pour le développement, le build et les tests du projet. Si besoin, il y a une [video tuto](https://www.youtube.com/watch?v=1TSkfovqWuQ)
 
 ###  Prérequis Système
 * **Java 21** (JDK) : Nécessaire pour le backend Spring Boot.
@@ -292,6 +292,7 @@ npm run dev
 [Kanban](https://trello.com/invite/b/696e35985f2da4aedf80f810/ATTIfd33f201485e160c93be5212ebf775a6130CAEEF/devopsprof)
 
 > Projet universitaire M1 MIAGE 2024-2025 — Université Paris Nanterre.
+
 
 
 
