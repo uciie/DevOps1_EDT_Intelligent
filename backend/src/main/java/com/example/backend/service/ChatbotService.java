@@ -2,7 +2,6 @@ package com.example.backend.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -109,10 +108,13 @@ public class ChatbotService {
                 return "Événement '" + newEvent.getSummary() + "' ajouté.";
 
             case "cancel_morning":
-                return deleteEventsInRange(userId, LocalTime.of(8, 0), LocalTime.of(12, 0), "le matin");
+                // Conversion de la date chaîne en LocalDate
+                LocalDate dateM = LocalDate.parse(args.get("date").toString()); 
+                return deleteEventsInRange(userId, dateM.atTime(8, 0), dateM.atTime(12, 0), "le matin du " + dateM);
 
             case "cancel_afternoon":
-                return deleteEventsInRange(userId, LocalTime.of(12, 0), LocalTime.of(18, 0), "l'après-midi");
+                LocalDate dateA = LocalDate.parse(args.get("date").toString());
+                return deleteEventsInRange(userId, dateA.atTime(12, 0), dateA.atTime(18, 0), "l'après-midi du " + dateA);
 
             case "move_activity":
                 Long id = Long.valueOf(args.get("id").toString());
@@ -125,16 +127,19 @@ public class ChatbotService {
                 int priorityToCancel = Integer.parseInt(args.get("priority").toString());
                 taskRepository.deleteByUser_IdAndPriority(userId, priorityToCancel);
                 return "Tâches de priorité " + priorityToCancel + " supprimées.";
-
+            
+            case "find_task_by_name":
+                // Gère "Récupérer une tache en fonction de son nom"
+                String nameQuery = args.get("name").toString();
+                return formatTasks(taskRepository.findByUser_IdAndTitleContainingIgnoreCase(userId, nameQuery));
             default:
                 return "Action " + functionName + " exécutée, mais aucun retour spécifique configuré.";
         }
     }
 
-    private String deleteEventsInRange(Long userId, LocalTime startT, LocalTime endT, String label) {
-        LocalDateTime start = LocalDate.now().atTime(startT);
-        LocalDateTime end = LocalDate.now().atTime(endT);
+    private String deleteEventsInRange(Long userId, LocalDateTime start, LocalDateTime end, String label) {
         List<Event> toDelete = eventRepository.findByUser_IdAndStartTimeBetween(userId, start, end);
+        if (toDelete.isEmpty()) return "Rien à annuler pour " + label + ".";
         eventRepository.deleteAll(toDelete);
         return "J'ai annulé " + toDelete.size() + " événements pour " + label + ".";
     }

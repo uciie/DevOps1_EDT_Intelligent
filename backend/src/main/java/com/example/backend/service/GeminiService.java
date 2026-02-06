@@ -120,7 +120,36 @@ public class GeminiService {
                         "description", "Durée estimée en minutes (ex: 60 pour 1h)"
                     )
                 ), 
-                List.of("name", "durationMinutes"))
+                List.of("name", "durationMinutes")),
+            defineTool("list_events_between", 
+                "Liste les événements compris dans une plage horaire donnée.",
+                Map.of(
+                    "start", Map.of("type", "STRING", "description", "Début de la plage (ISO-8601 ex: 2025-01-25T14:00:00)"),
+                    "end", Map.of("type", "STRING", "description", "Fin de la plage (ISO-8601)")
+                ),
+                List.of("start", "end")),
+            
+            defineTool("add_event", 
+                "Ajoute un événement au calendrier.",
+                Map.of(
+                    "summary", Map.of("type", "STRING", "description", "Titre de l'événement"),
+                    "start", Map.of("type", "STRING", "description", "Date de début (ISO-8601)"),
+                    "end", Map.of("type", "STRING", "description", "Date de fin (ISO-8601)")
+                ), 
+                List.of("summary", "start", "end")),
+            
+            defineTool("list_tasks_by_priority", 
+                "Liste les tâches ayant une priorité spécifique.",
+                Map.of("priority", Map.of("type", "INTEGER", "description", "Niveau de priorité (1, 2 ou 3)")), 
+                List.of("priority")),
+
+            defineTool("find_task_by_name", 
+                "Trouve une tâche en cherchant par son nom.",
+                Map.of("name", Map.of("type", "STRING", "description", "Nom ou partie du nom de la tâche")), 
+                List.of("name"))
+            
+
+
         );
         
 
