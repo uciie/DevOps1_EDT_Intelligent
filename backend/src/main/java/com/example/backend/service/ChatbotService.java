@@ -110,12 +110,20 @@ public class ChatbotService {
             case "cancel_morning":
                 // Conversion de la date chaîne en LocalDate
                 LocalDate dateM = LocalDate.parse(args.get("date").toString()); 
-                return deleteEventsInRange(userId, dateM.atTime(8, 0), dateM.atTime(12, 0), "le matin du " + dateM);
+                return deleteEventsInRange(userId, dateM.atTime(8, 0), dateM.atTime(11, 0), "le matin du " + dateM);
+            
+            case "cancel_noon": 
+                LocalDate dateN = LocalDate.parse(args.get("date").toString());
+                return deleteEventsInRange(userId, dateN.atTime(12,0), dateN.atTime(14,0), "le midi du " + dateN);
 
             case "cancel_afternoon":
                 LocalDate dateA = LocalDate.parse(args.get("date").toString());
-                return deleteEventsInRange(userId, dateA.atTime(12, 0), dateA.atTime(18, 0), "l'après-midi du " + dateA);
-
+                return deleteEventsInRange(userId, dateA.atTime(15, 0), dateA.atTime(18, 0), "l'après-midi du " + dateA);
+            
+            case "cancel_evening":
+                LocalDate dateE = LocalDate.parse(args.get("date").toString());
+                return deleteEventsInRange(userId,dateE.atTime(19,0), dateE.atTime(23,0), "le soir du " + dateE);
+                
             case "move_activity":
                 Long id = Long.valueOf(args.get("id").toString());
                 Event event = eventRepository.findById(id).orElseThrow();

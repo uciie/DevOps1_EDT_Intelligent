@@ -3,6 +3,9 @@ package com.example.backend.http;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.example.backend.exception.QuotaExceededException;
+
 import reactor.core.publisher.Mono;
 
 @Service
@@ -27,8 +30,10 @@ public <T> T generateContent(String model, String apiKey, Object body, Class<T> 
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(body)
             .retrieve()
+            .onStatus(status -> status.value() == 429, 
+                        resp -> Mono.error(new QuotaExceededException("La limite de requêtes Gemini a été atteinte. Veuillez réessayer plus tard.")))
             .onStatus(status -> status.isError(), resp -> resp.bodyToMono(String.class)
-                    .flatMap(msg -> Mono.error(new RuntimeException("Gemini API error: " + msg))))
+                        .flatMap(msg -> Mono.error(new RuntimeException("Gemini API error: " + msg))))
             .bodyToMono(responseType)
             .block();
 }

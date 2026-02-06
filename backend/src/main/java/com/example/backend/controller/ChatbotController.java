@@ -1,10 +1,15 @@
 package com.example.backend.controller;
 
-import com.example.backend.service.ChatbotService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.backend.exception.QuotaExceededException;
+import com.example.backend.service.ChatbotService;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -39,6 +44,9 @@ public class ChatbotController {
 
         } catch (NumberFormatException e) {
             return ResponseEntity.badRequest().body("ID utilisateur invalide.");
+        } catch (QuotaExceededException e) {
+            // Renvoie un code 429 avec le message explicite
+            return ResponseEntity.status(429).body("⚠️ Oups ! Je suis surchargé (Quota dépassé). Revenez dans quelques instants.");
         } catch (Exception e) {
             // Log de l'erreur
             System.err.println("Erreur ChatbotController: " + e.getMessage());
