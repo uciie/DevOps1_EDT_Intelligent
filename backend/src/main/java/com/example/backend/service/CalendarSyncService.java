@@ -1,5 +1,7 @@
 package com.example.backend.service;
 
+import com.example.backend.model.Event;
+import com.example.backend.model.ActivityCategory;
 import com.example.backend.model.User;
 import com.example.backend.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -38,4 +40,17 @@ public class CalendarSyncService {
             .filter(e -> e.getGoogleEventId() == null)
             .forEach(googleCalendarService::pushEventToGoogle);
     }
+
+    // Dans CalendarSyncService.java, modifiez la méthode convertToGoogleEvent
+    public com.google.api.services.calendar.model.Event convertToGoogleEvent(Event internalEvent) {
+        var gEvent = new com.google.api.services.calendar.model.Event()
+            .setSummary(internalEvent.getSummary()) 
+            .setDescription("Synchronisé depuis Smart Scheduler");
+
+        // Correction de l'erreur : utilisez ActivityCategory au lieu de EventType
+        if (internalEvent.getCategory() != null && ActivityCategory.FOCUS.equals(internalEvent.getCategory())) {
+            gEvent.setTransparency("opaque"); // "opaque" = Occupé dans Google Calendar
+        }
+        return gEvent;
+}
 }
