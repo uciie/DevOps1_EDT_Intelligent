@@ -2,12 +2,15 @@ package com.example.backend.service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.example.backend.model.ActivityCategory;
 import com.example.backend.model.ChatMessage;
 import com.example.backend.model.Event;
 import com.example.backend.model.Task;
@@ -140,6 +143,9 @@ public class ChatbotService {
                 // Gère "Récupérer une tache en fonction de son nom"
                 String nameQuery = args.get("name").toString();
                 return formatTasks(taskRepository.findByUser_IdAndTitleContainingIgnoreCase(userId, nameQuery));
+            case "add_events_batch":
+                return handleAddEventsBatch(userId, args);
+
             default:
                 return "Action " + functionName + " exécutée, mais aucun retour spécifique configuré.";
         }
@@ -153,20 +159,74 @@ public class ChatbotService {
     }
 
     private LocalDateTime parseDateTime(Object val) {
-        return LocalDateTime.parse(val.toString());
+        if (val == null) return LocalDateTime.now();
+        String dateStr = val.toString();
+        try {
+            // Essai 1 : Format standard ISO (2024-02-06T10:00:00)
+            return LocalDateTime.parse(dateStr);
+        } catch (DateTimeParseException e1) {
+            try {
+                // Essai 2 : Format avec Z (UTC) envoyé parfois par Gemini (2024-02-06T10:00:00Z)
+                return java.time.ZonedDateTime.parse(dateStr).toLocalDateTime();
+            } catch (DateTimeParseException e2) {
+                try {
+                     // Essai 3 : Juste la date (2024-02-06), on met 00:00
+                     return LocalDate.parse(dateStr).atStartOfDay();
+                } catch (Exception e3) {
+                    throw new RuntimeException("Format de date invalide reçu de l'IA : " + dateStr);
+                }
+            }
+        }
     }
 
     private String formatEvents(List<Event> events) {
         if (events.isEmpty()) return "Aucun événement trouvé.";
         return events.stream()
-                .map(e -> e.getSummary() + " (" + e.getStartTime().toLocalTime() + ")")
+                .map(e -> {
+                    String cat = (e.getCategory() != null) ? " [" + e.getCategory() + "]" : "";
+                    return "- " + e.getSummary() + cat + " (" + e.getStartTime().format(DateTimeFormatter.ofPattern("HH:mm")) + ")";
+                })
                 .collect(Collectors.joining("\n"));
     }
 
     private String formatTasks(List<Task> tasks) {
-        if (tasks.isEmpty()) return "Aucune tâche à faire.";
+        if (tasks.isEmpty()) return "Aucune tâche.";
         return tasks.stream()
-                .map(t -> "- " + t.getTitle() + " [Prio: " + t.getPriority() + "]")
+                .map(t -> "- " + t.getTitle() + " (Prio " + t.getPriority() + ")")
                 .collect(Collectors.joining("\n"));
+    }
+    
+    @SuppressWarnings("unchecked")
+    private String handleAddEventsBatch(Long userId, Map<String, Object> args) {
+        User user = userRepository.findById(userId).orElseThrow();
+        List<Map<String, Object>> eventsList = (List<Map<String, Object>>) args.get("events");
+        
+        int count = 0;
+        StringBuilder response = new StringBuilder("J'ai ajouté les événements suivants :\n");
+
+        for (Map<String, Object> eventData : eventsList) {
+            String summary = eventData.get("summary").toString();
+            LocalDateTime start = parseDateTime(eventData.get("start"));
+            LocalDateTime end = parseDateTime(eventData.get("end"));
+            
+            // Gestion de la catégorie (conversion String -> Enum)
+            String catStr = eventData.getOrDefault("category", "OTHER").toString();
+            ActivityCategory category;
+            try {
+                category = ActivityCategory.valueOf(catStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                category = ActivityCategory.AUTRE; // Fallback si l'IA invente une catégorie
+            }
+
+            Event newEvent = new Event(summary, start, end, user, category);
+            eventRepository.save(newEvent);
+            
+            response.append("- ").append(summary)
+                    .append(" (").append(category).append(") le ")
+                    .append(start.toLocalDate()).append("\n");
+            count++;
+        }
+
+        return response.toString();
     }
 }
