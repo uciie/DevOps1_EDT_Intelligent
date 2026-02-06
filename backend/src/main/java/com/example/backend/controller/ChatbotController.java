@@ -46,7 +46,7 @@ public class ChatbotController {
             return ResponseEntity.badRequest().body("ID utilisateur invalide.");
         } catch (QuotaExceededException e) {
             // Renvoie un code 429 avec le message explicite
-            return ResponseEntity.status(429).body("⚠️ Oups ! Je suis surchargé (Quota dépassé). Revenez dans quelques instants.");
+            return ResponseEntity.status(429).body("Oups ! Je suis surchargé (Quota dépassé). Revenez dans quelques instants.");
         } catch (Exception e) {
             // Log de l'erreur
             System.err.println("Erreur ChatbotController: " + e.getMessage());

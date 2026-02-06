@@ -162,6 +162,52 @@ function SchedulePage() {
     loadUserData();
   }, []);
 
+  const refreshData = async (silent = false) => {
+    try {
+      if (!silent) setLoading(true); // On affiche le spinner seulement si ce n'est pas silencieux
+      setPageError(null);
+
+      const user = getCurrentUser();
+      if (!user) return;
+
+      // --- LOGIQUE DE FETCH (Copiez ici le contenu de votre ancien useEffect) ---
+      
+      // 1. Tâches
+      const [rawTasksResponse, rawDelegatedResponse] = await Promise.all([
+        getUserTasks(user.id),
+        getDelegatedTasks(user.id)
+      ]);
+      const myTasks = normalizeData(rawTasksResponse);
+      const delegatedTasks = normalizeData(rawDelegatedResponse);
+      
+      const allTasksMap = new Map();
+      myTasks.forEach(t => allTasksMap.set(t.id, t));
+      delegatedTasks.forEach(t => allTasksMap.set(t.id, t));
+      setTasks(Array.from(allTasksMap.values()));
+
+      // 2. Événements
+      const rawEventsData = await getUserEvents(user.id);
+      const eventsArray = Array.isArray(rawEventsData) ? rawEventsData : [];
+      setEvents(eventsArray.map(evt => formatEventForCalendar(evt)));
+
+      // 3. Équipes (optionnel si besoin de rafraichir aussi)
+      try {
+          const teamsResponse = await getMyTeams(user.id);
+          setTeams(normalizeData(teamsResponse));
+      } catch (e) { console.warn(e); }
+
+    } catch (err) {
+      console.error("Erreur refresh:", err);
+      if (!silent) setPageError("Impossible de charger vos données");
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshData(false); // Chargement initial avec spinner
+  }, []);
+
   // --- GESTION DES ÉQUIPES ---
 
   const handleCreateTeam = async () => {
@@ -579,6 +625,7 @@ function SchedulePage() {
       <div className="chat-assistant-wrapper fixed bottom-6 right-6 z-50">
         <ChatAssistant />
       </div>
+      <ChatAssistant onRefresh={() => refreshData(true)} />
     </div>
   );
 }
