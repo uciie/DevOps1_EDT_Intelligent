@@ -76,6 +76,8 @@ function SchedulePage() {
   const [newTeamName, setNewTeamName] = useState('');
   const [inviteUsername, setInviteUsername] = useState('');
 
+  // État pour indiquer si une synchronisation est en cours (pour désactiver le bouton et éviter les appels concurrents)
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Helper pour afficher une notification
   const showNotification = (message, type = 'success') => {
@@ -200,213 +202,190 @@ function SchedulePage() {
             return t;
         });
         setTeams(updatedTeams);
-        if (selectedTeam && selectedTeam.id === teamId) {
-            setSelectedTeam(updatedTeams.find(t => t.id === teamId));
-        }
-        showNotification("Membre retiré avec succès.", "success");
-    } catch (error){
-        const msg = error.response?.data || "Impossible de retirer le membre.";
-        showNotification(msg, "error");
+        showNotification("Membre retiré avec succès", "success");
+    } catch {
+        showNotification("Erreur suppression membre", "error");
     }
   };
 
   const handleDeleteTeam = async (teamId) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette équipe définitivement ?")) return;
-    try {
-        await deleteTeam(teamId, currentUser.id);
-        const updatedTeams = teams.filter(t => t.id !== teamId);
-        setTeams(updatedTeams);
-        if (selectedTeam && selectedTeam.id === teamId) {
-            setSelectedTeam(null);
-        }
-        showNotification("Équipe supprimée.", "success");
-    } catch (error) {
-        showNotification(error.response?.data?.message || "Erreur suppression équipe", "error");
-    }
-  };
-
-
-  // --- GESTION DES TÂCHES ---
-
-  const handleAddTask = async (taskData) => {
-    try {
-      const newTask = {
-        ...taskData,
-        userId: currentUser.id,
-        completed: false,
-        scheduledTime: null
-      };
-      const createdTask = await createTask(newTask);
-      setTasks([...tasks, createdTask]);
-      showNotification("Tâche ajoutée avec succès !", "success");
-      return createdTask;
-    } catch (err){
-      showNotification("Impossible d'ajouter la tâche", "error");
-      throw err;
-    }
-  };
-
-  const handleEditTask = async (taskId, editData) => {
-    try {
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
-      const taskToUpdate = {
-        ...task,
-        title: editData.title,
-        estimatedDuration: editData.estimatedDuration,
-        priority: editData.priority
-      };
-      const savedTask = await updateTask(taskId, taskToUpdate);
-      if (savedTask) {
-        setTasks(tasks.map(t => t.id === taskId ? savedTask : t));
-        if (task.scheduledTime) {
-          const relatedEvent = events.find(e => e.taskId === taskId);
-          if (relatedEvent) {
-            const startTime = new Date(task.scheduledTime);
-            const endTime = new Date(startTime);
-            endTime.setMinutes(endTime.getMinutes() + editData.estimatedDuration);
-            const updatedEvent = {
-              ...relatedEvent,
-              title: editData.title,
-              endTime: endTime.toISOString(),
-              priority: editData.priority
-            };
-            setEvents(events.map(e => e.id === relatedEvent.id ? updatedEvent : e));
-          }
-        }
-        showNotification("Tâche modifiée !", "success");
+      if (!window.confirm("Voulez-vous vraiment supprimer cette équipe ?")) return;
+      try {
+          await deleteTeam(teamId, currentUser.id);
+          setTeams(teams.filter(t => t.id !== teamId));
+          if (selectedTeam?.id === teamId) setSelectedTeam(null);
+          showNotification("Équipe supprimée avec succès", "success");
+      } catch {
+          showNotification("Erreur suppression équipe", "error");
       }
+  };
+
+  // --- GESTION TÂCHES ---
+
+  const handleAddTask = async (taskInput) => {
+    if (!currentUser) return;
+    try {
+      const newTaskPayload = {
+        title: taskInput.title,
+        description: taskInput.description || '',
+        duration: taskInput.duration || 60,
+        deadline: taskInput.deadline || null,
+        priority: taskInput.priority || 'NORMAL',
+        category: taskInput.category || 'PERSONAL',
+        teamId: selectedTeam ? selectedTeam.id : null,
+        location: taskInput.location || null,
+        useGoogleMaps: getGoogleMapsPreference(),
+      };
+      const created = await createTask(newTaskPayload, currentUser.id);
+      setTasks([...tasks, created]);
+      showNotification("Tâche ajoutée avec succès", "success");
     } catch {
-      showNotification("Impossible de modifier la tâche", "error");
+      showNotification("Erreur lors de l'ajout de la tâche", "error");
+    }
+  };
+
+  const handleEditTask = async (taskId, updatedData) => {
+    const taskToUpdate = tasks.find(t => t.id === taskId);
+    if (!taskToUpdate) return;
+
+    const updatedPayload = {
+      ...taskToUpdate,
+      ...updatedData,
+      useGoogleMaps: getGoogleMapsPreference(),
+    };
+
+    try {
+      await updateTask(taskId, updatedPayload, currentUser.id);
+      setTasks(tasks.map(t => (t.id === taskId ? { ...t, ...updatedData } : t)));
+      showNotification("Tâche modifiée avec succès", "success");
+    } catch {
+      showNotification("Erreur lors de la modification", "error");
     }
   };
 
   const handleToggleTask = async (taskId) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
     try {
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
-      const updatedTask = { ...task, completed: !task.completed };
-      console.log("Mise à jour de la tâche :", updatedTask);
-      await updateTask(taskId, updatedTask, currentUser.id);
-      setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
+      const newStatus = task.status === 'COMPLETED' ? 'TODO' : 'COMPLETED';
+      await updateTask(taskId, { ...task, status: newStatus }, currentUser.id);
+      setTasks(tasks.map(t => (t.id === taskId ? { ...t, status: newStatus } : t)));
+      showNotification("Tâche mise à jour", "success");
     } catch {
-      showNotification("Impossible de mettre à jour la tâche", "error");
+      showNotification("Erreur mise à jour", "error");
     }
   };
 
   const handleDeleteTask = async (taskId) => {
+    if (!window.confirm("Voulez-vous vraiment supprimer cette tâche ?")) return;
     try {
       await deleteTask(taskId, currentUser.id);
       setTasks(tasks.filter(t => t.id !== taskId));
-      setEvents(events.filter(e => e.taskId !== taskId));
-      showNotification("Tâche supprimée", "success");
+      setEvents(events.filter(evt => evt.taskId !== taskId));
+      showNotification("Tâche supprimée avec succès", "success");
     } catch {
-      showNotification("Impossible de supprimer la tâche", "error");
+      showNotification("Erreur suppression", "error");
     }
   };
 
-  const handleDropTaskOnCalendar = async (taskId) => {
+  const handleDropTaskOnCalendar = async (taskId, day, hour) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const startTime = new Date(day);
+    startTime.setHours(hour, 0, 0, 0);
+    const duration = task.duration || 60;
+    const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
+
     try {
-      // 2. Appeler le service backend 'planifyTask' avec NULL pour déclencher la logique First-Fit.
-      const plannedTask = await planifyTask(taskId, null, null); 
+      const planified = await planifyTask(taskId, startTime.toISOString(), currentUser.id);
+      const updatedTask = { ...task, scheduledTime: startTime.toISOString() };
+      setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
 
-      // 3. Mettre à jour les états locaux avec la réponse du backend
-      setTasks(tasks.map(t => t.id === taskId ? plannedTask : t));
-
-      if (!plannedTask.event) {
-          throw new Error("Le service de planification n'a pas retourné l'événement créé.");
+      if (planified && planified.event) {
+        const newEvent = formatEventForCalendar(planified.event);
+        setEvents([...events.filter(e => e.taskId !== taskId), newEvent]);
+        showNotification("Tâche planifiée avec succès", "success");
       }
-      
-      const newEvent = formatEventForCalendar({
-        id: plannedTask.event.id,
-        taskId: plannedTask.id, 
-        title: plannedTask.title,
-        startTime: plannedTask.event.startTime, 
-        endTime: plannedTask.event.endTime,
-        priority: plannedTask.priority,
-        source: 'LOCAL'
-      });
-      
-      setEvents([...events, newEvent]);
-      showNotification("Tâche planifiée automatiquement !", "success");
     } catch {
-      showNotification("Impossible de planifier la tâche automatiquement", "error");
+      showNotification("Erreur lors de la planification", "error");
     }
   };
 
-  // --- GESTION DES ÉVÉNEMENTS ---
+  // --- GESTION ÉVÉNEMENTS MANUELS ---
 
   const handleCellClick = (day, hour) => {
-    setEventToEdit(null); // Mode création
     setSelectedDate(day);
     setSelectedHour(hour);
     setIsEventFormOpen(true);
   };
 
   const handleOpenEditModal = (event) => {
-    setEventToEdit(event); // Mode édition
-    setSelectedDate(null);
-    setIsEventFormOpen(true);
+      setEventToEdit(event);
+      setIsEventFormOpen(true);
   };
 
   const handleSaveEvent = async (eventData) => {
+    // On utilise directement ces valeurs au lieu de reconstruire depuis day/hour
+    
+    console.log("Données reçues de EventForm:", eventData);
+
+    // Validation : s'assurer que startTime et endTime existent
+    if (!eventData.startTime || !eventData.endTime) {
+      showNotification("Dates de début et de fin requises", "error");
+      console.error("startTime ou endTime manquant:", eventData);
+      return;
+    }
+
+    // Ajouter userId au payload
+    const payload = {
+      ...eventData,
+      userId: currentUser.id, 
+    };
+
     try {
-      const useGoogleMaps = getGoogleMapsPreference();
       if (eventToEdit) {
-        const eventId = eventToEdit.id;
-        const updatedEventPayload = { ...eventToEdit, ...eventData };
-        const savedEvent = await updateEvent(eventId, updatedEventPayload, useGoogleMaps);
-        const formattedEvent = formatEventForCalendar(savedEvent);
-        formattedEvent.color = eventData.color || eventToEdit.color;
-        setEvents(events.map(e => e.id === eventId ? formattedEvent : e));
-        showNotification("Événement modifié !", "success");
+        // Modification
+        const updated = await updateEvent(eventToEdit.id, payload);
+        setEvents(events.map(evt => evt.id === updated.id ? formatEventForCalendar(updated) : evt));
+        showNotification("Événement modifié avec succès", "success");
       } else {
-        const newEventPayload = { ...eventData, userId: currentUser.id };
-        const createdEvent = await createEvent(newEventPayload, useGoogleMaps);
-        const formattedEvent = formatEventForCalendar(createdEvent);
-        formattedEvent.color = eventData.color;
-        setEvents(prev => [...prev, formattedEvent]);
-        showNotification("Événement créé avec succès !", "success");
+        // Création - CORRECTION : On n'envoie plus userId comme 2ème paramètre
+        const created = await createEvent(payload);
+        setEvents([...events, formatEventForCalendar(created)]);
+        showNotification("Événement créé avec succès", "success");
       }
       setIsEventFormOpen(false);
       setEventToEdit(null);
-    } catch (error){
-      const msg = error.response?.data || "Impossible de sauvegarder l'événement";
-      showNotification(msg, "error");
+    } catch (error) {
+      showNotification(eventToEdit ? "Erreur modification" : "Erreur création", "error");
     }
   };
 
   const handleDeleteEvent = async (eventId) => {
+    if (!window.confirm("Voulez-vous vraiment supprimer cet événement ?")) return;
     try {
-      const event = events.find(e => e.id === eventId);
-      if (!event) return;
       await deleteEvent(eventId);
-      if (event.taskId) {
-        const task = tasks.find(t => t.id === event.taskId);
-        if (task) {
-          const updatedTask = { ...task, scheduledTime: null };
-          await updateTask(event.taskId, updatedTask, currentUser.id);
-          setTasks(tasks.map(t => t.id === event.taskId ? updatedTask : t));
-        }
-      }
       setEvents(events.filter(e => e.id !== eventId));
       showNotification("Événement supprimé", "success");
     } catch {
-      showNotification("Impossible de supprimer l'événement", "error");
+      showNotification("Erreur suppression", "error");
     }
   };
 
   const handleMoveEvent = async (eventId, newDay, newHour) => {
-    try {
-      const event = events.find(e => e.id === eventId);
-      if (!event || !event.taskId) return;
-      const task = tasks.find(t => t.id === event.taskId);
-      if (!task) return;
+    const event = events.find(e => e.id === eventId);
+    if (!event || !event.taskId) return;
 
+    const task = tasks.find(t => t.id === event.taskId);
+    if (!task) return;
+
+    try {
       const startTime = new Date(newDay);
       startTime.setHours(newHour, 0, 0, 0);
-      const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + (task.estimatedDuration || 60));
+      const duration = task.duration || 60;
+      const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
 
       const updatedEvent = {
         ...event,
@@ -449,24 +428,52 @@ function SchedulePage() {
     }
   };
 
-  // --- GESTION SYNCHRO GOOGLE CALENDAR ---
+  // --- GESTION SYNCHRO GOOGLE CALENDAR (CORRIGÉE) ---
   const handleSyncGoogle = async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      showNotification("Utilisateur non connecté", "error");
+      return;
+    }
+
+    // Empêcher les appels concurrents
+    if (isSyncing) {
+      return;
+    }
+
     try {
-      setNotification({ message: "Synchronisation avec Google en cours...", type: "info" });
-      setLoading(true); // Bloque l'UI pendant la synchro
+      setIsSyncing(true);
+      showNotification("Synchronisation avec Google en cours...", "info");
       
-      await syncGoogleCalendar(currentUser.id);
+      // Appel de l'API de synchronisation
+      const result = await syncGoogleCalendar(currentUser.id);
       
-      // RECHARGEMENT IMPORTANT : Récupérer les nouveaux événements importés
-      await loadDataUserData(currentUser); 
-      
-      setNotification({ message: "Calendrier synchronisé avec succès !", type: "success" });
+      // Vérification du résultat
+      if (result && result.success) {
+        // RECHARGEMENT IMPORTANT : Récupérer les nouveaux événements importés
+        await loadUserData(currentUser);
+        
+        showNotification(
+          result.message || "Calendrier synchronisé avec succès !", 
+          "success"
+        );
+      } else {
+        // Erreur retournée par l'API
+        showNotification(
+          result?.message || "Échec de la synchronisation.", 
+          "error"
+        );
+      }
     } catch (error) {
-      console.error(error);
-      setNotification({ message: "Échec de la synchronisation.", type: "error" });
+      console.error("[SYNC] Erreur de synchronisation:", error);
+      
+      // Gestion des erreurs spécifiques
+      if (error.message) {
+        showNotification(error.message, "error");
+      } else {
+        showNotification("Échec de la synchronisation. Vérifiez votre connexion Google.", "error");
+      }
     } finally {
-        setLoading(false);
+      setIsSyncing(false);
     }
   };
 
@@ -501,10 +508,16 @@ function SchedulePage() {
             </p>
           </div>
           <div className="action-buttons">
-            <button className="btn-reshuffle" onClick={handleReshuffle}>⚡ Réorganiser</button>
-            {/* Bouton Synchro corrigé */}
-            <button className="btn-sync" onClick={handleSyncGoogle} disabled={loading}>
-                {loading ? '...' : '🔄 Synchro Google'}
+            <button className="btn-reshuffle" onClick={handleReshuffle} disabled={loading}>
+              ⚡ Réorganiser
+            </button>
+            {/* Bouton Synchro corrigé avec état de chargement */}
+            <button 
+              className="btn-sync" 
+              onClick={handleSyncGoogle} 
+              disabled={isSyncing}
+            >
+              {isSyncing ? '🔄 Synchronisation...' : '🔄 Synchro Google'}
             </button>
           </div>
         </div>
