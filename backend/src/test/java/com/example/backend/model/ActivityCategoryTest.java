@@ -10,7 +10,7 @@ class ActivityCategoryTest {
         // Vérifier que tous les valeurs de l'enum sont présentes
         ActivityCategory[] categories = ActivityCategory.values();
         
-        assertEquals(7, categories.length);
+        assertEquals(8, categories.length);
         assertTrue(java.util.Arrays.asList(categories).contains(ActivityCategory.TRAVAIL));
         assertTrue(java.util.Arrays.asList(categories).contains(ActivityCategory.ETUDE));
         assertTrue(java.util.Arrays.asList(categories).contains(ActivityCategory.SPORT));
@@ -18,6 +18,7 @@ class ActivityCategoryTest {
         assertTrue(java.util.Arrays.asList(categories).contains(ActivityCategory.MENAGER));
         assertTrue(java.util.Arrays.asList(categories).contains(ActivityCategory.RENCONTRE));
         assertTrue(java.util.Arrays.asList(categories).contains(ActivityCategory.AUTRE));
+        assertTrue(java.util.Arrays.asList(categories).contains(ActivityCategory.FOCUS));
     }
 
     @Test

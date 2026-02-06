@@ -21,6 +21,7 @@ import com.example.backend.model.Event;
 import com.example.backend.model.Location;
 import com.example.backend.service.EventService;
 import com.example.backend.service.impl.FocusService;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.util.Map;
 
@@ -97,7 +98,12 @@ public class EventController {
     @PostMapping
     public ResponseEntity<Object> createEvent(@RequestBody EventRequest eventRequest) {
         try {
-            // 2. Validation de la surcharge (Etudiant 1)
+            // Validation : userId est obligatoire
+            if (eventRequest.getUserId() == null) {
+                return ResponseEntity.badRequest().body("userId est obligatoire");
+            }
+
+            // Validation de la surcharge (Etudiant 1)
             focusService.validateDayNotOverloaded(eventRequest.getUserId(), eventRequest.getStartTime());
 
             Event createdEvent = eventService.createEvent(eventRequest);
@@ -107,6 +113,11 @@ public class EventController {
             return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            // Log l'erreur pour debugging
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur serveur : " + e.getMessage());
         }
     }
     
@@ -118,11 +129,19 @@ public class EventController {
      * @return l'événement mis à jour
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Event> updateEvent(
+    public ResponseEntity<Object> updateEvent(
             @PathVariable Long id,
             @RequestBody EventRequest eventRequest) {
-        Event updatedEvent = eventService.updateEvent(id, eventRequest);
-        return ResponseEntity.ok(updatedEvent);
+        try {
+            Event updatedEvent = eventService.updateEvent(id, eventRequest);
+            return ResponseEntity.ok(updatedEvent);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erreur serveur : " + e.getMessage());
+        }
     }
 
     /**
@@ -180,24 +199,44 @@ public class EventController {
 
     /**
      * DTO pour la création/modification d'événements.
+     * 
+     * Correction : Ajout de @JsonFormat pour gérer la désérialisation des dates
+     * sans timezone (format "2026-02-07T09:00:00")
      */
     public static class EventRequest {
         private String summary;
+        private String description; // Support de la description
+        
+        // Annotation pour accepter le format ISO local sans 'Z'
+        // Spring Boot peut parser "2026-02-07T09:00:00" nativement, mais on est explicite
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime startTime;
+        
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime endTime;
+        
         private Long userId;
         private LocationRequest location;
         
         private String category;
-        // NOUVEAU CHAMP pour le mode de transport
+        private String subCategory; // Support des sous-catégories
+        
+        // Mode de transport pour la vérification de faisabilité
         private String transportMode;
         
-        // MODIFICATION : Ajout du champ pour la préférence utilisateur
+        // Préférence utilisateur pour Google Maps
         private Boolean useGoogleMaps;
+        
+        // (On les accepte pour éviter les erreurs de parsing, mais on ne les utilise pas)
+        private String color; // Géré côté frontend uniquement
+        private String source; // Source de l'événement (LOCAL, GOOGLE_CALENDAR, etc.)
 
         // Getters et Setters
         public String getSummary() { return summary; }
         public void setSummary(String summary) { this.summary = summary; }
+
+        public String getDescription() { return description; }
+        public void setDescription(String description) { this.description = description; }
 
         public LocalDateTime getStartTime() { return startTime; }
         public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
@@ -214,10 +253,20 @@ public class EventController {
         public String getTransportMode() { return transportMode; }
         public void setTransportMode(String transportMode) { this.transportMode = transportMode; }
 
-        public String getCategory() {return category;}
-        public void setCategory(String category){this.category = category;}
+        public String getCategory() { return category; }
+        public void setCategory(String category) { this.category = category; }
+        
+        public String getSubCategory() { return subCategory; }
+        public void setSubCategory(String subCategory) { this.subCategory = subCategory; }
+
         public Boolean getUseGoogleMaps() { return useGoogleMaps; }
         public void setUseGoogleMaps(Boolean useGoogleMaps) { this.useGoogleMaps = useGoogleMaps; }
+        
+        public String getColor() { return color; }
+        public void setColor(String color) { this.color = color; }
+        
+        public String getSource() { return source; }
+        public void setSource(String source) { this.source = source; }
     }
 
     /**
