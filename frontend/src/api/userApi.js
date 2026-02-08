@@ -49,8 +49,9 @@ export function getGoogleAuthUrl() {
     redirect_uri: "http://localhost:5173/google-callback",
     response_type: "code",
     scope: [
-      "https://www.googleapis.com/auth/calendar.events.readonly",
+      "https://www.googleapis.com/auth/userinfo.profile",
       "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/calendar"
     ].join(" "),
     access_type: "offline", // Requis pour obtenir le googleRefreshToken
     prompt: "consent",

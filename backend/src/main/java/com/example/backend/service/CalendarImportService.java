@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
 import com.example.backend.model.Event;
+import com.example.backend.model.Location;
 import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.service.parser.ICalendarParser;
@@ -27,6 +28,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CalendarImportService {
@@ -113,6 +115,15 @@ public class CalendarImportService {
 
             if (events.getItems() == null || events.getItems().isEmpty()) {
                 log.info("[PULL] Aucun événement Google pour l'utilisateur {}.", user.getId());
+                
+                // ── GESTION DES SUPPRESSIONS même si la liste est vide ──────────────────────
+                // Si Google ne retourne aucun événement, tous les événements locaux de source GOOGLE
+                // doivent être considérés comme supprimés
+                int deletedCount = deleteOrphanedGoogleEvents(user, events.getItems());
+                if (deletedCount > 0) {
+                    log.info("[PULL] {} événement(s) supprimé(s) car absents de Google Calendar", deletedCount);
+                }
+                
                 return 0;
             }
 
@@ -124,6 +135,9 @@ public class CalendarImportService {
                 String        summary  = gEvent.getSummary() != null ? gEvent.getSummary() : "Sans titre";
                 LocalDateTime start    = toLocalDateTime(gEvent.getStart(),  zone);
                 LocalDateTime end      = toLocalDateTime(gEvent.getEnd(),    zone);
+
+                // Récupération de la localisation
+                String googleLocation = gEvent.getLocation();
 
                 Optional<Event> existing = eventRepository.findByGoogleEventId(googleId);
 
@@ -144,6 +158,11 @@ public class CalendarImportService {
                         hasChanged = true;
                     }
 
+                    // Mise à jour de la localisation
+                    if (updateLocationIfNeeded(toUpdate, googleLocation)) {
+                        hasChanged = true;
+                    }
+
                     if (hasChanged) {
                         eventRepository.save(toUpdate);
                         updatedCount++;
@@ -152,6 +171,16 @@ public class CalendarImportService {
                 } else {
                     Event newEvent = new Event(summary, start, end, user);
                     newEvent.setGoogleEventId(googleId);
+                    newEvent.setSource(Event.EventSource.GOOGLE);
+                    
+                    // Mise à jour de la localisation lors de la création
+                    if (googleLocation != null && !googleLocation.trim().isEmpty()) {
+                        Location location = new Location();
+                        location.setAddress(googleLocation);
+                        newEvent.setLocation(location);
+                        log.debug("[PULL] Localisation définie : {}", googleLocation);
+                    }
+                    
                     eventRepository.save(newEvent);
                     importedCount++;
                     log.debug("[PULL] Nouvel événement importé (googleId={}, titre={}).", googleId, summary);
@@ -160,6 +189,15 @@ public class CalendarImportService {
 
             log.info("[PULL] Synchronisation terminée pour l'utilisateur {} : {} nouveaux, {} mis à jour", 
                     user.getId(), importedCount, updatedCount);
+
+            // ── GESTION DES SUPPRESSIONS (Google → Local) ───────────────────────────────
+            // Si un événement a été supprimé sur Google, il ne figure plus dans la liste retournée.
+            // On doit donc identifier et supprimer les événements locaux orphelins.
+            int deletedCount = deleteOrphanedGoogleEvents(user, events.getItems());
+            
+            if (deletedCount > 0) {
+                log.info("[PULL] {} événement(s) supprimé(s) car absents de Google Calendar", deletedCount);
+            }
 
             return importedCount + updatedCount;
 
@@ -178,6 +216,87 @@ public class CalendarImportService {
                       user.getId(), e.getMessage(), e);
             throw new RuntimeException("Erreur inattendue lors de la synchronisation", e);
         }
+    }
+
+    /**
+     * Supprime les événements locaux qui proviennent de Google mais qui n'existent plus sur Google Calendar.
+     * 
+     * Cette méthode compare les googleEventId présents en base locale avec ceux retournés par l'API Google.
+     * Les événements locaux orphelins (source = GOOGLE mais absents de la liste Google) sont supprimés.
+     * 
+     * @param user L'utilisateur concerné
+     * @param googleEvents La liste des événements actuellement présents sur Google Calendar
+     * @return Le nombre d'événements supprimés
+     */
+    @Transactional
+    private int deleteOrphanedGoogleEvents(User user, List<com.google.api.services.calendar.model.Event> googleEvents) {
+        // 1. Extraire les googleEventId actuellement sur Google
+        List<String> currentGoogleIds = googleEvents != null ? googleEvents.stream()
+                .map(com.google.api.services.calendar.model.Event::getId)
+                .filter(id -> id != null && !id.trim().isEmpty())
+                .collect(Collectors.toList()) : List.of();
+
+        // 2. Récupérer tous les événements locaux de l'utilisateur ayant une source GOOGLE
+        List<Event> localGoogleEvents = eventRepository.findByUser_Id(user.getId()).stream()
+                .filter(e -> e.getSource() == Event.EventSource.GOOGLE)
+                .filter(e -> e.getGoogleEventId() != null && !e.getGoogleEventId().trim().isEmpty())
+                .collect(Collectors.toList());
+
+        // 3. Identifier les événements locaux qui ne sont plus sur Google
+        List<Event> orphanedEvents = localGoogleEvents.stream()
+                .filter(localEvent -> !currentGoogleIds.contains(localEvent.getGoogleEventId()))
+                .collect(Collectors.toList());
+
+        // 4. Supprimer les événements orphelins
+        int deletedCount = 0;
+        for (Event orphan : orphanedEvents) {
+            try {
+                log.debug("[PULL] Suppression de l'événement orphelin '{}' (googleId={})", 
+                         orphan.getSummary(), orphan.getGoogleEventId());
+                eventRepository.delete(orphan);
+                deletedCount++;
+            } catch (Exception e) {
+                log.error("[PULL] Erreur lors de la suppression de l'événement orphelin {} : {}", 
+                         orphan.getId(), e.getMessage());
+            }
+        }
+
+        return deletedCount;
+    }
+
+    /**
+     * Met à jour la localisation d'un événement si nécessaire.
+     * 
+     * @param event L'événement à mettre à jour
+     * @param googleLocation La localisation provenant de Google Calendar
+     * @return true si la localisation a été modifiée, false sinon
+     */
+    private boolean updateLocationIfNeeded(Event event, String googleLocation) {
+        // Cas 1: Google a une localisation mais pas l'événement local
+        if (googleLocation != null && !googleLocation.trim().isEmpty()) {
+            if (event.getLocation() == null) {
+                Location location = new Location();
+                location.setAddress(googleLocation);
+                event.setLocation(location);
+                log.debug("[PULL] Localisation ajoutée : {}", googleLocation);
+                return true;
+            }
+            // Cas 2: Les deux ont une localisation mais elle a changé
+            else if (!googleLocation.equals(event.getLocation().getAddress())) {
+                event.getLocation().setAddress(googleLocation);
+                log.debug("[PULL] Localisation mise à jour : {} → {}", 
+                         event.getLocation().getAddress(), googleLocation);
+                return true;
+            }
+        }
+        // Cas 3: Google n'a plus de localisation mais l'événement local en a une
+        else if (event.getLocation() != null) {
+            event.setLocation(null);
+            log.debug("[PULL] Localisation supprimée");
+            return true;
+        }
+        
+        return false;
     }
 
     /**

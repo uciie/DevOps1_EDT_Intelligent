@@ -79,6 +79,7 @@ public class Event {
     }
 
     public enum SyncStatus {
+        FAILED,
         SYNCED,
         PENDING,
         CONFLICT

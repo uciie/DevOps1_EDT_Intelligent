@@ -2,7 +2,7 @@ package com.example.backend.controller;
 
 import com.example.backend.model.User;
 import com.example.backend.repository.UserRepository;
-import com.example.backend.service.CalendarImportService;
+import com.example.backend.service.CalendarSyncService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,18 +23,22 @@ public class CalendarSyncController {
     private static final Logger log = LoggerFactory.getLogger(CalendarSyncController.class);
 
     private final UserRepository userRepository;
-    private final CalendarImportService calendarImportService;
+    private final CalendarSyncService calendarSyncService;
 
     public CalendarSyncController(UserRepository userRepository,
-                                  CalendarImportService calendarImportService) {
+                                  CalendarSyncService calendarSyncService) {
         this.userRepository = userRepository;
-        this.calendarImportService = calendarImportService;
+        this.calendarSyncService = calendarSyncService;
     }
 
     /**
-     * Force une synchronisation immédiate depuis Google Calendar.
+     * Force une synchronisation immédiate bidirectionnelle (Google ↔ Local).
      * 
      * Endpoint: POST /api/calendar/sync/pull/{userId}
+     * 
+     * Cette méthode effectue :
+     * 1. Import des événements Google → Local
+     * 2. Export des événements Local → Google
      * 
      * @param userId L'identifiant de l'utilisateur
      * @return Réponse JSON avec le statut de la synchronisation
@@ -59,15 +63,16 @@ public class CalendarSyncController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
-            // Exécution de la synchronisation
-            int count = calendarImportService.pullEventsFromGoogle(user);
+            // Exécution de la synchronisation BIDIRECTIONNELLE complète
+            // Au lieu de simplement appeler pullEventsFromGoogle(), on appelle syncUser()
+            // qui gère à la fois l'import (Google → Local) et l'export (Local → Google)
+            calendarSyncService.syncUser(userId);
 
-            log.info("[SYNC-MANUAL] Synchronisation réussie pour l'utilisateur {}", userId);
+            log.info("[SYNC-MANUAL] Synchronisation bidirectionnelle réussie pour l'utilisateur {}", userId);
             response.put("success", true);
-            response.put("message", "Synchronisation Google Calendar effectuée avec succès");
+            response.put("message", "Synchronisation Google Calendar effectuée avec succès (bidirectionnelle)");
             response.put("userId", userId);
             response.put("timestamp", System.currentTimeMillis());
-            response.put("eventsImported", count);
             return ResponseEntity.ok(response);
 
         } catch (RuntimeException e) {

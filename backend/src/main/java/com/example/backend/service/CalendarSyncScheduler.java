@@ -15,51 +15,52 @@ public class CalendarSyncScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(CalendarSyncScheduler.class);
 
-    private final UserRepository         userRepository;
-    private final GoogleCalendarService   googleCalendarService;
-    private final CalendarImportService   calendarImportService;
+    private final UserRepository userRepository;
+    private final CalendarSyncService calendarSyncService;
 
     public CalendarSyncScheduler(UserRepository userRepository,
-                                  GoogleCalendarService googleCalendarService,
-                                  CalendarImportService calendarImportService) {
-        this.userRepository          = userRepository;
-        this.googleCalendarService   = googleCalendarService;
-        this.calendarImportService   = calendarImportService;
+                                  CalendarSyncService calendarSyncService) {
+        this.userRepository = userRepository;
+        this.calendarSyncService = calendarSyncService;
     }
 
     /**
      * Job planifié toutes les 15 min (configurable via app.sync.rate).
      * Périmètre : uniquement les utilisateurs avec un token OAuth2 valide.
+     * 
+     * Effectue une synchronisation bidirectionnelle :
+     * - Import des événements Google → Local
+     * - Export des événements Local → Google
      */
     @Scheduled(fixedDelayString = "${app.sync.rate:900000}", initialDelay = 10000)
     public void syncAllUsers() {
-        log.info("[SYNC] Démarrage du cycle de synchronisation.");
+        log.info("[SYNC-SCHEDULER] Démarrage du cycle de synchronisation bidirectionnelle.");
 
         List<User> eligibleUsers = userRepository.findAll().stream()
                 .filter(u -> u.getGoogleAccessToken() != null
                           && !u.getGoogleAccessToken().isBlank())
                 .collect(Collectors.toList());
 
-        log.info("[SYNC] {} utilisateur(s) éligible(s).", eligibleUsers.size());
+        log.info("[SYNC-SCHEDULER] {} utilisateur(s) éligible(s).", eligibleUsers.size());
+
+        int totalSuccess = 0;
+        int totalFailures = 0;
 
         for (User user : eligibleUsers) {
             try {
-                // 1. Import des événements Google vers le backend
-                calendarImportService.pullEventsFromGoogle(user);
-
-                // 2. Export des événements locaux vers Google
-                // On ne pousse les événements qui n'ont PAS encore de googleEventId
-                user.getEvents().stream()
-        .filter(e -> e.getGoogleEventId() == null)
-        .forEach(googleCalendarService::pushEventToGoogle);
-
+                // Synchronisation bidirectionnelle complète
+                calendarSyncService.syncUser(user.getId());
+                totalSuccess++;
+                
             } catch (Exception e) {
                 // Isolation : une erreur sur un utilisateur ne bloque pas les autres
-                log.error("[SYNC] Erreur pour l'utilisateur {} : {}",
+                log.error("[SYNC-SCHEDULER] Erreur pour l'utilisateur {} : {}",
                           user.getId(), e.getMessage(), e);
+                totalFailures++;
             }
         }
 
-        log.info("[SYNC] Cycle de synchronisation terminé.");
+        log.info("[SYNC-SCHEDULER] Cycle de synchronisation terminé. " +
+                 "Succès : {}, Échecs : {}", totalSuccess, totalFailures);
     }
 }
