@@ -8,9 +8,12 @@ import { getUserId} from '../api/userApi';
 import { getUserTasks, getDelegatedTasks, createTask, updateTask, deleteTask, planifyTask, reshuffleSchedule } from '../api/taskApi';
 import { createEvent, getUserEvents, updateEvent, deleteEvent } from '../api/eventApi';
 import { getMyTeams, createTeam, inviteUserToTeam, removeMemberFromTeam, deleteTeam } from '../api/teamApi';
+import ConflictModal from '../components/ConflictModal';
+import GoogleSyncStatus from '../components/GoogleSyncStatus';
 import { syncGoogleCalendar } from '../api/syncApi';
 import '../styles/pages/SchedulePage.css';
 import ChatAssistant from '../components/ChatAssistant';
+import { useNavigate } from 'react-router-dom';
 
 // Helper pour normaliser les données (gérer content, data ou array direct)
 const normalizeData = (response) => {
@@ -78,6 +81,11 @@ function SchedulePage() {
 
   // État pour indiquer si une synchronisation est en cours (pour désactiver le bouton et éviter les appels concurrents)
   const [isSyncing, setIsSyncing] = useState(false);
+
+  // États pour les conflits de synchronisation (affichage de la modale)
+  const [conflicts, setConflicts] = useState([]);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const navigate = useNavigate();
 
   // Helper pour afficher une notification
   const showNotification = (message, type = 'success') => {
@@ -363,14 +371,64 @@ function SchedulePage() {
     }
   };
 
-  const handleDeleteEvent = async (eventId) => {
-    if (!window.confirm("Voulez-vous vraiment supprimer cet événement ?")) return;
+  /**
+   * Met à jour un événement existant
+   * Utilisé par ConflictModal pour sauvegarder les modifications
+   */
+  const handleUpdateEvent = async (eventId, eventData) => {
     try {
+      // Appel API
+      const updated = await updateEvent(eventId, eventData);
+      
+      // Mise à jour de la liste locale des événements
+      setEvents(prevEvents => 
+        prevEvents.map(evt => 
+          evt.id === eventId ? formatEventForCalendar(updated) : evt
+        )
+      );
+      
+      // Notification de succès
+      showNotification("Événement modifié avec succès", "success");
+      
+      return updated;
+    } catch (error) {
+      console.error('[UPDATE] Erreur mise à jour événement:', error);
+      showNotification("Erreur lors de la modification", "error");
+      throw error;
+    }
+  };
+
+  // Suppression d'un événement et de ses conflits associés
+  const handleDeleteEvent = async (eventId) => {
+    try {
+      // Appel API
       await deleteEvent(eventId);
-      setEvents(events.filter(e => e.id !== eventId));
-      showNotification("Événement supprimé", "success");
-    } catch {
-      showNotification("Erreur suppression", "error");
+      
+      // Retrait de la liste locale
+      setEvents(prevEvents => prevEvents.filter(e => e.id !== eventId));
+      
+      // Retrait des conflits associés
+      setConflicts(prevConflicts => 
+        prevConflicts.filter(c => 
+          c.eventId !== eventId && c.conflictingWithId !== eventId
+        )
+      );
+      
+      // Si plus de conflits, fermer la modal
+      const remainingConflicts = conflicts.filter(c => 
+        c.eventId !== eventId && c.conflictingWithId !== eventId
+      );
+      
+      if (remainingConflicts.length === 0) {
+        setShowConflictModal(false);
+        showNotification("Tous les conflits ont été résolus", "success");
+      } else {
+        showNotification("Événement supprimé", "success");
+      }
+    } catch (error) {
+      console.error('[DELETE] Erreur suppression événement:', error);
+      showNotification("Erreur lors de la suppression", "error");
+      throw error;
     }
   };
 
@@ -447,7 +505,7 @@ function SchedulePage() {
       // Appel de l'API de synchronisation
       const result = await syncGoogleCalendar(currentUser.id);
       
-      // Vérification du résultat
+      // CAS 1 : Succès
       if (result && result.success) {
         // RECHARGEMENT IMPORTANT : Récupérer les nouveaux événements importés
         await loadUserData(currentUser);
@@ -456,25 +514,77 @@ function SchedulePage() {
           result.message || "Calendrier synchronisé avec succès !", 
           "success"
         );
-      } else {
-        // Erreur retournée par l'API
+        // Fermer la modal si elle était ouverte
+        if (showConflictModal) {
+          setShowConflictModal(false);
+          setConflicts([]);
+        }
+      }
+      // CAS 2 : Conflits détectés
+      else if (result && result.hasConflicts) {
+        setConflicts(result.conflicts || []);
+        setShowConflictModal(true);
         showNotification(
-          result?.message || "Échec de la synchronisation.", 
+          `${result.conflictCount} conflit(s) détecté(s). Veuillez les résoudre.`,
+          "error"
+        );
+      }
+      // CAS 3 : Erreur nécessitant une reconnexion
+      else if (result && result.needsReauth) {
+        showNotification(
+          result.message || "Reconnexion à Google nécessaire",
+          "error"
+        );
+        // Proposer de rediriger vers la page de configuration
+        setTimeout(() => {
+          if (window.confirm("Votre connexion Google a expiré. Voulez-vous vous reconnecter maintenant ?")) {
+            navigate('/setup');
+          }
+        }, 1000);
+      }
+      // CAS 4 : Erreur retryable
+      else if (result && result.retryable) {
+        showNotification(
+          result.message || "Erreur temporaire. Réessayez plus tard.",
+          "error"
+        );
+        // Optionnel : proposer de réessayer automatiquement
+        setTimeout(() => {
+          if (window.confirm("Voulez-vous réessayer la synchronisation maintenant ?")) {
+            handleSyncGoogle();
+          }
+        }, 2000);
+      }
+      // CAS 5 : Autre erreur
+      else {
+        showNotification(
+          result?.message || "Échec de la synchronisation.",
           "error"
         );
       }
     } catch (error) {
       console.error("[SYNC] Erreur de synchronisation:", error);
-      
-      // Gestion des erreurs spécifiques
-      if (error.message) {
-        showNotification(error.message, "error");
-      } else {
-        showNotification("Échec de la synchronisation. Vérifiez votre connexion Google.", "error");
-      }
+      showNotification(
+        error.message || "Erreur inattendue lors de la synchronisation",
+        "error"
+      );
     } finally {
       setIsSyncing(false);
     }
+  };
+  
+  // Fonction pour fermer la modal de conflits
+  const handleCloseConflictModal = () => {
+    setShowConflictModal(false);
+    // Ne pas vider les conflits immédiatement pour permettre l'animation de sortie
+    setTimeout(() => {
+      setConflicts([]);
+    }, 300);
+  };
+
+  // Fonction pour naviguer vers la configuration
+  const handleNavigateToSetup = () => {
+    navigate('/setup');
   };
 
   if (loading) {
@@ -507,18 +617,27 @@ function SchedulePage() {
                 {selectedTeam ? `Espace de travail : ${selectedTeam.name}` : "Votre espace personnel"}
             </p>
           </div>
-          <div className="action-buttons">
-            <button className="btn-reshuffle" onClick={handleReshuffle} disabled={loading}>
-              ⚡ Réorganiser
-            </button>
-            {/* Bouton Synchro corrigé avec état de chargement */}
-            <button 
-              className="btn-sync" 
-              onClick={handleSyncGoogle} 
-              disabled={isSyncing}
-            >
-              {isSyncing ? '🔄 Synchronisation...' : '🔄 Synchro Google'}
-            </button>
+          <div className="welcome-actions">
+                {/* Indicateur de statut Google */}
+                <GoogleSyncStatus 
+                  userId={currentUser.id} 
+                  onNavigateToSetup={handleNavigateToSetup}
+                />
+                
+            <div className="action-buttons">
+              <button className="btn-reshuffle" onClick={handleReshuffle} disabled={loading}>
+                ⚡ Réorganiser
+              </button>
+
+              {/* Bouton Synchro */}
+              <button 
+                className="btn-sync" 
+                onClick={handleSyncGoogle} 
+                disabled={isSyncing}
+              >
+                {isSyncing ? '🔄 Synchronisation...' : '🔄 Synchro Google'}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -614,6 +733,17 @@ function SchedulePage() {
       <div className="chat-assistant-wrapper fixed bottom-6 right-6 z-50">
         <ChatAssistant />
       </div>
+
+      {/* Modal de gestion des conflits */}
+      {showConflictModal && (
+        <ConflictModal
+          conflicts={conflicts}
+          onClose={handleCloseConflictModal}
+          onSync={handleSyncGoogle}
+          onUpdateEvent={handleUpdateEvent}
+          onDeleteEvent={handleDeleteEvent}
+        />
+      )}
     </div>
   );
 }
