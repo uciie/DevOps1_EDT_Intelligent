@@ -133,6 +133,7 @@ public class EventServiceTest {
     void testDeleteEvent() {
         // GIVEN
         when(eventRepository.existsById(1L)).thenReturn(true);
+        when(eventRepository.findById(1L)).thenReturn(Optional.of(event));
 
         // WHEN
         eventService.deleteEvent(1L);
