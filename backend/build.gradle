@@ -60,6 +60,10 @@ dependencies {
     
     // Pour la gestion JSON requise par les clients Google
     implementation 'com.google.http-client:google-http-client-jackson2:1.42.3'
+
+    // Configuration Spring Retry 
+    implementation 'org.springframework.retry:spring-retry:1.3.4'
+    implementation 'org.springframework:spring-aspects:6.0.13'
 }
 
 tasks.named('test') {

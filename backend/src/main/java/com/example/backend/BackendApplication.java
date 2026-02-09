@@ -3,6 +3,7 @@ package com.example.backend;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.retry.annotation.EnableRetry;
 
 /**
  * Classe principale de l'application backend.
@@ -10,6 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  */
 @SpringBootApplication(scanBasePackages = "com.example")
 @EnableScheduling
+@EnableRetry
 public class BackendApplication {
 
     /**

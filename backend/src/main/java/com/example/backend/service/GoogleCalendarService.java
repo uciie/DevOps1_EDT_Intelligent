@@ -1,5 +1,6 @@
 package com.example.backend.service;
 
+import com.example.backend.exception.GoogleApiException;
 import com.example.backend.model.Event;
 import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
@@ -115,30 +116,60 @@ public class GoogleCalendarService {
                 return; // success — exit retry loop
 
             } catch (IOException e) {
-                // Détection spécifique du manque de permissions
-                if (e.getMessage() != null && e.getMessage().contains("insufficientPermissions")) {
-                    log.error("[PUSH] Permissions Google insuffisantes pour l'utilisateur {}. " +
-                            "Action requise : Re-connexion du compte Google avec les droits d'écriture.", user.getId());
-                    // On marque l'événement pour ne plus retenter inutilement
-                    event.setSyncStatus(Event.SyncStatus.FAILED);
-                    eventRepository.save(event);
-                    return; 
+                // Détection spécifique des erreurs réseau/API
+                String errorMsg = e.getMessage() != null ? e.getMessage() : "Erreur réseau inconnue";
+                
+                if (errorMsg.contains("insufficientPermissions")) {
+                    log.error("[PUSH] Permissions Google insuffisantes pour l'utilisateur {}", user.getId());
+                    throw new GoogleApiException(
+                        "Permissions insuffisantes pour accéder à Google Calendar",
+                        e,
+                        "INSUFFICIENT_PERMISSIONS",
+                        false // Non retryable
+                    );
+                } else if (errorMsg.contains("401") || errorMsg.contains("Unauthorized")) {
+                    log.error("[PUSH] Token Google expiré pour l'utilisateur {}", user.getId());
+                    throw new GoogleApiException(
+                        "Token d'authentification Google expiré",
+                        e,
+                        "UNAUTHORIZED",
+                        false // Non retryable
+                    );
+                } else if (errorMsg.contains("503") || errorMsg.contains("Service Unavailable")) {
+                    log.warn("[PUSH] Service Google temporairement indisponible");
+                    throw new GoogleApiException(
+                        "Service Google Calendar temporairement indisponible",
+                        e,
+                        "SERVICE_UNAVAILABLE",
+                        true // Retryable
+                    );
+                } else if (errorMsg.contains("timeout") || errorMsg.contains("Connection")) {
+                    log.warn("[PUSH] Timeout ou erreur de connexion à Google API");
+                    throw new GoogleApiException(
+                        "Impossible de se connecter à Google Calendar",
+                        e,
+                        "NETWORK_ERROR",
+                        true // Retryable
+                    );
                 }
                 
-                log.warn("[PUSH] Tentative {}/{} échouée pour '{}' : {}",
-                         attempt, MAX_RETRIES, event.getSummary(), e.getMessage());
-                if (attempt == MAX_RETRIES) {
-                    log.error("[PUSH] Échec définitif après {} tentatives.", MAX_RETRIES, e);
-                    // Marquer l'événement comme en erreur de synchronisation
-                    event.setSyncStatus(Event.SyncStatus.CONFLICT);
-                    eventRepository.save(event);
-                }
+                // Erreur générique
+                log.error("[PUSH] Erreur I/O lors de la communication avec Google : {}", errorMsg);
+                throw new GoogleApiException(
+                    "Erreur de communication avec Google Calendar",
+                    e,
+                    "IO_ERROR",
+                    true // Retryable par défaut
+                );
+                
             } catch (GeneralSecurityException e) {
-                // transport-level security failure — no point retrying
                 log.error("[PUSH] Erreur de sécurité (transport) : {}", e.getMessage());
-                event.setSyncStatus(Event.SyncStatus.CONFLICT);
-                eventRepository.save(event);
-                return;
+                throw new GoogleApiException(
+                    "Erreur de sécurité lors de la connexion à Google",
+                    e,
+                    "SECURITY_ERROR",
+                    false // Non retryable
+                );
             }
         }
     }
@@ -182,14 +213,60 @@ public class GoogleCalendarService {
                 return; // success — exit retry loop
 
             } catch (IOException e) {
-                log.warn("[DELETE] Tentative {}/{} échouée pour '{}' : {}",
-                         attempt, MAX_RETRIES, event.getSummary(), e.getMessage());
-                if (attempt == MAX_RETRIES) {
-                    log.error("[DELETE] Échec définitif de suppression après {} tentatives.", MAX_RETRIES, e);
+                // Détection spécifique des erreurs réseau/API
+                String errorMsg = e.getMessage() != null ? e.getMessage() : "Erreur réseau inconnue";
+                
+                if (errorMsg.contains("insufficientPermissions")) {
+                    log.error("[PUSH] Permissions Google insuffisantes pour l'utilisateur {}", user.getId());
+                    throw new GoogleApiException(
+                        "Permissions insuffisantes pour accéder à Google Calendar",
+                        e,
+                        "INSUFFICIENT_PERMISSIONS",
+                        false // Non retryable
+                    );
+                } else if (errorMsg.contains("401") || errorMsg.contains("Unauthorized")) {
+                    log.error("[PUSH] Token Google expiré pour l'utilisateur {}", user.getId());
+                    throw new GoogleApiException(
+                        "Token d'authentification Google expiré",
+                        e,
+                        "UNAUTHORIZED",
+                        false // Non retryable
+                    );
+                } else if (errorMsg.contains("503") || errorMsg.contains("Service Unavailable")) {
+                    log.warn("[PUSH] Service Google temporairement indisponible");
+                    throw new GoogleApiException(
+                        "Service Google Calendar temporairement indisponible",
+                        e,
+                        "SERVICE_UNAVAILABLE",
+                        true // Retryable
+                    );
+                } else if (errorMsg.contains("timeout") || errorMsg.contains("Connection")) {
+                    log.warn("[PUSH] Timeout ou erreur de connexion à Google API");
+                    throw new GoogleApiException(
+                        "Impossible de se connecter à Google Calendar",
+                        e,
+                        "NETWORK_ERROR",
+                        true // Retryable
+                    );
                 }
+                
+                // Erreur générique
+                log.error("[PUSH] Erreur I/O lors de la communication avec Google : {}", errorMsg);
+                throw new GoogleApiException(
+                    "Erreur de communication avec Google Calendar",
+                    e,
+                    "IO_ERROR",
+                    true // Retryable par défaut
+                );
+                
             } catch (GeneralSecurityException e) {
-                log.error("[DELETE] Erreur de sécurité (transport) : {}", e.getMessage());
-                return;
+                log.error("[PUSH] Erreur de sécurité (transport) : {}", e.getMessage());
+                throw new GoogleApiException(
+                    "Erreur de sécurité lors de la connexion à Google",
+                    e,
+                    "SECURITY_ERROR",
+                    false // Non retryable
+                );
             }
         }
     }

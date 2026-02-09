@@ -1,5 +1,9 @@
 package com.example.backend.service;
 
+import com.example.backend.dto.SyncConflictDTO;
+import com.example.backend.dto.SyncConflictDTO.ConflictingEvent;
+import com.example.backend.exception.GoogleApiException;
+import com.example.backend.exception.SyncConflictException;
 import com.example.backend.model.Event;
 import com.example.backend.model.ActivityCategory;
 import com.example.backend.model.User;
@@ -7,10 +11,13 @@ import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,16 +42,24 @@ public class CalendarSyncService {
     }
 
     /**
-     * Synchronise un utilisateur avec Google Calendar (bidirectionnel).
+     * Synchronise un utilisateur avec Google Calendar (bidirectionnel) avec détection de conflits.
      * 
      * Étapes :
-     * 1. Import : Récupère les événements Google vers la base locale
-     * 2. Export : Envoie les événements locaux modifiés vers Google
+     * 1. Détection des conflits potentiels avant synchronisation
+     * 2. Si conflits détectés → Lève une SyncConflictException
+     * 3. Sinon → Import : Récupère les événements Google vers la base locale
+     * 4. Export : Envoie les événements locaux modifiés vers Google
      * 
      * @param userId L'identifiant de l'utilisateur
-     * @throws Exception en cas d'erreur de synchronisation
+     * @throws SyncConflictException si des conflits de créneaux sont détectés
+     * @throws GoogleApiException si l'API Google est inaccessible
      */
     @Transactional
+    @Retryable(
+        value = {GoogleApiException.class},
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 2000, multiplier = 2)
+    )
     public void syncUser(Long userId) throws Exception {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
@@ -55,18 +70,113 @@ public class CalendarSyncService {
 
         log.info("[SYNC] Début de la synchronisation bidirectionnelle pour l'utilisateur {}", userId);
 
-        // ── ÉTAPE 1 : IMPORT (Google → Local) ──────────────────────────────
-        log.debug("[SYNC] Étape 1/2 : Import des événements Google");
-        int importedCount = calendarImportService.pullEventsFromGoogle(user);
-        log.info("[SYNC] {} événements importés depuis Google Calendar", importedCount);
+        try {
+            // ── ÉTAPE 0 : DÉTECTION DES CONFLITS ──────────────────────────────
+            log.debug("[SYNC] Vérification des conflits de créneaux...");
+            SyncConflictDTO conflicts = detectScheduleConflicts(user);
+            
+            if (conflicts.isHasConflicts()) {
+                log.warn("[SYNC] {} conflit(s) détecté(s) pour l'utilisateur {}", 
+                         conflicts.getConflicts().size(), userId);
+                throw new SyncConflictException(
+                    "Des conflits de créneaux ont été détectés. Veuillez les résoudre avant de synchroniser.",
+                    conflicts
+                );
+            }
 
-        // ── ÉTAPE 2 : EXPORT (Local → Google) ──────────────────────────────
-        log.debug("[SYNC] Étape 2/2 : Export des événements locaux");
-        int exportedCount = pushLocalEventsToGoogle(user);
-        log.info("[SYNC] {} événements exportés vers Google Calendar", exportedCount);
+            // ── ÉTAPE 1 : IMPORT (Google → Local) ──────────────────────────────
+            log.debug("[SYNC] Étape 1/2 : Import des événements Google");
+            int importedCount = calendarImportService.pullEventsFromGoogle(user);
+            log.info("[SYNC] {} événements importés depuis Google Calendar", importedCount);
 
-        log.info("[SYNC] Synchronisation terminée : {} importés, {} exportés", 
-                 importedCount, exportedCount);
+            // ── ÉTAPE 2 : EXPORT (Local → Google) ──────────────────────────────
+            log.debug("[SYNC] Étape 2/2 : Export des événements locaux");
+            int exportedCount = pushLocalEventsToGoogle(user);
+            log.info("[SYNC] {} événements exportés vers Google Calendar", exportedCount);
+
+            log.info("[SYNC] Synchronisation terminée : {} importés, {} exportés", 
+                     importedCount, exportedCount);
+
+        } catch (SyncConflictException e) {
+            // Conflits détectés - on relance l'exception pour le contrôleur
+            throw e;
+            
+        } catch (GoogleApiException e) {
+            // Erreur API Google - déjà loggée dans GoogleCalendarService
+            log.error("[SYNC] Échec de synchronisation pour l'utilisateur {} : API Google inaccessible", userId);
+            throw e;
+            
+        } catch (Exception e) {
+            log.error("[SYNC] Erreur inattendue lors de la synchronisation pour l'utilisateur {} : {}", 
+                     userId, e.getMessage(), e);
+            throw new RuntimeException("Erreur lors de la synchronisation : " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Détecte les conflits de créneaux horaires entre événements existants.
+     * 
+     * Un conflit existe si deux événements se chevauchent dans le temps :
+     * - startA < endB ET endA > startB
+     * 
+     * @param user L'utilisateur dont on vérifie les événements
+     * @return Un DTO contenant la liste des conflits détectés
+     */
+    private SyncConflictDTO detectScheduleConflicts(User user) {
+        SyncConflictDTO conflictDTO = new SyncConflictDTO();
+        
+        // Récupérer tous les événements de l'utilisateur (GOOGLE et LOCAL)
+        List<Event> allEvents = eventRepository.findByUser_Id(user.getId());
+        
+        // Filtrer les événements non supprimés
+        List<Event> activeEvents = allEvents.stream()
+                .filter(e -> e.getStatus() != Event.EventStatus.PENDING_DELETION)
+                .collect(Collectors.toList());
+
+        // Comparaison de chaque paire d'événements
+        for (int i = 0; i < activeEvents.size(); i++) {
+            Event eventA = activeEvents.get(i);
+            
+            for (int j = i + 1; j < activeEvents.size(); j++) {
+                Event eventB = activeEvents.get(j);
+                
+                // Vérification du chevauchement temporel
+                if (eventsOverlap(eventA, eventB)) {
+                    // Création de l'objet conflit pour eventA
+                    ConflictingEvent conflictA = new ConflictingEvent(
+                        eventA.getId(),
+                        eventA.getSummary(),
+                        eventA.getStartTime(),
+                        eventA.getEndTime(),
+                        eventA.getSource().toString()
+                    );
+                    conflictA.setConflictingWithId(eventB.getId());
+                    conflictA.setConflictingWithTitle(eventB.getSummary());
+                    conflictA.setConflictingWithSource(eventB.getSource().toString());
+                    
+                    conflictDTO.addConflict(conflictA);
+                    
+                    log.debug("[CONFLICT] Événement '{}' ({}) chevauche '{}' ({})",
+                             eventA.getSummary(), eventA.getSource(),
+                             eventB.getSummary(), eventB.getSource());
+                }
+            }
+        }
+        
+        return conflictDTO;
+    }
+
+    /**
+     * Vérifie si deux événements se chevauchent dans le temps.
+     * 
+     * @param eventA Premier événement
+     * @param eventB Second événement
+     * @return true si les événements se chevauchent
+     */
+    private boolean eventsOverlap(Event eventA, Event eventB) {
+        // Événements se chevauchent si : startA < endB ET endA > startB
+        return eventA.getStartTime().isBefore(eventB.getEndTime()) 
+            && eventA.getEndTime().isAfter(eventB.getStartTime());
     }
 
     /**
@@ -112,6 +222,9 @@ public class CalendarSyncService {
                     successCount++;
                     log.debug("[EXPORT] Événement '{}' synchronisé vers Google", event.getSummary());
                 }
+            } catch (GoogleApiException e) {
+                // Erreur réseau - on relance pour le retry
+                throw e;
             } catch (Exception e) {
                 log.error("[EXPORT] Erreur lors de la synchronisation de l'événement '{}' : {}", 
                          event.getSummary(), e.getMessage());

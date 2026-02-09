@@ -1,5 +1,8 @@
 package com.example.backend.controller;
 
+import com.example.backend.dto.SyncConflictDTO;
+import com.example.backend.exception.GoogleApiException;
+import com.example.backend.exception.SyncConflictException;
 import com.example.backend.model.User;
 import com.example.backend.repository.UserRepository;
 import com.example.backend.service.CalendarSyncService;
@@ -37,11 +40,12 @@ public class CalendarSyncController {
      * Endpoint: POST /api/calendar/sync/pull/{userId}
      * 
      * Cette méthode effectue :
-     * 1. Import des événements Google → Local
-     * 2. Export des événements Local → Google
+     * 1. Détection des conflits de créneaux
+     * 2. Import des événements Google → Local (si pas de conflits)
+     * 3. Export des événements Local → Google (si pas de conflits)
      * 
      * @param userId L'identifiant de l'utilisateur
-     * @return Réponse JSON avec le statut de la synchronisation
+     * @return Réponse JSON avec le statut de la synchronisation ou les conflits détectés
      */
     @PostMapping("/sync/pull/{userId}")
     public ResponseEntity<Map<String, Object>> pullNow(@PathVariable Long userId) {
@@ -63,9 +67,7 @@ public class CalendarSyncController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
 
-            // Exécution de la synchronisation BIDIRECTIONNELLE complète
-            // Au lieu de simplement appeler pullEventsFromGoogle(), on appelle syncUser()
-            // qui gère à la fois l'import (Google → Local) et l'export (Local → Google)
+            // Exécution de la synchronisation BIDIRECTIONNELLE complète avec détection de conflits
             calendarSyncService.syncUser(userId);
 
             log.info("[SYNC-MANUAL] Synchronisation bidirectionnelle réussie pour l'utilisateur {}", userId);
@@ -75,6 +77,54 @@ public class CalendarSyncController {
             response.put("timestamp", System.currentTimeMillis());
             return ResponseEntity.ok(response);
 
+        } catch (SyncConflictException e) {
+            // ── GESTION DES CONFLITS DE CRÉNEAUX ─────────────────────────────
+            log.warn("[SYNC-MANUAL] Conflits détectés pour l'utilisateur {} : {}", 
+                     userId, e.getMessage());
+            
+            SyncConflictDTO conflicts = e.getConflictDetails();
+            
+            response.put("success", false);
+            response.put("message", "Des conflits de créneaux ont été détectés");
+            response.put("errorCode", "SCHEDULE_CONFLICTS");
+            response.put("conflicts", conflicts.getConflicts());
+            response.put("conflictCount", conflicts.getConflicts().size());
+            
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+            
+        } catch (GoogleApiException e) {
+            // ── GESTION DES ERREURS API GOOGLE ───────────────────────────────
+            log.error("[SYNC-MANUAL] Erreur API Google pour l'utilisateur {} : {} (Code: {})", 
+                     userId, e.getMessage(), e.getErrorCode());
+            
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            response.put("errorCode", e.getErrorCode());
+            response.put("retryable", e.isRetryable());
+            
+            // Message utilisateur adapté selon le type d'erreur
+            String userMessage;
+            switch (e.getErrorCode()) {
+                case "SERVICE_UNAVAILABLE":
+                    userMessage = "Le service Google Calendar est temporairement indisponible. Réessayez dans quelques minutes.";
+                    break;
+                case "NETWORK_ERROR":
+                    userMessage = "Problème de connexion Internet. Vérifiez votre connexion et réessayez.";
+                    break;
+                case "UNAUTHORIZED":
+                    userMessage = "Votre connexion Google a expiré. Veuillez vous reconnecter.";
+                    break;
+                case "INSUFFICIENT_PERMISSIONS":
+                    userMessage = "Permissions insuffisantes. Veuillez autoriser l'accès à votre calendrier Google.";
+                    break;
+                default:
+                    userMessage = "Une erreur est survenue lors de la connexion à Google Calendar.";
+            }
+            response.put("userMessage", userMessage);
+            
+            HttpStatus status = e.isRetryable() ? HttpStatus.SERVICE_UNAVAILABLE : HttpStatus.INTERNAL_SERVER_ERROR;
+            return ResponseEntity.status(status).body(response);
+            
         } catch (RuntimeException e) {
             log.error("[SYNC-MANUAL] Erreur lors de la synchronisation pour l'utilisateur {} : {}", 
                      userId, e.getMessage());
