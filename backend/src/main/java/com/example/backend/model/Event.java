@@ -78,13 +78,6 @@ public class Event {
         this.endTime = endTime;
         this.user = user;
     }
-    public Event(String summary, LocalDateTime startTime, LocalDateTime endTime, User user, ActivityCategory category) {
-        this.summary = summary;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.user = user;
-        this.category = category;
-    }
 
     // --- Getters et Setters ---
 
