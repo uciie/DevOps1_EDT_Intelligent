@@ -184,12 +184,18 @@ public class EventServiceImpl implements EventService {
                     // Pour simplifier, on suppose que createTravelTime fait le job, mais pour le RECALCUL global, on sera plus explicite.
                     travelTimeService.createTravelTimeWithDuration(previousEvent, savedEvent, mode, durationMinutes);
                     
-                    // ── SYNCHRONISATION REACTIVE (Trigger sur création) ─────────────────────────
-                    try {
-                        log.debug("[EVENT-CREATE] Déclenchement de la synchronisation Google pour l'utilisateur {}", user.getId());
-                        calendarSyncService.syncUser(user.getId());
-                    } catch (Exception e) {
-                        log.warn("[EVENT-CREATE] Échec de la synchronisation Google : {}", e.getMessage());
+                    // ── SYNCHRONISATION REACTIVE (Trigger sur création) si on est connecté ─────────────────────────
+                    if (user.isGoogleLinked()) {
+                        try {
+                            log.info("[EVENT-CREATE] Tentative de synchronisation Google pour l'utilisateur: {}", user.getId());
+                            calendarSyncService.syncUser(user.getId());
+                        } catch (Exception e) {
+                            // On log l'erreur en WARN, mais on ne relance pas d'exception
+                            // Cela évite le marquage "rollback-only" de la transaction
+                            log.warn("[EVENT-CREATE] Échec de la synchronisation Google (non-bloquant) : {}", e.getMessage());
+                        }
+                    } else {
+                        log.info("[EVENT-CREATE] Synchronisation Google sautée : Le compte n'est pas lié.");
                     }
                     
                     return savedEvent;
@@ -204,12 +210,18 @@ public class EventServiceImpl implements EventService {
         // Si pas de conflit ou pas de vérification nécessaire, sauvegarde simple
         Event savedEvent = eventRepository.save(event);
         
-        // ── SYNCHRONISATION REACTIVE (Trigger sur création) ─────────────────────────
-        try {
-            log.debug("[EVENT-CREATE] Déclenchement de la synchronisation Google pour l'utilisateur {}", user.getId());
-            calendarSyncService.syncUser(user.getId());
-        } catch (Exception e) {
-            log.warn("[EVENT-CREATE] Échec de la synchronisation Google : {}", e.getMessage());
+        // ── SYNCHRONISATION REACTIVE (Trigger sur création) si on est connecté ─────────────────────────
+        if (user.isGoogleLinked()) {
+            try {
+                log.info("[EVENT-CREATE] Tentative de synchronisation Google pour l'utilisateur: {}", user.getId());
+                calendarSyncService.syncUser(user.getId());
+            } catch (Exception e) {
+                // On log l'erreur en WARN, mais on ne relance pas d'exception
+                // Cela évite le marquage "rollback-only" de la transaction
+                log.warn("[EVENT-CREATE] Échec de la synchronisation Google (non-bloquant) : {}", e.getMessage());
+            }
+        } else {
+            log.info("[EVENT-CREATE] Synchronisation Google sautée : Le compte n'est pas lié.");
         }
         
         return savedEvent;
@@ -293,14 +305,18 @@ public class EventServiceImpl implements EventService {
 
         Event updatedEvent = eventRepository.save(event);
         
-        // ── SYNCHRONISATION REACTIVE (Trigger sur modification) ─────────────────────
-        try {
-            log.debug("[EVENT-UPDATE] Déclenchement de la synchronisation Google pour l'utilisateur {}", event.getUser().getId());
-            calendarSyncService.syncUser(event.getUser().getId());
-        } catch (Exception e) {
-            log.warn("[EVENT-UPDATE] Échec de la synchronisation Google : {}", e.getMessage());
+        // ── SYNCHRONISATION REACTIVE (Trigger sur modification) si on est connecté ─────────────────────
+        User user = event.getUser();
+        if (user.isGoogleLinked()) {
+            try {
+                log.debug("[EVENT-UPDATE] Déclenchement de la synchronisation Google pour l'utilisateur {}", event.getUser().getId());
+                calendarSyncService.syncUser(event.getUser().getId());
+            } catch (Exception e) {
+                log.warn("[EVENT-UPDATE] Échec de la synchronisation Google : {}", e.getMessage());
+            }
+        } else {
+            log.debug("[EVENT-UPDATE] Synchronisation Google sautée : Le compte n'est pas lié.");
         }
-        
         return updatedEvent;
     }
 
@@ -322,14 +338,19 @@ public class EventServiceImpl implements EventService {
             eventToDelete.setSyncStatus(Event.SyncStatus.PENDING);
             eventRepository.save(eventToDelete);
             
-            // La suppression effective sera faite par le CalendarSyncService après synchronisation
+            // La suppression effective sera faite par le CalendarSyncService après synchronisation si on est connecté
             // ── SYNCHRONISATION REACTIVE (Trigger sur suppression) ──────────────────────
-            try {
-                log.debug("[EVENT-DELETE] Déclenchement de la synchronisation Google pour l'utilisateur {}", eventToDelete.getUser().getId());
-                calendarSyncService.syncUser(eventToDelete.getUser().getId());
-                log.info("Événement {} marqué pour suppression et synchronisé avec Google Calendar", id);
-            } catch (Exception e) {
-                log.warn("[EVENT-DELETE] Échec de la synchronisation Google : {}", e.getMessage());
+            User user = eventToDelete.getUser();
+            if (user.isGoogleLinked()) {
+                try {
+                    log.debug("[EVENT-DELETE] Déclenchement de la synchronisation Google pour l'utilisateur {}", user.getId());
+                    calendarSyncService.syncUser(user.getId());
+                    log.info("Événement {} marqué pour suppression et synchronisé avec Google Calendar", id);
+                } catch (Exception e) {
+                    log.warn("[EVENT-DELETE] Échec de la synchronisation Google : {}", e.getMessage());
+                }
+            } else {
+                log.debug("[EVENT-DELETE] Synchronisation Google sautée : Le compte n'est pas lié.");
             }
         } else {
             // Si pas de googleEventId, suppression directe
