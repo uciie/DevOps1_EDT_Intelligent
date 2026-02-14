@@ -157,8 +157,9 @@ function SchedulePage() {
     const init = async () => {
         const user = getCurrentUser();
         if (!user) {
-            setPageError("Utilisateur non connecté");
-            return;
+          setPageError("Utilisateur non connecté");
+          setLoading(false);
+          return;
         }
         setCurrentUser(user);
         await loadUserData(user);
