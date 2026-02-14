@@ -239,3 +239,26 @@ input:checked + .slider:before {
     opacity: 0.5;
     pointer-events: none;
 }
+
+/* Bouton de déconnexion Google */
+.btn-google-unlink {
+  padding: 10px 16px;
+  background-color: #fff0f0;
+  color: #c0392b;
+  border: 1px solid #f5c6cb;
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  white-space: nowrap;
+}
+
+.btn-google-unlink:hover:not(:disabled) {
+  background-color: #fde8e8;
+  box-shadow: 0 1px 3px rgba(192, 57, 43, 0.25);
+}
+
+.btn-google-unlink:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

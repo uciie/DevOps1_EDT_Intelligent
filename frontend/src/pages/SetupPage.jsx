@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { getCurrentUser } from "../api/authApi";
 import { recalculateTravelTimes } from "../api/eventApi";
-import { getGoogleAuthUrl } from "../api/userApi";
+import { getGoogleAuthUrl, linkGoogleAccount, unlinkGoogleAccount} from "../api/userApi";
 import api from "../api/api";
 import Notification from "../components/Notification";
 import "../styles/pages/SetupPage.css";
@@ -15,6 +15,7 @@ function SetupPage() {
   const [user, setUser] = useState(null);
   const [isGoogleConnected, setIsGoogleConnected] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: "", type: "" });
+  const [isUnlinking, setIsUnlinking] = useState(false);
 
   const handleGoogleLogin = () => {
       window.location.href = getGoogleAuthUrl();
@@ -91,6 +92,37 @@ function SetupPage() {
     }
   };
 
+  // Fonction pour se déconnecter de Google
+  const handleGoogleUnlink = async () => {
+    if (!user) return;
+    if (!window.confirm("Voulez-vous vraiment déconnecter votre compte Google Agenda ?")) return;
+
+    try {
+      setIsUnlinking(true);
+      setStatus("Déconnexion de Google en cours...");
+
+      await unlinkGoogleAccount(user.id);
+
+      setIsGoogleConnected(false);
+      setNotification({
+        show: true,
+        message: "Compte Google déconnecté avec succès.",
+        type: "success"
+      });
+      setStatus("");
+
+    } catch (error) {
+      console.error("Erreur déconnexion Google:", error);
+      setNotification({
+        show: true,
+        message: "Erreur lors de la déconnexion. Réessayez.",
+        type: "error"
+      });
+    } finally {
+      setIsUnlinking(false);
+    }
+  };
+
   return (
     <div className="setup-page">
       {/* Affichage du popup Notification */}
@@ -144,6 +176,7 @@ function SetupPage() {
                 <button 
                   onClick={handleGoogleLogin} 
                   className={`btn-google ${isGoogleConnected ? 'connected' : ''}`}
+                  disabled={isUnlinking}
                 >
                   {!isGoogleConnected && (
                     <svg className="google-icon" viewBox="0 0 24 24">
@@ -153,8 +186,20 @@ function SetupPage() {
                       <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 12-4.53z" fill="#EA4335"/>
                     </svg>
                   )}
-                  {isGoogleConnected ? "Compte Google lié" : "Se connecter avec Google"}
+                  {isGoogleConnected ? "Reconnecter Google" : "Se connecter avec Google"}
                 </button>
+
+                {/* Bouton déconnexion — visible seulement si connecté */}
+                {isGoogleConnected && (
+                  <button
+                    onClick={handleGoogleUnlink}
+                    disabled={isUnlinking}
+                    className="btn-google-unlink"
+                    title="Révoquer l'accès Google Agenda"
+                  >
+                    {isUnlinking ? "Déconnexion..." : "Déconnecter"}
+                  </button>
+                )}
               </div>
             </div>
           </section>

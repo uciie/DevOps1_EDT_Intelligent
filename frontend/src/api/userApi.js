@@ -60,3 +60,20 @@ export function getGoogleAuthUrl() {
   const qs = new URLSearchParams(options);
   return `${rootUrl}?${qs.toString()}`;
 }
+
+/**
+ * Révoque l'accès Google Calendar de l'utilisateur.
+ * Efface les tokens en base de données côté backend.
+ *
+ * @param {number|string} userId - L'ID de l'utilisateur.
+ * @returns {Promise<Object>} Confirmation de la déconnexion
+ */
+export async function unlinkGoogleAccount(userId) {
+  try {
+    const response = await api.delete(`/users/${userId}/google-auth`);
+    return response.data;
+  } catch (error) {
+    console.error("Erreur API unlinkGoogleAccount :", error);
+    throw error;
+  }
+}
