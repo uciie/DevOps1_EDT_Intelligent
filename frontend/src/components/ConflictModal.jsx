@@ -54,6 +54,15 @@ const ConflictModal = ({ conflicts, onClose, onSync, onUpdateEvent, onDeleteEven
     });
   };
 
+  const ensureSeconds = (dateStr) => {
+    if (!dateStr) return dateStr;
+    // Si le format est YYYY-MM-DDTHH:mm (longueur 16), on ajoute :00
+    if (dateStr.length === 16) {
+      return `${dateStr}:00`;
+    }
+    return dateStr;
+  };
+  
   const formatDateTimeForInput = (dateTimeStr) => {
     if (!dateTimeStr) return '';
     
@@ -67,8 +76,8 @@ const ConflictModal = ({ conflicts, onClose, onSync, onUpdateEvent, onDeleteEven
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     
-    // Retourner au format YYYY-MM-DDTHH:mm (heure locale)
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    // Retourner au format YYYY-MM-DDTHH:mm:ss
+    return `${year}-${month}-${day}T${hours}:${minutes}:00`;
   };
 
   const calculateDuration = (startTime, endTime) => {
@@ -211,8 +220,8 @@ const ConflictModal = ({ conflicts, onClose, onSync, onUpdateEvent, onDeleteEven
 
         await onUpdateEvent(version.id, {
           summary: editData.title,
-          startTime: formatLocalDateTime(editData.startTime),
-          endTime: formatLocalDateTime(editData.endTime)
+          startTime: ensureSeconds(editData.startTime),
+          endTime: ensureSeconds(editData.endTime)
         });
 
         // Mettre à jour l'état local

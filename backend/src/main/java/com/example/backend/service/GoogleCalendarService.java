@@ -4,9 +4,13 @@ import com.example.backend.exception.GoogleApiException;
 import com.example.backend.model.Event;
 import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
+import com.example.backend.repository.UserRepository;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleRefreshTokenRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.calendar.Calendar;
 import com.google.api.services.calendar.model.EventDateTime;
@@ -24,44 +28,132 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+ * Service pour la gestion des interactions avec Google Calendar API.
+ * 
+ * AMÉLIORATION : Gestion automatique du rafraîchissement du token d'accès
+ * quand il expire (401 Unauthorized).
+ */
 @Service
 public class GoogleCalendarService {
 
     private static final Logger log        = LoggerFactory.getLogger(GoogleCalendarService.class);
     private static final String CALENDAR_ID = "primary";
-    private static final int    MAX_RETRIES = 3;
 
     @Value("${google.calendar.timezone:Europe/Paris}")
     private String defaultTimezone;
 
-    private final EventRepository eventRepository;
+    @Value("${google.client.id}")
+    private String clientId;
 
-    public GoogleCalendarService(EventRepository eventRepository) {
+    @Value("${google.client.secret}")
+    private String clientSecret;
+
+    private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+
+    public GoogleCalendarService(EventRepository eventRepository, UserRepository userRepository) {
         this.eventRepository = eventRepository;
+        this.userRepository = userRepository;
     }
 
-    // ── authenticated Calendar client ────────────────────────────────────────
-    // GoogleCredential (singular) implements HttpRequestInitializer directly,
-    // so it is passed straight into Calendar.Builder — no .getRequestInitializer().
-    private Calendar buildCalendarClient(User user) throws IOException, GeneralSecurityException {
-        GoogleCredential credential = new GoogleCredential();
-        credential.setAccessToken(user.getGoogleAccessToken());
+    /**
+     * AMÉLIORATION : Construit un client Calendar avec gestion automatique du token expiré.
+     * 
+     * Si le token est expiré, cette méthode tentera de le rafraîchir automatiquement
+     * avant de créer le client.
+     */
+    public Calendar buildCalendarClient(User user) throws IOException, GeneralSecurityException {
+        return buildCalendarClient(user, false);
+    }
 
-        return new Calendar.Builder(
-                GoogleNetHttpTransport.newTrustedTransport(),
-                JacksonFactory.getDefaultInstance(),
-                credential)                              // <-- IS the HttpRequestInitializer
+    /**
+     * Version interne avec support du retry après refresh token.
+     * 
+     * CORRECTION CRITIQUE : Utilisation du Builder pour GoogleCredential
+     * 
+     * @param user L'utilisateur
+     * @param isRetry true si c'est un retry après refresh du token
+     */
+    private Calendar buildCalendarClient(User user, boolean isRetry) throws IOException, GeneralSecurityException {
+        // Récupérer la version la plus récente de l'utilisateur depuis la DB
+        User freshUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+        NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
+        JacksonFactory jsonFactory = JacksonFactory.getDefaultInstance();
+        
+        GoogleCredential.Builder credentialBuilder = new GoogleCredential.Builder()
+                .setTransport(httpTransport)
+                .setJsonFactory(jsonFactory)
+                .setClientSecrets(clientId, clientSecret);
+
+        // Construire le credential
+        GoogleCredential credential = credentialBuilder.build();
+        
+        // Configurer les tokens APRÈS la construction
+        credential.setAccessToken(freshUser.getGoogleAccessToken());
+        
+        // Si on a un refresh token, le configurer aussi
+        if (freshUser.getGoogleRefreshToken() != null && !freshUser.getGoogleRefreshToken().isBlank()) {
+            credential.setRefreshToken(freshUser.getGoogleRefreshToken());
+        }
+        
+        log.debug("[BUILDER] Client Calendar construit avec succès pour l'utilisateur {}", user.getId());
+
+        return new Calendar.Builder(httpTransport, jsonFactory, credential)
                 .setApplicationName("EDT-Intelligent")
                 .build();
     }
 
-    // ── export one event to Google Calendar ──────────────────────────────────
+    /**
+     * Wrapper pour exécuter une opération Google Calendar avec retry automatique.
+     * 
+     * Si l'opération échoue avec un 401, on tente de rafraîchir le token et de réessayer.
+     */
+    private <T> T executeWithRetry(User user, CalendarOperation<T> operation) throws IOException, GeneralSecurityException {
+        try {
+            Calendar client = buildCalendarClient(user, false);
+            return operation.execute(client);
+            
+        } catch (IOException e) {
+            // Si erreur 401 (token expiré), tenter de rafraîchir
+            if (e.getMessage() != null && e.getMessage().contains("401")) {
+                log.warn("[GOOGLE-API] Token expiré détecté, tentative de rafraîchissement...");
+                
+                if (refreshAccessToken(user)) {
+                    // Token rafraîchi, réessayer l'opération
+                    log.info("[GOOGLE-API] Nouvelle tentative après rafraîchissement du token");
+                    Calendar client = buildCalendarClient(user, true);
+                    return operation.execute(client);
+                } else {
+                    // Impossible de rafraîchir le token
+                    throw new GoogleApiException(
+                        "Token Google expiré et impossible de le rafraîchir. L'utilisateur doit se reconnecter.",
+                        e,
+                        "TOKEN_EXPIRED",
+                        false
+                    );
+                }
+            }
+            
+            // Autres erreurs : relancer
+            throw e;
+        }
+    }
+
+    /**
+     * Interface fonctionnelle pour les opérations Google Calendar.
+     */
+    @FunctionalInterface
+    private interface CalendarOperation<T> {
+        T execute(Calendar client) throws IOException;
+    }
+
     /**
      * Exporte un événement local vers Google Calendar.
-     * Si l'événement possède déjà un googleEventId, il sera mis à jour.
-     * Sinon, un nouvel événement sera créé sur Google Calendar.
      * 
-     * @param event L'événement à exporter
+     * AMÉLIORATION : Utilise le mécanisme de retry automatique en cas de token expiré.
      */
     @Transactional
     public void pushEventToGoogle(Event event) {
@@ -72,112 +164,82 @@ public class GoogleCalendarService {
             return;
         }
 
-        // Vérifier si c'est une création ou une mise à jour
-        boolean isUpdate = event.getGoogleEventId() != null && !event.getGoogleEventId().isBlank();
-        
-        com.google.api.services.calendar.model.Event googleEvent = convertToGoogleEvent(event);
+        try {
+            com.google.api.services.calendar.model.Event googleEvent = convertToGoogleEvent(event);
+            boolean isUpdate = (event.getGoogleEventId() != null && !event.getGoogleEventId().isBlank());
 
-        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-            try {
-                Calendar client = buildCalendarClient(user);
-                com.google.api.services.calendar.model.Event result;
-
+            // Utiliser executeWithRetry pour gérer automatiquement le token expiré
+            com.google.api.services.calendar.model.Event result = executeWithRetry(user, client -> {
                 if (isUpdate) {
-                    // Mise à jour d'un événement existant
-                    log.debug("[PUSH] Mise à jour de l'événement '{}' (googleId={}).",
+                    log.debug("[PUSH] Mise à jour de l'événement '{}' sur Google Calendar (googleId={}).",
                              event.getSummary(), event.getGoogleEventId());
                     
-                    result = client.events()
+                    return client.events()
                             .update(CALENDAR_ID, event.getGoogleEventId(), googleEvent)
                             .execute();
                     
-                    log.info("[PUSH] Événement '{}' mis à jour avec succès sur Google Calendar.",
-                             event.getSummary());
                 } else {
                     // Création d'un nouvel événement
                     log.debug("[PUSH] Création d'un nouveau événement '{}' sur Google Calendar.",
                              event.getSummary());
                     
-                    result = client.events()
+                    return client.events()
                             .insert(CALENDAR_ID, googleEvent)
                             .execute();
-
-                    // Persist the Google-assigned ID for later deduplication
-                    event.setGoogleEventId(result.getId());
-                    event.setSource(Event.EventSource.LOCAL);
-                    event.setSyncStatus(Event.SyncStatus.SYNCED);
-                    event.setLastSyncedAt(java.time.LocalDateTime.now());
-                    eventRepository.save(event);
-
-                    log.info("[PUSH] Événement '{}' créé avec succès (googleId={}).",
-                             event.getSummary(), result.getId());
                 }
-                
-                return; // success — exit retry loop
+            });
 
-            } catch (IOException e) {
-                // Détection spécifique des erreurs réseau/API
-                String errorMsg = e.getMessage() != null ? e.getMessage() : "Erreur réseau inconnue";
-                
-                if (errorMsg.contains("insufficientPermissions")) {
-                    log.error("[PUSH] Permissions Google insuffisantes pour l'utilisateur {}", user.getId());
-                    throw new GoogleApiException(
-                        "Permissions insuffisantes pour accéder à Google Calendar",
-                        e,
-                        "INSUFFICIENT_PERMISSIONS",
-                        false // Non retryable
-                    );
-                } else if (errorMsg.contains("401") || errorMsg.contains("Unauthorized")) {
-                    log.error("[PUSH] Token Google expiré pour l'utilisateur {}", user.getId());
-                    throw new GoogleApiException(
-                        "Token d'authentification Google expiré",
-                        e,
-                        "UNAUTHORIZED",
-                        false // Non retryable
-                    );
-                } else if (errorMsg.contains("503") || errorMsg.contains("Service Unavailable")) {
-                    log.warn("[PUSH] Service Google temporairement indisponible");
-                    throw new GoogleApiException(
-                        "Service Google Calendar temporairement indisponible",
-                        e,
-                        "SERVICE_UNAVAILABLE",
-                        true // Retryable
-                    );
-                } else if (errorMsg.contains("timeout") || errorMsg.contains("Connection")) {
-                    log.warn("[PUSH] Timeout ou erreur de connexion à Google API");
-                    throw new GoogleApiException(
-                        "Impossible de se connecter à Google Calendar",
-                        e,
-                        "NETWORK_ERROR",
-                        true // Retryable
-                    );
-                }
-                
-                // Erreur générique
-                log.error("[PUSH] Erreur I/O lors de la communication avec Google : {}", errorMsg);
-                throw new GoogleApiException(
-                    "Erreur de communication avec Google Calendar",
-                    e,
-                    "IO_ERROR",
-                    true // Retryable par défaut
-                );
-                
-            } catch (GeneralSecurityException e) {
-                log.error("[PUSH] Erreur de sécurité (transport) : {}", e.getMessage());
-                throw new GoogleApiException(
-                    "Erreur de sécurité lors de la connexion à Google",
-                    e,
-                    "SECURITY_ERROR",
-                    false // Non retryable
-                );
+            // Mise à jour des métadonnées après succès
+            if (!isUpdate) {
+                event.setGoogleEventId(result.getId());
+                event.setSource(Event.EventSource.LOCAL);
             }
+            
+            event.setSyncStatus(Event.SyncStatus.SYNCED);
+            event.setLastSyncedAt(java.time.LocalDateTime.now());
+            eventRepository.save(event);
+
+            log.info("[PUSH] Événement '{}' {} avec succès (googleId={})",
+                     event.getSummary(), 
+                     isUpdate ? "mis à jour" : "créé",
+                     result.getId());
+
+        } catch (GoogleApiException e) {
+            // Erreur spécifique (token expiré, permissions, etc.)
+            log.error("[PUSH] Erreur Google API : {}", e.getMessage());
+            event.setSyncStatus(Event.SyncStatus.FAILED);
+            eventRepository.save(event);
+            throw e;
+            
+        } catch (IOException e) {
+            String errorMsg = e.getMessage() != null ? e.getMessage() : "Erreur réseau inconnue";
+            log.error("[PUSH] Erreur I/O lors de la communication avec Google : {}", errorMsg);
+            
+            event.setSyncStatus(Event.SyncStatus.FAILED);
+            eventRepository.save(event);
+            
+            throw new GoogleApiException(
+                "Erreur de communication avec Google Calendar",
+                e,
+                "IO_ERROR",
+                true
+            );
+            
+        } catch (GeneralSecurityException e) {
+            log.error("[PUSH] Erreur de sécurité : {}", e.getMessage());
+            throw new GoogleApiException(
+                "Erreur de sécurité lors de la connexion à Google",
+                e,
+                "SECURITY_ERROR",
+                false
+            );
         }
     }
 
     /**
      * Supprime un événement de Google Calendar.
      * 
-     * @param event L'événement à supprimer
+     * AMÉLIORATION : Utilise le mécanisme de retry automatique.
      */
     @Transactional
     public void deleteEventFromGoogle(Event event) {
@@ -194,80 +256,35 @@ public class GoogleCalendarService {
             return;
         }
 
-        for (int attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-            try {
-                Calendar client = buildCalendarClient(user);
-
+        try {
+            // Utiliser executeWithRetry
+            executeWithRetry(user, client -> {
                 client.events()
                         .delete(CALENDAR_ID, event.getGoogleEventId())
                         .execute();
+                return null; // Void operation
+            });
 
-                log.info("[DELETE] Événement '{}' supprimé de Google Calendar (googleId={}).",
-                         event.getSummary(), event.getGoogleEventId());
-                
-                // Nettoyer le googleEventId local
-                event.setGoogleEventId(null);
-                event.setSyncStatus(Event.SyncStatus.SYNCED);
-                eventRepository.save(event);
-                
-                return; // success — exit retry loop
+            log.info("[DELETE] Événement '{}' supprimé de Google Calendar (googleId={}).",
+                     event.getSummary(), event.getGoogleEventId());
+            
+            // Nettoyer le googleEventId local
+            event.setGoogleEventId(null);
+            event.setSyncStatus(Event.SyncStatus.SYNCED);
+            eventRepository.save(event);
 
-            } catch (IOException e) {
-                // Détection spécifique des erreurs réseau/API
-                String errorMsg = e.getMessage() != null ? e.getMessage() : "Erreur réseau inconnue";
-                
-                if (errorMsg.contains("insufficientPermissions")) {
-                    log.error("[PUSH] Permissions Google insuffisantes pour l'utilisateur {}", user.getId());
-                    throw new GoogleApiException(
-                        "Permissions insuffisantes pour accéder à Google Calendar",
-                        e,
-                        "INSUFFICIENT_PERMISSIONS",
-                        false // Non retryable
-                    );
-                } else if (errorMsg.contains("401") || errorMsg.contains("Unauthorized")) {
-                    log.error("[PUSH] Token Google expiré pour l'utilisateur {}", user.getId());
-                    throw new GoogleApiException(
-                        "Token d'authentification Google expiré",
-                        e,
-                        "UNAUTHORIZED",
-                        false // Non retryable
-                    );
-                } else if (errorMsg.contains("503") || errorMsg.contains("Service Unavailable")) {
-                    log.warn("[PUSH] Service Google temporairement indisponible");
-                    throw new GoogleApiException(
-                        "Service Google Calendar temporairement indisponible",
-                        e,
-                        "SERVICE_UNAVAILABLE",
-                        true // Retryable
-                    );
-                } else if (errorMsg.contains("timeout") || errorMsg.contains("Connection")) {
-                    log.warn("[PUSH] Timeout ou erreur de connexion à Google API");
-                    throw new GoogleApiException(
-                        "Impossible de se connecter à Google Calendar",
-                        e,
-                        "NETWORK_ERROR",
-                        true // Retryable
-                    );
-                }
-                
-                // Erreur générique
-                log.error("[PUSH] Erreur I/O lors de la communication avec Google : {}", errorMsg);
-                throw new GoogleApiException(
-                    "Erreur de communication avec Google Calendar",
-                    e,
-                    "IO_ERROR",
-                    true // Retryable par défaut
-                );
-                
-            } catch (GeneralSecurityException e) {
-                log.error("[PUSH] Erreur de sécurité (transport) : {}", e.getMessage());
-                throw new GoogleApiException(
-                    "Erreur de sécurité lors de la connexion à Google",
-                    e,
-                    "SECURITY_ERROR",
-                    false // Non retryable
-                );
-            }
+        } catch (GoogleApiException e) {
+            log.error("[DELETE] Erreur Google API : {}", e.getMessage());
+            throw e;
+            
+        } catch (IOException | GeneralSecurityException e) {
+            log.error("[DELETE] Erreur lors de la suppression : {}", e.getMessage());
+            throw new GoogleApiException(
+                "Erreur lors de la suppression sur Google Calendar",
+                e,
+                "DELETE_ERROR",
+                true
+            );
         }
     }
 
@@ -334,13 +351,13 @@ public class GoogleCalendarService {
             gEvent.setLocation(event.getLocation().getAddress());
         }
 
-        // Embed internal ID so a later pull can recognise events we already own
+        // Embed internal ID
         if (event.getId() != null) {
             String currentDesc = gEvent.getDescription() != null ? gEvent.getDescription() + "\n" : "";
             gEvent.setDescription(currentDesc + "EDT-ID:" + event.getId());
         }
 
-        // Définir la couleur ou la transparence selon la catégorie
+        // Définir la couleur selon la catégorie
         if (event.getCategory() != null) {
             switch (event.getCategory()) {
                 case FOCUS:
@@ -365,5 +382,48 @@ public class GoogleCalendarService {
         }
 
         return gEvent;
+    }
+
+     /**
+     * NOUVELLE MÉTHODE : Rafraîchit automatiquement le token d'accès Google.
+     * 
+     * @param user L'utilisateur dont on doit rafraîchir le token
+     * @return true si le rafraîchissement a réussi, false sinon
+     */
+    @Transactional
+    protected boolean refreshAccessToken(User user) {
+        if (user.getGoogleRefreshToken() == null || user.getGoogleRefreshToken().isBlank()) {
+            log.warn("[TOKEN-REFRESH] Pas de refresh token disponible pour l'utilisateur {}", user.getId());
+            return false;
+        }
+
+        try {
+            log.info("[TOKEN-REFRESH] Rafraîchissement du token pour l'utilisateur {}", user.getId());
+            
+            GoogleTokenResponse response = new GoogleRefreshTokenRequest(
+                new NetHttpTransport(),
+                JacksonFactory.getDefaultInstance(),
+                user.getGoogleRefreshToken(),
+                clientId,
+                clientSecret
+            ).execute();
+
+            // Mise à jour du token d'accès
+            user.setGoogleAccessToken(response.getAccessToken());
+            
+            // Certains refresh peuvent aussi renouveler le refresh token
+            if (response.getRefreshToken() != null) {
+                user.setGoogleRefreshToken(response.getRefreshToken());
+                log.debug("[TOKEN-REFRESH] Refresh token également renouvelé");
+            }
+            
+            userRepository.save(user);
+            log.info("[TOKEN-REFRESH] Token rafraîchi avec succès pour l'utilisateur {}", user.getId());
+            return true;
+            
+        } catch (IOException e) {
+            log.error("[TOKEN-REFRESH] Échec du rafraîchissement du token : {}", e.getMessage());
+            return false;
+        }
     }
 }

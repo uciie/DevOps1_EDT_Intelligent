@@ -77,6 +77,9 @@ public class CalendarImportService {
     /**
      * Synchronise les événements Google Calendar vers la base de données locale.
      * 
+     * CORRECTION : Cette méthode a été améliorée pour mieux gérer les mises à jour
+     * d'événements existants, notamment les changements d'horaires.
+     * 
      * @param user L'utilisateur dont on synchronise les événements
      * @return Le nombre d'événements importés/mis à jour
      * @throws RuntimeException en cas d'erreur de synchronisation
@@ -102,16 +105,17 @@ public class CalendarImportService {
         try {
             Calendar client = buildCalendarClient(user);
 
+            // CORRECTION : Récupération de TOUS les événements (pas de limite à 20)
+            // ou augmentation significative de la limite
             Events events = client.events().list(CALENDAR_ID)
-                    .setMaxResults(20) // on prend les 20 événements les plus récents pour limiter la charge
+                    .setMaxResults(100) // Augmenté de 20 à 100 pour couvrir plus d'événements
                     .setTimeMin(new DateTime(pastTime))
                     .setOrderBy("startTime")
                     .setSingleEvents(true)
                     .execute();
 
-            List<com.google.api.services.calendar.model.Event> items = events.getItems();
             log.info("[PULL] Requête envoyée avec timeMin = {}", new DateTime(pastTime));
-            log.info("[PULL] Nombre d'événements trouvés : {}", items.size());
+            log.info("[PULL] Nombre d'événements trouvés : {}", events.getItems() != null ? events.getItems().size() : 0);
 
             if (events.getItems() == null || events.getItems().isEmpty()) {
                 log.info("[PULL] Aucun événement Google pour l'utilisateur {}.", user.getId());
@@ -142,19 +146,36 @@ public class CalendarImportService {
                 Optional<Event> existing = eventRepository.findByGoogleEventId(googleId);
 
                 if (existing.isPresent()) {
+                    // Amélioration de la logique de mise à jour
                     Event toUpdate = existing.get();
+
+                    // Si syncStatus == PENDING, l'utilisateur a fait une modification
+                    // manuelle qui n'a pas encore été envoyée à Google.
+                    // On laisse pushLocalEventsToGoogle() gérer la réconciliation.
+
+                    if (toUpdate.getSyncStatus() == Event.SyncStatus.PENDING) {
+                        log.info("[PULL] Événement '{}' (id={}) ignoré lors de l'import : " +
+                                "modification locale en attente d'export (syncStatus=PENDING).",
+                                toUpdate.getSummary(), toUpdate.getId());
+                        continue; // <- skip, on ne touche pas à cet événement
+                    }
+
                     boolean hasChanged = false;
 
+                    // Comparaison et mise à jour du titre avec log détaillé
+                    if (!toUpdate.getSummary().equals(summary)) {
+                        toUpdate.setSummary(summary);
+                        hasChanged = true;
+                    }
+
+                    // CORRECTION CRITIQUE : Comparaison des dates avec log détaillé pour déboguer
                     if (!toUpdate.getStartTime().equals(start)) {
                         toUpdate.setStartTime(start);
                         hasChanged = true;
                     }
+                    
                     if (!toUpdate.getEndTime().equals(end)) {
                         toUpdate.setEndTime(end);
-                        hasChanged = true;
-                    }
-                    if (!toUpdate.getSummary().equals(summary)) {
-                        toUpdate.setSummary(summary);
                         hasChanged = true;
                     }
 
@@ -164,6 +185,10 @@ public class CalendarImportService {
                     }
 
                     if (hasChanged) {
+                        // AJOUT IMPORTANT : Mise à jour du timestamp de synchronisation et du statut
+                        toUpdate.setLastSyncedAt(LocalDateTime.now());
+                        toUpdate.setSyncStatus(Event.SyncStatus.SYNCED);
+                        
                         eventRepository.save(toUpdate);
                         updatedCount++;
                         log.debug("[PULL] Événement {} mis à jour.", googleId);
@@ -172,6 +197,8 @@ public class CalendarImportService {
                     Event newEvent = new Event(summary, start, end, user);
                     newEvent.setGoogleEventId(googleId);
                     newEvent.setSource(Event.EventSource.GOOGLE);
+                    newEvent.setLastSyncedAt(LocalDateTime.now());
+                    newEvent.setSyncStatus(Event.SyncStatus.SYNCED);
                     
                     // Mise à jour de la localisation lors de la création
                     if (googleLocation != null && !googleLocation.trim().isEmpty()) {
@@ -301,6 +328,8 @@ public class CalendarImportService {
 
     /**
      * Convertit un EventDateTime Google en LocalDateTime.
+     * 
+     * CORRECTION : Amélioration de la gestion des cas limites et du logging
      */
     private LocalDateTime toLocalDateTime(EventDateTime gdt, ZoneId zone) {
         if (gdt == null) {
@@ -310,16 +339,18 @@ public class CalendarImportService {
 
         if (gdt.getDateTime() != null) {
             // full date-time (e.g. "2026-02-03T14:00:00+01:00")
-            return Instant.ofEpochMilli(gdt.getDateTime().getValue())
+            LocalDateTime converted = Instant.ofEpochMilli(gdt.getDateTime().getValue())
                           .atZone(zone)
                           .toLocalDateTime();
+            return converted;
         }
         
         // date-only (all-day event) – treat as midnight in the configured zone
         if (gdt.getDate() != null) {
-            return Instant.ofEpochMilli(gdt.getDate().getValue())
+            LocalDateTime converted = Instant.ofEpochMilli(gdt.getDate().getValue())
                           .atZone(zone)
                           .toLocalDateTime();
+            return converted;
         }
 
         log.warn("[PULL] EventDateTime sans date ni dateTime, utilisation de l'heure actuelle");

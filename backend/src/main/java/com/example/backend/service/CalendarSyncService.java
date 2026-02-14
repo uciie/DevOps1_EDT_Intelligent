@@ -16,8 +16,6 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,6 +76,11 @@ public class CalendarSyncService {
             if (conflicts.isHasConflicts()) {
                 log.warn("[SYNC] {} conflit(s) détecté(s) pour l'utilisateur {}", 
                          conflicts.getConflicts().size(), userId);
+                for (ConflictingEvent conflict : conflicts.getConflicts()) {
+                    log.warn("[CONFLICT] {} ({}) chevauche {} ({})",
+                             conflict.getEventId(), conflict.getSource(),
+                             conflict.getConflictingWithId(), conflict.getConflictingWithSource());
+                }
                 throw new SyncConflictException(
                     "Des conflits de créneaux ont été détectés. Veuillez les résoudre avant de synchroniser.",
                     conflicts
@@ -255,6 +258,12 @@ public class CalendarSyncService {
     /**
      * Détermine si un événement doit être synchronisé vers Google.
      * 
+     * Matrice de décision :
+     *   PENDING_DELETION → toujours exporter (suppression à propager)
+     *   syncStatus=PENDING → toujours exporter (quelle que soit la source)
+     *   source=LOCAL && googleEventId=null → exporter (création pure locale)
+     *   autres cas → ne pas exporter (SYNCED, source=GOOGLE déjà à jour, etc.)
+     *
      * @param event L'événement à évaluer
      * @return true si l'événement doit être synchronisé
      */
@@ -264,23 +273,15 @@ public class CalendarSyncService {
             return true;
         }
 
-        // Événements créés localement sans googleEventId
-        if (event.getSource() == Event.EventSource.LOCAL && event.getGoogleEventId() == null) {
-            return true;
-        }
-
-        // Événements avec statut de synchronisation PENDING
+        // tout événement PENDING (y compris source=GOOGLE modifié
+        // manuellement, doit être exporté.
         if (event.getSyncStatus() == Event.SyncStatus.PENDING) {
             return true;
         }
 
-        // Événements modifiés après leur dernière synchronisation
-        // (On considère qu'un événement modifié dans les dernières 5 minutes doit être re-synchronisé)
-        if (event.getLastSyncedAt() != null) {
-            LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
-            // Si l'événement a été créé/modifié APRÈS la dernière synchro, il faut le re-synchroniser
-            // Note: Vous devrez peut-être ajouter un champ `lastModifiedAt` pour tracker ça précisément
-            return false; // Pour l'instant, on fait confiance au syncStatus
+        // événement créé localement qui n'existe pas encore sur Google
+        if (event.getSource() == Event.EventSource.LOCAL && event.getGoogleEventId() == null) {
+            return true;
         }
 
         return false;

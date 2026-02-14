@@ -114,4 +114,9 @@ public class User {
     public void setGoogleRefreshToken(String googleRefreshToken) {
         this.googleRefreshToken = googleRefreshToken;
     }
+
+    // Méthode utilitaire pour vérifier si l'utilisateur est connecté à Google
+    public boolean isGoogleLinked() {
+        return this.googleAccessToken != null && !this.googleAccessToken.isEmpty();
+    }
 }
