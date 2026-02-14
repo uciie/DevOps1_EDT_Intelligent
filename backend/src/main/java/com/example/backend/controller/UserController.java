@@ -179,4 +179,28 @@ public class UserController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+
+    /**
+     * DELETE /api/users/{id}/google-auth
+     * Déconnecte le compte Google de l'utilisateur (efface les tokens en BDD).
+     */
+    @DeleteMapping("/{id}/google-auth")
+    public ResponseEntity<?> unlinkGoogleAccount(@PathVariable Long id) {
+        try {
+            User updated = userService.unlinkGoogleAccount(id);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", updated.getId());
+            response.put("username", updated.getUsername());
+            response.put("googleLinked", false);
+            response.put("message", "Compte Google déconnecté avec succès");
+
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            log.error("[GOOGLE-UNLINK] Erreur pour userId={} : {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 }

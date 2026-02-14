@@ -159,4 +159,22 @@ public class UserService {
 
         return userRepository.save(user);
     }
+
+    /**
+     * Révoque l'accès Google de l'utilisateur en effaçant ses tokens en base.
+     * Note : Cette méthode n'appelle PAS l'API de révocation Google (optionnel,
+     * voir commentaire ci-dessous). Elle efface simplement les tokens localement.
+     *
+     * @param userId l'ID de l'utilisateur
+     * @return l'utilisateur mis à jour
+     */
+    public User unlinkGoogleAccount(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'ID: " + userId));
+
+        user.setGoogleAccessToken(null);
+        user.setGoogleRefreshToken(null);
+
+        return userRepository.save(user);
+    }
 }
