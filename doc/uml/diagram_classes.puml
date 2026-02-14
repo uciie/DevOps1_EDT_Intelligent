@@ -4,545 +4,16 @@
 top to bottom direction
 skinparam linetype ortho
 
-class BackendApplication {
-  + BackendApplication(): 
-}
-
-class LegacyProfileEnvProcessor {
-  + LegacyProfileEnvProcessor(): 
-}
-
-class WebConfig {
-  + WebConfig(): 
-}
-
-class ActivityLogController {
-  + ActivityLogController(): 
-  - activityLogService: ActivityLogService
-}
-
-class CalendarImportController {
-  + CalendarImportController(): 
-  - importService: CalendarImportService
-}
-
-class ChatbotController {
-  + ChatbotController(): 
-  - chatbotService: ChatbotService
-}
-
-class EventController {
-  + EventController(): 
-  - eventService: EventService
-  - focusService: FocusService
-}
-
-class FocusController {
-  + FocusController(): 
-  - focusService: FocusService
-}
-
-class ScheduleController {
-  + ScheduleController(): 
-  - optimizerService: ScheduleOptimizerService
-}
-
-class TaskController {
-  + TaskController(): 
-  - taskService: TaskService
-  - focusService: FocusService
-}
-
-class TeamController {
-  + TeamController(): 
-  - teamService: TeamService
-}
-
-class TravelTimeController {
-  + TravelTimeController(): 
-  - travelTimeRepository: TravelTimeRepository
-  - travelTimeService: TravelTimeService
-}
-
-class UserController {
-  + UserController(): 
-  - userService: UserService
-  - username: String
-  - password: String
-  - id: String
-   all: ResponseEntity
-}
-
-class ActivityStatsDTO {
-  + ActivityStatsDTO(): 
-  - category: ActivityCategory
-  - count: long
-  - totalMinutes: long
-  - averageMinutes: long
-   totalMinutes: long
-   averageMinutes: long
-   category: ActivityCategory
-   count: long
-}
-
-class TimeSlot {
-  + TimeSlot(): 
-  - start: LocalDateTime
-  - end: LocalDateTime
-   durationMinutes: long
-}
-
-enum ConflictResolutionStrategy << enumeration >> {
-  + ConflictResolutionStrategy(): 
-  + GOOGLE_PRIORITY
-  + LOCAL_PRIORITY
-  + ASK_USER
-}
-
-class FallbackGeminiHttpClient {
-  + FallbackGeminiHttpClient(): 
-}
-
-interface GeminiHttpClient << interface >> {
-  + GeminiHttpClient(): 
-}
-
-class RestGeminiHttpClient {
-  + RestGeminiHttpClient(): 
-  - webClient: WebClient
-}
-
-enum ActivityCategory << enumeration >> {
-  + ActivityCategory(): 
-  + TRAVAIL
-  + ETUDE
-  + SPORT
-  + LOISIR
-  + MENAGER
-  + RENCONTRE
-  + AUTRE
-}
-
-class ActivityLog {
-  + ActivityLog(): 
-  - id: Long
-  - userId: Long
-  - activityType: ActivityCategory
-  - startTime: LocalDateTime
-  - endTime: LocalDateTime
-  - eventId: Long
-   startTime: LocalDateTime
-   activityType: ActivityCategory
-   id: Long
-   userId: Long
-   endTime: LocalDateTime
-   eventId: Long
-}
-
-class Event {
-  + Event(): 
-  - id: Long
-  - summary: String
-  - startTime: LocalDateTime
-  - endTime: LocalDateTime
-  - category: ActivityCategory
-  - location: Location
-  - user: User
-  - task: Task
-  - departures: List
-  - arrivals: List
-  - status: EventStatus
-  - googleEventId: String
-  - lastSyncedAt: LocalDateTime
-  - updatedAt: LocalDateTime
-  - source: EventSource
-  - syncStatus: SyncStatus
-   source: EventSource
-   startTime: LocalDateTime
-   category: ActivityCategory
-   googleEventId: String
-   syncStatus: SyncStatus
-   updatedAt: LocalDateTime
-   lastSyncedAt: LocalDateTime
-   location: Location
-   id: Long
-   userId: Long
-   endTime: LocalDateTime
-   user: User
-   summary: String
-   status: EventStatus
-   task: Task
-}
-
-class EventConflict {
-  + EventConflict(): 
-  - id: Long
-  - user: User
-  - googleEventId: String
-  - localTitle: String
-  - localDescription: String
-  - localStartTime: LocalDateTime
-  - localEndTime: LocalDateTime
-  - localLastModified: LocalDateTime
-  - googleTitle: String
-  - googleDescription: String
-  - googleStartTime: LocalDateTime
-  - googleEndTime: LocalDateTime
-  - googleLastModified: LocalDateTime
-  - detectedAt: LocalDateTime
-  - resolved: boolean
-  - resolvedAt: LocalDateTime
-  - chosenResolution: ConflictResolution
-   googleEventId: String
-   localTitle: String
-   localDescription: String
-   localStartTime: LocalDateTime
-   localEndTime: LocalDateTime
-   localLastModified: LocalDateTime
-   googleDescription: String
-   googleStartTime: LocalDateTime
-   googleEndTime: LocalDateTime
-   googleLastModified: LocalDateTime
-   detectedAt: LocalDateTime
-   chosenResolution: ConflictResolution
-   resolvedAt: LocalDateTime
-   googleTitle: String
-   id: Long
-   user: User
-}
-
-class FocusBlock {
-  + FocusBlock(): 
-  - id: Long
-  - user: User
-  - startTime: LocalDateTime
-  - endTime: LocalDateTime
-  - flexibility: int
-  - isProtected: boolean
-  - status: String
-  - suggestedBySystem: boolean
-   startTime: LocalDateTime
-   flexibility: int
-   id: Long
-   endTime: LocalDateTime
-   user: User
-   status: String
-}
-
-class Location {
-  + Location(): 
-  - id: Long
-  - address: String
-  - latitude: Double
-  - longitude: Double
-  - name: String
-  - autoCompleted: boolean
-   longitude: Double
-   fullDescription: String
-   latitude: Double
-   name: String
-   id: Long
-   address: String
-   displayName: String
-}
-
-class Task {
-  + Task(): 
-  - id: Long
-  - deadline: LocalDateTime
-  - late: boolean
-  - title: String
-  - estimatedDuration: int
-  - priority: int
-  - status: TaskStatus
-  - user: User
-  - event: Event
-  - assignee: User
-  - team: Team
-   estimatedDuration: int
-   assignee: User
-   deadline: LocalDateTime
-   priority: int
-   id: Long
-   duration: int
-   userId: Long
-   eventId: Long
-   user: User
-   status: TaskStatus
-   team: Team
-   title: String
-   event: Event
-}
-
-class Team {
-  + Team(): 
-  - id: Long
-  - name: String
-  - description: String
-  - ownerId: Long
-  - members: Set
-   description: String
-   name: String
-   id: Long
-   members: Set
-   ownerId: Long
-}
-
-class TeamInvitation {
-  + TeamInvitation(): 
-  - id: Long
-  - team: Team
-  - invitedUser: User
-  - inviter: User
-  - status: Status
-   invitedUser: User
-   id: Long
-   status: Status
-   team: Team
-   inviter: User
-}
-
-class TravelTime {
-  + TravelTime(): 
-  - id: Long
-  - fromEvent: Event
-  - toEvent: Event
-  - user: User
-  - startTime: LocalDateTime
-  - endTime: LocalDateTime
-  - durationMinutes: int
-  - distanceKm: Double
-  - mode: TransportMode
-   startTime: LocalDateTime
-   distanceKm: Double
-   fromEvent: Event
-   durationMinutes: int
-   id: Long
-   endTime: LocalDateTime
-   user: User
-   toEvent: Event
-   mode: TransportMode
-}
-
-class User {
-  + User(): 
-  - id: Long
-  - username: String
-  - password: String
-  - events: List
-  - tasks: List
-  - teams: Set
-  - googleAccessToken: String
-  - googleRefreshToken: String
-  - lastSyncDate: LocalDateTime
-  - conflictStrategy: ConflictResolutionStrategy
-  - createdAt: LocalDateTime
-  - updatedAt: LocalDateTime
-   username: String
-   password: String
-   googleAccessToken: String
-   conflictStrategy: ConflictResolutionStrategy
-   googleRefreshToken: String
-   lastSyncDate: LocalDateTime
-   id: Long
-   teams: Set
-   tasks: List
-   events: List
-}
-
-class UserFocusPreference {
-  + UserFocusPreference(): 
-  - userId: Long
-  - maxEventsPerDay: int
-  - minFocusDuration: int
-  - focusModeEnabled: boolean
-  - preferredFocusTime: FocusTimePreference
-   maxEventsPerDay: int
-   minFocusDuration: int
-   preferredFocusTime: FocusTimePreference
-   userId: Long
-}
-
-interface ActivityLogRepository << interface >> {
-  + ActivityLogRepository(): 
-}
-
-interface EventConflictRepository << interface >> {
-  + EventConflictRepository(): 
-}
-
-interface EventRepository << interface >> {
-  + EventRepository(): 
-}
-
-interface FocusBlockRepository << interface >> {
-  + FocusBlockRepository(): 
-}
-
-interface LocationRepository << interface >> {
-  + LocationRepository(): 
-}
-
-interface TaskRepository << interface >> {
-  + TaskRepository(): 
-}
-
-interface TeamInvitationRepository << interface >> {
-  + TeamInvitationRepository(): 
-}
-
-interface TeamRepository << interface >> {
-  + TeamRepository(): 
-}
-
-interface TravelTimeRepository << interface >> {
-  + TravelTimeRepository(): 
-}
-
-interface UserFocusPreferenceRepository << interface >> {
-  + UserFocusPreferenceRepository(): 
-}
-
-interface UserRepository << interface >> {
-  + UserRepository(): 
-}
-
-class ActivityLogService {
-  + ActivityLogService(): 
-  - activityLogRepository: ActivityLogRepository
-  - eventRepository: EventRepository
-}
-
-class CalendarImportService {
-  + CalendarImportService(): 
-  - eventRepository: EventRepository
-  - parser: ICalendarParser
-}
-
-class CalendarSyncService {
-  + CalendarSyncService(): 
-  - eventRepository: EventRepository
-  - userRepository: UserRepository
-  - googleCalendarService: GoogleCalendarService
-  - conflictService: ConflictResolutionService
-}
-
-class ChatbotService {
-  + ChatbotService(): 
-  - geminiService: GeminiService
-  - eventRepository: EventRepository
-  - taskRepository: TaskRepository
-  - userRepository: UserRepository
-}
-
-class ConflictResolutionService {
-  + ConflictResolutionService(): 
-  - conflictRepository: EventConflictRepository
-  - eventRepository: EventRepository
-}
-
-interface EventService << interface >> {
-  + EventService(): 
-}
-
-class GeminiService {
-  + GeminiService(): 
-  - apiKey: String
-  - model: String
-  - httpClient: GeminiHttpClient
-}
-
-class GoogleCalendarService {
-  + GoogleCalendarService(): 
-  - userRepository: UserRepository
-}
-
-class DefaultScheduleOptimizerService {
-  + DefaultScheduleOptimizerService(): 
-  - eventRepository: EventRepository
-  - taskRepository: TaskRepository
-  - taskSelectionStrategy: TaskSelectionStrategy
-  - travelTimeService: TravelTimeService
-  - focusService: FocusService
-}
-
-class EventServiceImpl {
-  + EventServiceImpl(): 
-  - eventRepository: EventRepository
-  - userRepository: UserRepository
-  - travelTimeService: TravelTimeService
-  - travelTimeRepository: TravelTimeRepository
-  - teamRepository: TeamRepository
-  - primaryCalculator: TravelTimeCalculator
-  - simpleCalculator: TravelTimeCalculator
-}
-
-class FocusService {
-  + FocusService(): 
-  - eventRepository: EventRepository
-  - preferenceRepository: UserFocusPreferenceRepository
-}
-
-class GoogleMapsTravelTimeCalculator {
-  + GoogleMapsTravelTimeCalculator(): 
-  - apiKey: String
-  - restTemplate: RestTemplate
-  - fallbackCalculator: SimpleTravelTimeCalculator
-  - mapper: ObjectMapper
-}
-
-class SimpleTravelTimeCalculator {
-  + SimpleTravelTimeCalculator(): 
-}
-
-class TaskServiceImpl {
-  + TaskServiceImpl(): 
-  - taskRepository: TaskRepository
-  - eventRepository: EventRepository
-  - userRepository: UserRepository
-  - teamRepository: TeamRepository
-  - focusService: FocusService
-}
-
-class TeamServiceImpl {
-  + TeamServiceImpl(): 
-  - teamRepository: TeamRepository
-  - userRepository: UserRepository
-  - invitationRepository: TeamInvitationRepository
-  - taskRepository: TaskRepository
-}
-
-class BiweeklyCalendarParser {
-  + BiweeklyCalendarParser(): 
-}
-
-interface ICalendarParser << interface >> {
-  + ICalendarParser(): 
-}
-
-interface ScheduleOptimizerService << interface >> {
-  + ScheduleOptimizerService(): 
-}
-
-class DefaultTaskSelectionStrategy {
-  + DefaultTaskSelectionStrategy(): 
-  - taskRepository: TaskRepository
-}
-
-interface TaskSelectionStrategy << interface >> {
-  + TaskSelectionStrategy(): 
-}
-
-interface TaskService << interface >> {
-  + TaskService(): 
-}
-
 interface TeamService << interface >> {
   + TeamService(): 
 }
 
-interface TravelTimeCalculator << interface >> {
-  + TravelTimeCalculator(): 
+class CalendarImportService {
+  + CalendarImportService(): 
+  - defaultTimezone: String
+  - syncWindowDays: int
+  - eventRepository: EventRepository
+  - parser: ICalendarParser
 }
 
 class TravelTimeService {
@@ -561,82 +32,553 @@ class UserService {
    allUsers: List
 }
 
+interface TaskService << interface >> {
+  + TaskService(): 
+}
+
+interface ICalendarParser << interface >> {
+  + ICalendarParser(): 
+}
+
+class BiweeklyCalendarParser {
+  + BiweeklyCalendarParser(): 
+}
+
+class SyncDelegateService {
+  + SyncDelegateService(): 
+  - calendarSyncService: CalendarSyncService
+}
+
+class ActivityLogService {
+  + ActivityLogService(): 
+  - activityLogRepository: ActivityLogRepository
+  - eventRepository: EventRepository
+}
+
+class SimpleTravelTimeCalculator {
+  + SimpleTravelTimeCalculator(): 
+}
+
+class TaskServiceImpl {
+  + TaskServiceImpl(): 
+  - taskRepository: TaskRepository
+  - eventRepository: EventRepository
+  - userRepository: UserRepository
+  - teamRepository: TeamRepository
+  - focusService: FocusService
+}
+
+class FocusService {
+  + FocusService(): 
+  - eventRepository: EventRepository
+  - preferenceRepository: UserFocusPreferenceRepository
+}
+
+class TeamServiceImpl {
+  + TeamServiceImpl(): 
+  - teamRepository: TeamRepository
+  - userRepository: UserRepository
+  - invitationRepository: TeamInvitationRepository
+  - taskRepository: TaskRepository
+}
+
+class EventServiceImpl {
+  + EventServiceImpl(): 
+  - eventRepository: EventRepository
+  - userRepository: UserRepository
+  - travelTimeService: TravelTimeService
+  - travelTimeRepository: TravelTimeRepository
+  - teamRepository: TeamRepository
+  - primaryCalculator: TravelTimeCalculator
+  - simpleCalculator: TravelTimeCalculator
+  - syncDelegateService: SyncDelegateService
+}
+
+class GoogleMapsTravelTimeCalculator {
+  + GoogleMapsTravelTimeCalculator(): 
+  - apiKey: String
+  - restTemplate: RestTemplate
+  - fallbackCalculator: SimpleTravelTimeCalculator
+  - mapper: ObjectMapper
+}
+
+class DefaultScheduleOptimizerService {
+  + DefaultScheduleOptimizerService(): 
+  - eventRepository: EventRepository
+  - taskRepository: TaskRepository
+  - taskSelectionStrategy: TaskSelectionStrategy
+  - travelTimeService: TravelTimeService
+  - focusService: FocusService
+}
+
+interface TaskSelectionStrategy << interface >> {
+  + TaskSelectionStrategy(): 
+}
+
+class DefaultTaskSelectionStrategy {
+  + DefaultTaskSelectionStrategy(): 
+  - taskRepository: TaskRepository
+}
+
+class CalendarSyncService {
+  + CalendarSyncService(): 
+  - userRepository: UserRepository
+  - eventRepository: EventRepository
+  - googleCalendarService: GoogleCalendarService
+  - calendarImportService: CalendarImportService
+}
+
+class GoogleCalendarService {
+  + GoogleCalendarService(): 
+  - defaultTimezone: String
+  - clientId: String
+  - clientSecret: String
+  - eventRepository: EventRepository
+  - userRepository: UserRepository
+}
+
+interface ScheduleOptimizerService << interface >> {
+  + ScheduleOptimizerService(): 
+}
+
+class GeminiService {
+  + GeminiService(): 
+  - apiKey: String
+  - model: String
+  - httpClient: GeminiHttpClient
+}
+
+interface TravelTimeCalculator << interface >> {
+  + TravelTimeCalculator(): 
+}
+
+class ChatbotService {
+  + ChatbotService(): 
+  - geminiService: GeminiService
+  - eventRepository: EventRepository
+  - taskRepository: TaskRepository
+  - userRepository: UserRepository
+}
+
+interface EventService << interface >> {
+  + EventService(): 
+}
+
+class CalendarSyncScheduler {
+  + CalendarSyncScheduler(): 
+  - userRepository: UserRepository
+  - calendarSyncService: CalendarSyncService
+}
+
+class SyncConflictException {
+  + SyncConflictException(): 
+  - conflictDetails: SyncConflictDTO
+   conflictDetails: SyncConflictDTO
+}
+
+class GoogleApiException {
+  + GoogleApiException(): 
+  - errorCode: String
+  - isRetryable: boolean
+   errorCode: String
+}
+
+interface TeamInvitationRepository << interface >> {
+  + TeamInvitationRepository(): 
+}
+
+interface TravelTimeRepository << interface >> {
+  + TravelTimeRepository(): 
+}
+
+interface ActivityLogRepository << interface >> {
+  + ActivityLogRepository(): 
+}
+
+interface TeamRepository << interface >> {
+  + TeamRepository(): 
+}
+
+interface TaskRepository << interface >> {
+  + TaskRepository(): 
+}
+
+interface EventRepository << interface >> {
+  + EventRepository(): 
+}
+
+interface LocationRepository << interface >> {
+  + LocationRepository(): 
+}
+
+interface UserFocusPreferenceRepository << interface >> {
+  + UserFocusPreferenceRepository(): 
+}
+
+interface UserRepository << interface >> {
+  + UserRepository(): 
+}
+
+interface FocusBlockRepository << interface >> {
+  + FocusBlockRepository(): 
+}
+
+class LegacyProfileEnvProcessor {
+  + LegacyProfileEnvProcessor(): 
+}
+
+class WebConfig {
+  + WebConfig(): 
+}
+
 class UmlGenerator {
   + UmlGenerator(): 
 }
 
-ActivityLogController "1" *-[#595959,plain]-> "activityLogService\n1" ActivityLogService
-CalendarImportController "1" *-[#595959,plain]-> "importService\n1" CalendarImportService
-ChatbotController "1" *-[#595959,plain]-> "chatbotService\n1" ChatbotService
-EventController "1" *-[#595959,plain]-> "eventService\n1" EventService
-EventController "1" *-[#595959,plain]-> "focusService\n1" FocusService
-FocusController "1" *-[#595959,plain]-> "focusService\n1" FocusService
-ScheduleController "1" *-[#595959,plain]-> "optimizerService\n1" ScheduleOptimizerService
-TaskController "1" *-[#595959,plain]-> "taskService\n1" TaskService
-TaskController "1" *-[#595959,plain]-> "focusService\n1" FocusService
-TeamController "1" *-[#595959,plain]-> "teamService\n1" TeamService
-TravelTimeController "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRepository
-TravelTimeController "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService
-UserController "1" *-[#595959,plain]-> "userService\n1" UserService
-ActivityStatsDTO "1" *-[#595959,plain]-> "category\n1" ActivityCategory
-ConflictResolutionStrategy "1" *-[#595959,plain]-> "GOOGLE_PRIORITY\n1" ConflictResolutionStrategy
-ConflictResolutionStrategy "1" *-[#595959,plain]-> "LOCAL_PRIORITY\n1" ConflictResolutionStrategy
-ConflictResolutionStrategy "1" *-[#595959,plain]-> "ASK_USER\n1" ConflictResolutionStrategy
-GeminiHttpClient <|.. FallbackGeminiHttpClient
-GeminiHttpClient <|.. RestGeminiHttpClient
-ActivityCategory "1" *-[#595959,plain]-> "TRAVAIL\n1" ActivityCategory
-ActivityCategory "1" *-[#595959,plain]-> "ETUDE\n1" ActivityCategory
-ActivityCategory "1" *-[#595959,plain]-> "SPORT\n1" ActivityCategory
-ActivityCategory "1" *-[#595959,plain]-> "LOISIR\n1" ActivityCategory
-ActivityCategory "1" *-[#595959,plain]-> "MENAGER\n1" ActivityCategory
-ActivityCategory "1" *-[#595959,plain]-> "RENCONTRE\n1" ActivityCategory
-ActivityCategory "1" *-[#595959,plain]-> "AUTRE\n1" ActivityCategory
-ActivityLog "1" *-[#595959,plain]-> "activityType\n1" ActivityCategory
-Event "1" *-[#595959,plain]-> "category\n1" ActivityCategory
-Event "1" *-[#595959,plain]-> "location\n1" Location
-Event "1" *-[#595959,plain]-> "user\n1" User
-Event "1" *-[#595959,plain]-> "task\n1" Task
-Event "1" *-[#595959,plain]-> "departures\n*" TravelTime
-Event "1" *-[#595959,plain]-> "arrivals\n*" TravelTime
-EventConflict "1" *-[#595959,plain]-> "user\n1" User
-FocusBlock "1" *-[#595959,plain]-> "user\n1" User
-Task "1" *-[#595959,plain]-> "user\n1" User
-Task "1" *-[#595959,plain]-> "event\n1" Event
-Task "1" *-[#595959,plain]-> "assignee\n1" User
-Task "1" *-[#595959,plain]-> "team\n1" Team
-Team "1" *-[#595959,plain]-> "members\n*" User
-TeamInvitation "1" *-[#595959,plain]-> "team\n1" Team
-TeamInvitation "1" *-[#595959,plain]-> "invitedUser\n1" User
-TeamInvitation "1" *-[#595959,plain]-> "inviter\n1" User
-TravelTime "1" *-[#595959,plain]-> "fromEvent\n1" Event
-TravelTime "1" *-[#595959,plain]-> "toEvent\n1" Event
-TravelTime "1" *-[#595959,plain]-> "user\n1" User
-User "1" *-[#595959,plain]-> "events\n*" Event
-User "1" *-[#595959,plain]-> "tasks\n*" Task
-User "1" *-[#595959,plain]-> "teams\n*" Team
-User "1" *-[#595959,plain]-> "conflictStrategy\n1" ConflictResolutionStrategy
-ActivityLogService "1" *-[#595959,plain]-> "activityLogRepository\n1" ActivityLogRepository
-ActivityLogService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+class TimeSlot {
+  + TimeSlot(): 
+  - start: LocalDateTime
+  - end: LocalDateTime
+   durationMinutes: long
+}
+
+class SyncConflictDTO {
+  + SyncConflictDTO(): 
+  - conflicts: List
+  - message: String
+  - hasConflicts: boolean
+   message: String
+   conflicts: List
+}
+
+class ActivityStatsDTO {
+  + ActivityStatsDTO(): 
+  - category: ActivityCategory
+  - count: long
+  - totalMinutes: long
+  - averageMinutes: long
+   count: long
+   category: ActivityCategory
+   totalMinutes: long
+   averageMinutes: long
+}
+
+class ActivityLogController {
+  + ActivityLogController(): 
+  - activityLogService: ActivityLogService
+}
+
+class SyncController {
+  + SyncController(): 
+  - syncService: CalendarSyncService
+}
+
+class TaskController {
+  + TaskController(): 
+  - taskService: TaskService
+  - focusService: FocusService
+}
+
+class ChatbotController {
+  + ChatbotController(): 
+  - chatbotService: ChatbotService
+}
+
+class FocusController {
+  + FocusController(): 
+  - focusService: FocusService
+}
+
+class ScheduleController {
+  + ScheduleController(): 
+  - optimizerService: ScheduleOptimizerService
+}
+
+class EventController {
+  + EventController(): 
+  - eventService: EventService
+  - focusService: FocusService
+}
+
+class TeamController {
+  + TeamController(): 
+  - teamService: TeamService
+}
+
+class CalendarSyncController {
+  + CalendarSyncController(): 
+  - userRepository: UserRepository
+  - calendarSyncService: CalendarSyncService
+}
+
+class TravelTimeController {
+  + TravelTimeController(): 
+  - travelTimeRepository: TravelTimeRepository
+  - travelTimeService: TravelTimeService
+}
+
+class UserController {
+  + UserController(): 
+  - userService: UserService
+  - username: String
+  - password: String
+  - id: String
+   all: ResponseEntity
+}
+
+class CalendarImportController {
+  + CalendarImportController(): 
+  - importService: CalendarImportService
+}
+
+class BackendApplication {
+  + BackendApplication(): 
+}
+
+class FallbackGeminiHttpClient {
+  + FallbackGeminiHttpClient(): 
+}
+
+class RestGeminiHttpClient {
+  + RestGeminiHttpClient(): 
+  - webClient: WebClient
+}
+
+interface GeminiHttpClient << interface >> {
+  + GeminiHttpClient(): 
+}
+
+class FocusBlock {
+  + FocusBlock(): 
+  - id: Long
+  - user: User
+  - startTime: LocalDateTime
+  - endTime: LocalDateTime
+  - flexibility: int
+  - isProtected: boolean
+  - status: String
+  - suggestedBySystem: boolean
+   id: Long
+   startTime: LocalDateTime
+   endTime: LocalDateTime
+   user: User
+   status: String
+   flexibility: int
+}
+
+class TeamInvitation {
+  + TeamInvitation(): 
+  - id: Long
+  - team: Team
+  - invitedUser: User
+  - inviter: User
+  - status: Status
+   id: Long
+   team: Team
+   status: Status
+   invitedUser: User
+   inviter: User
+}
+
+class TravelTime {
+  + TravelTime(): 
+  - id: Long
+  - fromEvent: Event
+  - toEvent: Event
+  - user: User
+  - startTime: LocalDateTime
+  - endTime: LocalDateTime
+  - durationMinutes: int
+  - distanceKm: Double
+  - mode: TransportMode
+   id: Long
+   startTime: LocalDateTime
+   endTime: LocalDateTime
+   user: User
+   durationMinutes: int
+   mode: TransportMode
+   fromEvent: Event
+   toEvent: Event
+   distanceKm: Double
+}
+
+class Task {
+  + Task(): 
+  - id: Long
+  - deadline: LocalDateTime
+  - late: boolean
+  - title: String
+  - estimatedDuration: int
+  - priority: int
+  - status: TaskStatus
+  - user: User
+  - event: Event
+  - assignee: User
+  - team: Team
+   priority: int
+   id: Long
+   duration: int
+   user: User
+   assignee: User
+   team: Team
+   title: String
+   estimatedDuration: int
+   status: TaskStatus
+   deadline: LocalDateTime
+   event: Event
+   userId: Long
+   eventId: Long
+}
+
+enum ActivityCategory << enumeration >> {
+  + ActivityCategory(): 
+  + TRAVAIL
+  + ETUDE
+  + SPORT
+  + LOISIR
+  + MENAGER
+  + RENCONTRE
+  + FOCUS
+  + AUTRE
+}
+
+class User {
+  + User(): 
+  - id: Long
+  - username: String
+  - password: String
+  - events: List
+  - tasks: List
+  - teams: Set
+  - googleAccessToken: String
+  - googleRefreshToken: String
+   id: Long
+   googleAccessToken: String
+   events: List
+   password: String
+   teams: Set
+   googleRefreshToken: String
+   username: String
+   tasks: List
+}
+
+class ActivityLog {
+  + ActivityLog(): 
+  - id: Long
+  - userId: Long
+  - activityType: ActivityCategory
+  - startTime: LocalDateTime
+  - endTime: LocalDateTime
+  - eventId: Long
+   id: Long
+   startTime: LocalDateTime
+   endTime: LocalDateTime
+   activityType: ActivityCategory
+   userId: Long
+   eventId: Long
+}
+
+class Team {
+  + Team(): 
+  - id: Long
+  - name: String
+  - description: String
+  - ownerId: Long
+  - members: Set
+   name: String
+   id: Long
+   members: Set
+   ownerId: Long
+   description: String
+}
+
+class Event {
+  + Event(): 
+  - id: Long
+  - summary: String
+  - startTime: LocalDateTime
+  - endTime: LocalDateTime
+  - category: ActivityCategory
+  - location: Location
+  - user: User
+  - task: Task
+  - departures: List
+  - arrivals: List
+  - status: EventStatus
+  - googleEventId: String
+  - lastSyncedAt: LocalDateTime
+  - source: EventSource
+  - syncStatus: SyncStatus
+   location: Location
+   id: Long
+   source: EventSource
+   summary: String
+   syncStatus: SyncStatus
+   startTime: LocalDateTime
+   endTime: LocalDateTime
+   googleEventId: String
+   user: User
+   category: ActivityCategory
+   task: Task
+   status: EventStatus
+   userId: Long
+   lastSyncedAt: LocalDateTime
+}
+
+class UserFocusPreference {
+  + UserFocusPreference(): 
+  - userId: Long
+  - maxEventsPerDay: int
+  - minFocusDuration: int
+  - focusModeEnabled: boolean
+  - preferredFocusTime: FocusTimePreference
+   maxEventsPerDay: int
+   minFocusDuration: int
+   preferredFocusTime: FocusTimePreference
+   userId: Long
+}
+
+class Location {
+  + Location(): 
+  - id: Long
+  - address: String
+  - latitude: Double
+  - longitude: Double
+  - name: String
+  - autoCompleted: boolean
+   name: String
+   id: Long
+   address: String
+   displayName: String
+   latitude: Double
+   longitude: Double
+   fullDescription: String
+}
+
 CalendarImportService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
 CalendarImportService "1" *-[#595959,plain]-> "parser\n1" ICalendarParser
-CalendarSyncService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
-CalendarSyncService "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
-CalendarSyncService "1" *-[#595959,plain]-> "googleCalendarService\n1" GoogleCalendarService
-CalendarSyncService "1" *-[#595959,plain]-> "conflictService\n1" ConflictResolutionService
-ChatbotService "1" *-[#595959,plain]-> "geminiService\n1" GeminiService
-ChatbotService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
-ChatbotService "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
-ChatbotService "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
-ConflictResolutionService "1" *-[#595959,plain]-> "conflictRepository\n1" EventConflictRepository
-ConflictResolutionService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
-GeminiService "1" *-[#595959,plain]-> "httpClient\n1" GeminiHttpClient
-GoogleCalendarService "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
-ScheduleOptimizerService <|.. DefaultScheduleOptimizerService
-DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
-DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
-DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "taskSelectionStrategy\n1" TaskSelectionStrategy
-DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService
-DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "focusService\n1" FocusService
+TravelTimeService "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRepository
+TravelTimeService "1" *-[#595959,plain]-> "travelTimeCalculator\n1" TravelTimeCalculator
+TravelTimeService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+UserService "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+ICalendarParser <|.. BiweeklyCalendarParser
+SyncDelegateService "1" *-[#595959,plain]-> "calendarSyncService\n1" CalendarSyncService
+ActivityLogService "1" *-[#595959,plain]-> "activityLogRepository\n1" ActivityLogRepository
+ActivityLogService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+TravelTimeCalculator <|.. SimpleTravelTimeCalculator
+TaskService <|.. TaskServiceImpl
+TaskServiceImpl "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
+TaskServiceImpl "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+TaskServiceImpl "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+TaskServiceImpl "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository
+TaskServiceImpl "1" *-[#595959,plain]-> "focusService\n1" FocusService
+FocusService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+FocusService "1" *-[#595959,plain]-> "preferenceRepository\n1" UserFocusPreferenceRepository
+TeamService <|.. TeamServiceImpl
+TeamServiceImpl "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository
+TeamServiceImpl "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+TeamServiceImpl "1" *-[#595959,plain]-> "invitationRepository\n1" TeamInvitationRepository
+TeamServiceImpl "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
 EventService <|.. EventServiceImpl
 EventServiceImpl "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
 EventServiceImpl "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
@@ -645,29 +587,80 @@ EventServiceImpl "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRep
 EventServiceImpl "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository
 EventServiceImpl "1" *-[#595959,plain]-> "primaryCalculator\n1" TravelTimeCalculator
 EventServiceImpl "1" *-[#595959,plain]-> "simpleCalculator\n1" TravelTimeCalculator
-FocusService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
-FocusService "1" *-[#595959,plain]-> "preferenceRepository\n1" UserFocusPreferenceRepository
+EventServiceImpl "1" *-[#595959,plain]-> "syncDelegateService\n1" SyncDelegateService
 TravelTimeCalculator <|.. GoogleMapsTravelTimeCalculator
 GoogleMapsTravelTimeCalculator "1" *-[#595959,plain]-> "fallbackCalculator\n1" SimpleTravelTimeCalculator
-TravelTimeCalculator <|.. SimpleTravelTimeCalculator
-TaskService <|.. TaskServiceImpl
-TaskServiceImpl "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
-TaskServiceImpl "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
-TaskServiceImpl "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
-TaskServiceImpl "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository
-TaskServiceImpl "1" *-[#595959,plain]-> "focusService\n1" FocusService
-TeamService <|.. TeamServiceImpl
-TeamServiceImpl "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository
-TeamServiceImpl "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
-TeamServiceImpl "1" *-[#595959,plain]-> "invitationRepository\n1" TeamInvitationRepository
-TeamServiceImpl "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
-ICalendarParser <|.. BiweeklyCalendarParser
+ScheduleOptimizerService <|.. DefaultScheduleOptimizerService
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "taskSelectionStrategy\n1" TaskSelectionStrategy
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService
+DefaultScheduleOptimizerService "1" *-[#595959,plain]-> "focusService\n1" FocusService
 TaskSelectionStrategy <|.. DefaultTaskSelectionStrategy
 DefaultTaskSelectionStrategy "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
-TravelTimeService "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRepository
-TravelTimeService "1" *-[#595959,plain]-> "travelTimeCalculator\n1" TravelTimeCalculator
-TravelTimeService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
-UserService "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+CalendarSyncService "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+CalendarSyncService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+CalendarSyncService "1" *-[#595959,plain]-> "googleCalendarService\n1" GoogleCalendarService
+CalendarSyncService "1" *-[#595959,plain]-> "calendarImportService\n1" CalendarImportService
+GoogleCalendarService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+GoogleCalendarService "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+GeminiService "1" *-[#595959,plain]-> "httpClient\n1" GeminiHttpClient
+ChatbotService "1" *-[#595959,plain]-> "geminiService\n1" GeminiService
+ChatbotService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
+ChatbotService "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
+ChatbotService "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+CalendarSyncScheduler "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+CalendarSyncScheduler "1" *-[#595959,plain]-> "calendarSyncService\n1" CalendarSyncService
+SyncConflictException "1" *-[#595959,plain]-> "conflictDetails\n1" SyncConflictDTO
+ActivityStatsDTO "1" *-[#595959,plain]-> "category\n1" ActivityCategory
+ActivityLogController "1" *-[#595959,plain]-> "activityLogService\n1" ActivityLogService
+SyncController "1" *-[#595959,plain]-> "syncService\n1" CalendarSyncService
+TaskController "1" *-[#595959,plain]-> "taskService\n1" TaskService
+TaskController "1" *-[#595959,plain]-> "focusService\n1" FocusService
+ChatbotController "1" *-[#595959,plain]-> "chatbotService\n1" ChatbotService
+FocusController "1" *-[#595959,plain]-> "focusService\n1" FocusService
+ScheduleController "1" *-[#595959,plain]-> "optimizerService\n1" ScheduleOptimizerService
+EventController "1" *-[#595959,plain]-> "eventService\n1" EventService
+EventController "1" *-[#595959,plain]-> "focusService\n1" FocusService
+TeamController "1" *-[#595959,plain]-> "teamService\n1" TeamService
+CalendarSyncController "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+CalendarSyncController "1" *-[#595959,plain]-> "calendarSyncService\n1" CalendarSyncService
+TravelTimeController "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRepository
+TravelTimeController "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService
+UserController "1" *-[#595959,plain]-> "userService\n1" UserService
+CalendarImportController "1" *-[#595959,plain]-> "importService\n1" CalendarImportService
+GeminiHttpClient <|.. FallbackGeminiHttpClient
+GeminiHttpClient <|.. RestGeminiHttpClient
+FocusBlock "1" *-[#595959,plain]-> "user\n1" User
+TeamInvitation "1" *-[#595959,plain]-> "team\n1" Team
+TeamInvitation "1" *-[#595959,plain]-> "invitedUser\n1" User
+TeamInvitation "1" *-[#595959,plain]-> "inviter\n1" User
+TravelTime "1" *-[#595959,plain]-> "fromEvent\n1" Event
+TravelTime "1" *-[#595959,plain]-> "toEvent\n1" Event
+TravelTime "1" *-[#595959,plain]-> "user\n1" User
+Task "1" *-[#595959,plain]-> "user\n1" User
+Task "1" *-[#595959,plain]-> "event\n1" Event
+Task "1" *-[#595959,plain]-> "assignee\n1" User
+Task "1" *-[#595959,plain]-> "team\n1" Team
+ActivityCategory "1" *-[#595959,plain]-> "TRAVAIL\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "ETUDE\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "SPORT\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "LOISIR\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "MENAGER\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "RENCONTRE\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "FOCUS\n1" ActivityCategory
+ActivityCategory "1" *-[#595959,plain]-> "AUTRE\n1" ActivityCategory
+User "1" *-[#595959,plain]-> "events\n*" Event
+User "1" *-[#595959,plain]-> "tasks\n*" Task
+User "1" *-[#595959,plain]-> "teams\n*" Team
+ActivityLog "1" *-[#595959,plain]-> "activityType\n1" ActivityCategory
+Team "1" *-[#595959,plain]-> "members\n*" User
+Event "1" *-[#595959,plain]-> "category\n1" ActivityCategory
+Event "1" *-[#595959,plain]-> "location\n1" Location
+Event "1" *-[#595959,plain]-> "user\n1" User
+Event "1" *-[#595959,plain]-> "task\n1" Task
+Event "1" *-[#595959,plain]-> "departures\n*" TravelTime
+Event "1" *-[#595959,plain]-> "arrivals\n*" TravelTime
 
 @enduml
 !pragma useVerticalIf on
