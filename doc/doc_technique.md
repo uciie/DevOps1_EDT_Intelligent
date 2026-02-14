@@ -171,6 +171,32 @@ Permet de partager des tâches et d'inviter des membres dans une équipe.
 
 ---
 
+### Synchronisation avec Google Agenda
+
+La synchronisation bidirectionnelle avec Google Agenda repose sur le protocole OAuth 2.0 et l'API Google Calendar v3. Elle s'articule autour de trois services Spring Boot : `UserService`, `CalendarSyncService` et `SyncDelegateService`.
+
+#### Authentification OAuth 2.0
+
+Lors du premier accès, le frontend redirige l'utilisateur vers la page de consentement Google avec les scopes `calendar.readonly` et `calendar.events`. Au retour, le composant `GoogleCallback.jsx` transmet le code d'autorisation au backend via `POST /api/users/{id}/google-auth`. `UserService.saveGoogleTokens()` échange ce code contre un `access_token` et un `refresh_token`, tous deux persistés en base. Le `refresh_token` n'étant fourni par Google qu'à la première autorisation, il est conservé indéfiniment pour permettre le renouvellement silencieux de l'`access_token`. La déconnexion est assurée par `DELETE /api/users/{id}/google-auth`, qui efface les deux tokens en base.
+
+#### Push automatique (Local → Google)
+
+Chaque modification ou suppression d'événement dans l'application déclenche, en fin de traitement, un appel à `SyncDelegateService.syncEventToGoogle()`. Ce service vérifie d'abord la présence d'un `refresh_token` valide pour l'utilisateur. Si le token est absent, l'opération est ignorée silencieusement et l'événement conserve son statut `PENDING` en base. Si le token est présent, `GoogleCalendarService` renouvelle l'`access_token` si nécessaire, puis appelle l'API Google Calendar (`PATCH` pour une mise à jour, `DELETE` pour une suppression). L'appel est exécuté dans une transaction indépendante (`@Transactional(propagation = REQUIRES_NEW)`) afin qu'un échec réseau ne compromette pas la persistance locale. Le statut de l'événement est mis à jour en `SYNCED` en cas de succès.
+
+#### Pull manuel (Google → Local)
+
+Le bouton **"Synchro Google"** déclenche `CalendarSyncService.syncFromGoogle()` via `POST /api/events/sync`. Le service récupère depuis l'API Google Calendar tous les événements modifiés après le champ `lastSyncDate` de l'utilisateur. Pour chaque événement distant, la méthode `CalendarImportService.pullEventsFromGoogle()` vérifie si un événement local correspondant existe (par `googleEventId`). Les événements dont le statut local est `PENDING` sont ignorés afin de préserver les modifications locales non encore poussées. Pour les autres, la date de dernière modification (`updatedAt`) est comparée à celle retournée par Google pour détecter un conflit éventuel. `lastSyncDate` est mis à jour en fin de traitement.
+
+#### Détection et résolution des conflits
+
+Un conflit est déclaré lorsqu'un événement local présente un `updatedAt` postérieur à la `lastSyncDate` **et** que la version Google a également été modifiée depuis cette même date. `CalendarSyncService.detectConflicts()` constitue la liste des conflits et la retourne au frontend. L'interface affiche une modale de résolution permettant à l'utilisateur de choisir la version à conserver (`KEEP_LOCAL` ou `KEEP_GOOGLE`) ou de fusionner les champs manuellement. Le choix est transmis via `POST /api/events/sync/resolve`, qui applique la stratégie sélectionnée et met à jour le statut de l'événement en `SYNCED`.
+
+#### Diagramme de séquence
+
+![Synchronisation bidirectionnelle Google Agenda](uml/sequence_SyncGoogle.png)
+
+---
+
 ## Tests et Qualité Logicielle
 
 Le projet suit une approche de développement piloté par les tests (TDD).
