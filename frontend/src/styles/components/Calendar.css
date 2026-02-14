@@ -328,3 +328,65 @@
   background: var(--primary-600);
   transform: scale(1.1);
 }
+
+/* ── Ligne titre + badge ───────────────────────────────────── */
+.event-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  min-width: 0; /* important : permet au titre de tronquer proprement */
+}
+
+.event-header-row .event-summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Badge générique ───────────────────────────────────────── */
+.event-source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 5px;
+  border-radius: 999px;         /* pill shape */
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;               /* ne se rétrécit jamais */
+  line-height: 1.4;
+  opacity: 0.92;
+  transition: opacity 0.2s;
+}
+
+.calendar-event:hover .event-source-badge {
+  opacity: 1;
+}
+
+/* ── Badge Google : blanc sur fond coloré Google ───────────── */
+.badge-google {
+  background-color: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ── Badge Local : teinte neutre discrète ──────────────────── */
+.badge-local {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* ── Icône SVG dans le badge ───────────────────────────────── */
+.badge-icon {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  /* override du display:block de index.css */
+  display: inline-block !important;
+}
