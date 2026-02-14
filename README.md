@@ -58,6 +58,9 @@ Ce projet a été réalisé dans le cadre de notre cursus DevOps, avec pour obje
 3.  **Optimise et insère automatiquement** vos tâches à faire (To-Do List) dans les "trous" de votre emploi du temps, selon des règles de priorité et de durée.
 4.  **Calcul des temps de trajet** : Intégration avec Google Maps pour prévoir vos déplacements entre deux événements.
 5.  **Collaboration** : Système de gestion d'équipe avec invitations et partage d'activités.
+6. **Authentification OAuth 2.0** : Connexion sécurisée via votre compte Google.
+7. **Synchronisation Bidirectionnelle** : Importez vos calendriers Google et exportez vos événements locaux en un clic.
+8. **Gestion intelligente des conflits** : Interface dédiée pour choisir entre la version locale ou Google lors d'une détection de doublons ou de modifications contradictoires.
 
 ###  Public visé
 * **Étudiants :** Pour jongler entre les cours, les révisions et les projets de groupe sans conflit.
@@ -140,6 +143,8 @@ Le frontend est une SPA (Single Page Application) développée avec **React 19**
 
 Avant de configurer le projet, vous devez installer les environnements d'exécution sur votre machine.
 
+<span style="color:red">**Si besoin, il y a une [video tuto](https://www.youtube.com/watch?v=1TSkfovqWuQ)**</span>
+
 ### 1. Java 21 (JDK)
 
 Le backend utilise **Spring Boot 3.5.6**, qui nécessite Java 21.
@@ -211,9 +216,17 @@ DB_URL=jdbc:postgresql://<votre-host>/neondb?sslmode=require
 DB_USER=<votre-user>
 DB_PASSWORD=<votre-password>
 # Clé API : contacter l'équipe pour l'accès ou utiliser votre propre clé
+# Google Maps API 
 GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
 SPRING_PROFILES=external-api
+
+# Gemini AI API
 CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI
+
+# Google OAuth 2.0
+VOTRE_CLIENT_ID=VOTRE_CLE_GOOGLE_CLIENT
+VOTRE_SECRET_CLIENT=VOTRE_CLE_GOOGLE_CLIENT_SECRET
+
 ```
 
 ### 3. Configuration du Frontend (React + Vite)
@@ -227,6 +240,8 @@ Vite utilise des variables d'environnement préfixées par `VITE_` pour des rais
 # les même que celles du backend
 VITE_GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
 VITE_CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI 
+VITE_GOOGLE_CLIENT_ID=VOTRE_CLE_GOOGLE_CLIENT
+VITE_GOOGLE_REDIRECT_URI=VOTRE_CLE_GOOGLE_URI
 ```
 
 ### 4. Comment Obtenir les configurations du fichier .env
@@ -235,6 +250,8 @@ VITE_CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI
 DB_URL devrait ressembler à : `jdbc:postgresql:///neondb?sslmode=require&channel_binding=require DB_USER` devrait ressembler à : `neondb_owner`
 
 Pour obtenir l'api de google maps, [voir la documentation](./doc/README-MAPS.md)
+
+Pour obtenir l'api de google client, [voir la documentation](./doc/README-MAPS.md)
 
 Pour obtenir l'api de google ai studio, [voir la documentation](./doc/README-AI.md)
 

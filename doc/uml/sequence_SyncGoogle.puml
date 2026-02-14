@@ -1,0 +1,134 @@
+@startuml sequence_SyncGoogle
+
+title Synchronisation bidirectionnelle avec Google Agenda
+
+skinparam sequenceArrowThickness 1.5
+skinparam sequenceParticipantBorderColor #333333
+skinparam sequenceParticipantBackgroundColor #F0F4FF
+skinparam sequenceLifeLineBorderColor #999999
+skinparam sequenceGroupBorderColor #666666
+skinparam noteBorderColor #AAAAAA
+skinparam noteBackgroundColor #FFFDE7
+skinparam defaultFontName Arial
+
+actor       "Utilisateur"          as User
+participant "Frontend\n(React)"    as Front
+participant "CalendarSyncService"  as SyncSvc  #D6EAF8
+participant "CalendarImportService" as ImportSvc #D6EAF8
+participant "SyncDelegateService"  as Delegate  #D6EAF8
+participant "GoogleCalendarService" as GCalSvc   #E8F8E8
+participant "API Google Calendar"  as GoogleAPI  #F9EBEA
+database    "Base de données\n(PostgreSQL)" as DB
+
+== Déclenchement de la synchronisation manuelle ==
+
+User  -> Front    : Clic sur "Synchro Google"
+Front -> SyncSvc  : POST /api/events/sync
+
+SyncSvc -> DB : getUserWithTokens(userId)
+DB --> SyncSvc : user { refreshToken, lastSyncDate }
+
+alt refreshToken absent ou expiré
+    SyncSvc --> Front : 401 "Compte Google non lié"
+    Front --> User    : Affiche message d'erreur
+end
+
+== Phase PULL : rapatriement des événements Google ==
+
+SyncSvc -> GCalSvc  : refreshAccessTokenIfNeeded(refreshToken)
+GCalSvc -> GoogleAPI : POST /oauth2/v4/token
+GoogleAPI --> GCalSvc : access_token renouvelé
+
+SyncSvc -> GCalSvc  : fetchModifiedEvents(accessToken, lastSyncDate)
+GCalSvc -> GoogleAPI : GET /calendars/primary/events\n?updatedMin=lastSyncDate
+GoogleAPI --> GCalSvc : [ liste des événements modifiés ]
+GCalSvc --> SyncSvc  : List<GoogleEvent>
+
+loop Pour chaque événement Google
+    SyncSvc -> ImportSvc : processGoogleEvent(googleEvent)
+    ImportSvc -> DB       : findByGoogleEventId(id)
+    DB --> ImportSvc      : localEvent | null
+
+    alt Événement local en statut PENDING
+        note right of ImportSvc
+            Modification locale non encore poussée.
+            On ignore cet événement pour ne pas
+            écraser la version locale en attente.
+        end note
+        ImportSvc -> ImportSvc : skip (log "PENDING ignoré")
+    else Événement local SYNCED — vérification de conflit
+        ImportSvc -> ImportSvc : comparer localEvent.updatedAt\nvs googleEvent.updated\nvs lastSyncDate
+
+        alt Conflit détecté\n(les deux modifiés après lastSyncDate)
+            ImportSvc -> DB : addToConflictList(localEvent, googleEvent)
+            note right of ImportSvc
+                Conflit : les deux versions ont évolué
+                depuis la dernière synchronisation.
+                La résolution est déléguée à l'utilisateur.
+            end note
+        else Pas de conflit — version Google plus récente
+            ImportSvc -> DB : updateLocalEvent(googleEvent)
+            DB --> ImportSvc : localEvent { status=SYNCED }
+        end
+    end
+end
+
+== Résolution des conflits (si nécessaire) ==
+
+SyncSvc --> Front : 200 { syncedCount, conflicts: [...] }
+
+opt Des conflits ont été détectés
+    Front -> User  : Affiche modale de résolution\npour chaque conflit
+    User -> Front  : Choisit KEEP_LOCAL ou KEEP_GOOGLE
+
+    Front -> SyncSvc : POST /api/events/sync/resolve\n{ eventId, strategy }
+
+    alt strategy = KEEP_GOOGLE
+        SyncSvc -> DB : updateLocalEvent(googleVersion)
+        SyncSvc -> DB : setStatus(SYNCED)
+    else strategy = KEEP_LOCAL
+        SyncSvc -> Delegate : syncEventToGoogle(localEvent)
+        Delegate -> GCalSvc  : patchGoogleEvent(accessToken, event)
+        GCalSvc -> GoogleAPI : PATCH /calendars/primary/events/{id}
+        GoogleAPI --> GCalSvc : 200 OK
+        Delegate -> DB       : setStatus(SYNCED)
+    end
+
+    SyncSvc --> Front : 200 "Conflit résolu"
+    Front --> User    : Ferme la modale
+end
+
+== Phase PUSH automatique (Local → Google) ==
+
+note over User, DB
+    Cette phase se produit indépendamment, à chaque modification
+    locale (updateEvent / deleteEvent), pas uniquement lors du PULL.
+end note
+
+User  -> Front    : Modifie un événement local
+Front -> SyncSvc  : PUT /api/events/{id}
+SyncSvc -> DB     : save(event { status=PENDING })
+
+SyncSvc -> Delegate : syncEventToGoogle(savedEvent)\n[transaction REQUIRES_NEW]
+
+Delegate -> DB      : getUserRefreshToken(userId)
+DB --> Delegate     : refreshToken
+
+alt refreshToken absent
+    Delegate -> DB : laisser status=PENDING
+    note right of Delegate : L'utilisateur n'est pas connecté.\nLa modification reste locale.
+else refreshToken présent
+    Delegate -> GCalSvc  : pushEvent(accessToken, event)
+    GCalSvc -> GoogleAPI : PATCH ou DELETE\n/calendars/primary/events/{id}
+    GoogleAPI --> GCalSvc : 200 OK
+    Delegate -> DB        : setStatus(SYNCED)
+end
+
+SyncSvc --> Front : 200 { updatedEvent }
+Front --> User    : Mise à jour de l'interface
+
+== Mise à jour de lastSyncDate ==
+
+SyncSvc -> DB : updateLastSyncDate(userId, now())
+
+@enduml

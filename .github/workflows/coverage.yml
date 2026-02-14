@@ -15,6 +15,14 @@ jobs:
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+      CHATBOT_API_KEY: ${{ secrets.CHATBOT_API_KEY }}
+      VOTRE_CLIENT_ID: ${{ secrets.VOTRE_CLIENT_ID }}
+      VOTRE_SECRET_CLIENT: ${{ secrets.VOTRE_SECRET_CLIENT }}
+      # == frontend env vars (pour que les tests passent) ==
+      VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+      VITE_CHATBOT_API_KEY: ${{ secrets.CHATBOT_API_KEY }}
+      VITE_GOOGLE_CLIENT_ID: ${{ secrets.VOTRE_CLIENT_ID }}
+      VITE_GOOGLE_REDIRECT_URI: ${{ secrets.VOTRE_SECRET_CLIENT }}
 
     steps:
       - name: Checkout code

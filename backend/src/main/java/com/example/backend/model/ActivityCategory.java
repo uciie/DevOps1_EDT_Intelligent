@@ -18,6 +18,9 @@ public enum ActivityCategory {
     
     // Correspond à RencontreEvent
     RENCONTRE,
+
+    // Correspond à modeFocus
+    FOCUS,
     
     AUTRE;
 }

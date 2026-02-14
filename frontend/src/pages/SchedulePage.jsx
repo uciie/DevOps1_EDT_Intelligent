@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Calendar from '../components/Calendar';
 import TodoList from '../components/TodoList';
 import EventForm from '../components/form/EventForm';
@@ -8,8 +8,12 @@ import { getUserId} from '../api/userApi';
 import { getUserTasks, getDelegatedTasks, createTask, updateTask, deleteTask, planifyTask, reshuffleSchedule } from '../api/taskApi';
 import { createEvent, getUserEvents, updateEvent, deleteEvent } from '../api/eventApi';
 import { getMyTeams, createTeam, inviteUserToTeam, removeMemberFromTeam, deleteTeam } from '../api/teamApi';
+import ConflictModal from '../components/ConflictModal';
+import GoogleSyncStatus from '../components/GoogleSyncStatus';
+import { syncGoogleCalendar } from '../api/syncApi';
 import '../styles/pages/SchedulePage.css';
 import ChatAssistant from '../components/ChatAssistant';
+import { useNavigate } from 'react-router-dom';
 
 // Helper pour normaliser les données (gérer content, data ou array direct)
 const normalizeData = (response) => {
@@ -75,6 +79,13 @@ function SchedulePage() {
   const [newTeamName, setNewTeamName] = useState('');
   const [inviteUsername, setInviteUsername] = useState('');
 
+  // État pour indiquer si une synchronisation est en cours (pour désactiver le bouton et éviter les appels concurrents)
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // États pour les conflits de synchronisation (affichage de la modale)
+  const [conflicts, setConflicts] = useState([]);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+  const navigate = useNavigate();
 
   // Helper pour afficher une notification
   const showNotification = (message, type = 'success') => {
@@ -97,69 +108,63 @@ function SchedulePage() {
       day: date.toISOString().split('T')[0], // Utilisé pour comparer les jours
       hour: date.getHours(),   // Utilisé pour placer dans la grille horaire
       // Assure qu'on a toujours un texte à afficher (Backend utilise 'summary', Task utilise 'title')
-      summary: evt.summary || evt.title || "Sans titre"
+      summary: evt.summary || evt.title || "Sans titre",
+      source: evt.source || 'LOCAL' // Important pour l'affichage conditionnel
     };
   };
 
-  useEffect(() => {
-    const loadUserData = async () => {
-      try {
+  // Fonction extraite pour pouvoir être rappelée après une synchro
+  const loadUserData = async (userOverride = null) => {
+    const user = userOverride || currentUser;
+    if (!user) return;
+
+    try {
         setLoading(true);
-        setPageError(null);
-
-        const user = getCurrentUser();
-        if (!user) {
-          setPageError("Utilisateur non connecté");
-          return;
-        }
-
-        setCurrentUser(user);
-
-        // --- 1. CHARGEMENT DES DONNÉES UTILISATEUR (Tâches + Events) ---
-        
-        //Chargement parallèle des tâches assignées ET déléguées
+        // 1. Tâches
         const [rawTasksResponse, rawDelegatedResponse] = await Promise.all([
           getUserTasks(user.id),
           getDelegatedTasks(user.id)
         ]);
-
         const myTasks = normalizeData(rawTasksResponse);
         const delegatedTasks = normalizeData(rawDelegatedResponse);
-
-        // Fusionner les listes en évitant les doublons (via Map par ID)
         const allTasksMap = new Map();
         myTasks.forEach(t => allTasksMap.set(t.id, t));
         delegatedTasks.forEach(t => allTasksMap.set(t.id, t));
-
-        // Convertir la Map en tableau pour le state
         setTasks(Array.from(allTasksMap.values()));
 
-        // --- 2. CHARGEMENT DES ÉVÉNEMENTS ---
+        // 2. Événements
         const rawEventsData = await getUserEvents(user.id);
         const eventsArray = Array.isArray(rawEventsData) ? rawEventsData : [];
-
         const loadedEvents = eventsArray.map(evt => formatEventForCalendar(evt));
         setEvents(loadedEvents);
 
-        // --- CHARGEMENT DES ÉQUIPES ---
-        try {
-            const teamsResponse = await getMyTeams(user.id);
-            const myTeams = normalizeData(teamsResponse);
-            setTeams(myTeams);
-        } catch (teamErr) {
-            console.warn("Impossible de charger les équipes", teamErr);
-            setTeams([]); 
+        // 3. Équipes (seulement au premier chargement si nécessaire)
+        if(!teams.length) {
+            try {
+                const teamsResponse = await getMyTeams(user.id);
+                setTeams(normalizeData(teamsResponse));
+            } catch (teamErr) { setTeams([]); }
         }
-
-      } catch (err) {
-        console.error("Erreur lors du chargement des données:", err);
-        setPageError("Impossible de charger vos données");
-      } finally {
+    } catch (err) {
+        console.error("Erreur loadUserData:", err);
+        setPageError("Impossible de charger les données");
+    } finally {
         setLoading(false);
-      }
-    };
+    }
+  };
 
-    loadUserData();
+  useEffect(() => {
+    const init = async () => {
+        const user = getCurrentUser();
+        if (!user) {
+          setPageError("Utilisateur non connecté");
+          setLoading(false);
+          return;
+        }
+        setCurrentUser(user);
+        await loadUserData(user);
+    };
+    init();
   }, []);
 
   // --- GESTION DES ÉQUIPES ---
@@ -206,212 +211,239 @@ function SchedulePage() {
             return t;
         });
         setTeams(updatedTeams);
-        if (selectedTeam && selectedTeam.id === teamId) {
-            setSelectedTeam(updatedTeams.find(t => t.id === teamId));
-        }
-        showNotification("Membre retiré avec succès.", "success");
-    } catch (error){
-        const msg = error.response?.data || "Impossible de retirer le membre.";
-        showNotification(msg, "error");
+        showNotification("Membre retiré avec succès", "success");
+    } catch {
+        showNotification("Erreur suppression membre", "error");
     }
   };
 
   const handleDeleteTeam = async (teamId) => {
-    if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette équipe définitivement ?")) return;
-    try {
-        await deleteTeam(teamId, currentUser.id);
-        const updatedTeams = teams.filter(t => t.id !== teamId);
-        setTeams(updatedTeams);
-        if (selectedTeam && selectedTeam.id === teamId) {
-            setSelectedTeam(null);
-        }
-        showNotification("Équipe supprimée.", "success");
-    } catch (error) {
-        showNotification(error.response?.data?.message || "Erreur suppression équipe", "error");
-    }
-  };
-
-
-  // --- GESTION DES TÂCHES ---
-
-  const handleAddTask = async (taskData) => {
-    try {
-      const newTask = {
-        ...taskData,
-        userId: currentUser.id,
-        completed: false,
-        scheduledTime: null
-      };
-      const createdTask = await createTask(newTask);
-      setTasks([...tasks, createdTask]);
-      showNotification("Tâche ajoutée avec succès !", "success");
-      return createdTask;
-    } catch (err){
-      showNotification("Impossible d'ajouter la tâche", "error");
-      throw err;
-    }
-  };
-
-  const handleEditTask = async (taskId, editData) => {
-    try {
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
-      const taskToUpdate = {
-        ...task,
-        title: editData.title,
-        estimatedDuration: editData.estimatedDuration,
-        priority: editData.priority
-      };
-      const savedTask = await updateTask(taskId, taskToUpdate);
-      if (savedTask) {
-        setTasks(tasks.map(t => t.id === taskId ? savedTask : t));
-        if (task.scheduledTime) {
-          const relatedEvent = events.find(e => e.taskId === taskId);
-          if (relatedEvent) {
-            const startTime = new Date(task.scheduledTime);
-            const endTime = new Date(startTime);
-            endTime.setMinutes(endTime.getMinutes() + editData.estimatedDuration);
-            const updatedEvent = {
-              ...relatedEvent,
-              title: editData.title,
-              endTime: endTime.toISOString(),
-              priority: editData.priority
-            };
-            setEvents(events.map(e => e.id === relatedEvent.id ? updatedEvent : e));
-          }
-        }
-        showNotification("Tâche modifiée !", "success");
+      if (!window.confirm("Voulez-vous vraiment supprimer cette équipe ?")) return;
+      try {
+          await deleteTeam(teamId, currentUser.id);
+          setTeams(teams.filter(t => t.id !== teamId));
+          if (selectedTeam?.id === teamId) setSelectedTeam(null);
+          showNotification("Équipe supprimée avec succès", "success");
+      } catch {
+          showNotification("Erreur suppression équipe", "error");
       }
+  };
+
+  // --- GESTION TÂCHES ---
+
+  const handleAddTask = async (taskInput) => {
+    if (!currentUser) return;
+    try {
+      const newTaskPayload = {
+        title: taskInput.title,
+        description: taskInput.description || '',
+        duration: taskInput.duration || 60,
+        deadline: taskInput.deadline || null,
+        priority: taskInput.priority || 'NORMAL',
+        category: taskInput.category || 'PERSONAL',
+        teamId: selectedTeam ? selectedTeam.id : null,
+        location: taskInput.location || null,
+        useGoogleMaps: getGoogleMapsPreference(),
+      };
+      const created = await createTask(newTaskPayload, currentUser.id);
+      setTasks([...tasks, created]);
+      showNotification("Tâche ajoutée avec succès", "success");
     } catch {
-      showNotification("Impossible de modifier la tâche", "error");
+      showNotification("Erreur lors de l'ajout de la tâche", "error");
+    }
+  };
+
+  const handleEditTask = async (taskId, updatedData) => {
+    const taskToUpdate = tasks.find(t => t.id === taskId);
+    if (!taskToUpdate) return;
+
+    const updatedPayload = {
+      ...taskToUpdate,
+      ...updatedData,
+      useGoogleMaps: getGoogleMapsPreference(),
+    };
+
+    try {
+      await updateTask(taskId, updatedPayload, currentUser.id);
+      setTasks(tasks.map(t => (t.id === taskId ? { ...t, ...updatedData } : t)));
+      showNotification("Tâche modifiée avec succès", "success");
+    } catch {
+      showNotification("Erreur lors de la modification", "error");
     }
   };
 
   const handleToggleTask = async (taskId) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
     try {
-      const task = tasks.find(t => t.id === taskId);
-      if (!task) return;
-      const updatedTask = { ...task, completed: !task.completed };
-      console.log("Mise à jour de la tâche :", updatedTask);
-      await updateTask(taskId, updatedTask, currentUser.id);
-      setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
+      const newStatus = task.status === 'COMPLETED' ? 'TODO' : 'COMPLETED';
+      await updateTask(taskId, { ...task, status: newStatus }, currentUser.id);
+      setTasks(tasks.map(t => (t.id === taskId ? { ...t, status: newStatus } : t)));
+      showNotification("Tâche mise à jour", "success");
     } catch {
-      showNotification("Impossible de mettre à jour la tâche", "error");
+      showNotification("Erreur mise à jour", "error");
     }
   };
 
   const handleDeleteTask = async (taskId) => {
+    if (!window.confirm("Voulez-vous vraiment supprimer cette tâche ?")) return;
     try {
       await deleteTask(taskId, currentUser.id);
       setTasks(tasks.filter(t => t.id !== taskId));
-      setEvents(events.filter(e => e.taskId !== taskId));
-      showNotification("Tâche supprimée", "success");
+      setEvents(events.filter(evt => evt.taskId !== taskId));
+      showNotification("Tâche supprimée avec succès", "success");
     } catch {
-      showNotification("Impossible de supprimer la tâche", "error");
+      showNotification("Erreur suppression", "error");
     }
   };
 
-  const handleDropTaskOnCalendar = async (taskId) => {
+  const handleDropTaskOnCalendar = async (taskId, day, hour) => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    const startTime = new Date(day);
+    startTime.setHours(hour, 0, 0, 0);
+    const duration = task.duration || 60;
+
     try {
-      // 2. Appeler le service backend 'planifyTask' avec NULL pour déclencher la logique First-Fit.
-      const plannedTask = await planifyTask(taskId, null, null); 
+      const planified = await planifyTask(taskId, startTime.toISOString(), currentUser.id);
+      const updatedTask = { ...task, scheduledTime: startTime.toISOString() };
+      setTasks(tasks.map(t => t.id === taskId ? updatedTask : t));
 
-      // 3. Mettre à jour les états locaux avec la réponse du backend
-      setTasks(tasks.map(t => t.id === taskId ? plannedTask : t));
-
-      if (!plannedTask.event) {
-          throw new Error("Le service de planification n'a pas retourné l'événement créé.");
+      if (planified && planified.event) {
+        const newEvent = formatEventForCalendar(planified.event);
+        setEvents([...events.filter(e => e.taskId !== taskId), newEvent]);
+        showNotification("Tâche planifiée avec succès", "success");
       }
-      
-      const newEvent = formatEventForCalendar({
-        id: plannedTask.event.id,
-        taskId: plannedTask.id, 
-        title: plannedTask.title,
-        startTime: plannedTask.event.startTime, 
-        endTime: plannedTask.event.endTime,
-        priority: plannedTask.priority,
-      });
-      
-      setEvents([...events, newEvent]);
-      showNotification("Tâche planifiée automatiquement !", "success");
     } catch {
-      showNotification("Impossible de planifier la tâche automatiquement", "error");
+      showNotification("Erreur lors de la planification", "error");
     }
   };
 
-  // --- GESTION DES ÉVÉNEMENTS ---
+  // --- GESTION ÉVÉNEMENTS MANUELS ---
 
   const handleCellClick = (day, hour) => {
-    setEventToEdit(null); // Mode création
     setSelectedDate(day);
     setSelectedHour(hour);
     setIsEventFormOpen(true);
   };
 
   const handleOpenEditModal = (event) => {
-    setEventToEdit(event); // Mode édition
-    setSelectedDate(null);
-    setIsEventFormOpen(true);
+      setEventToEdit(event);
+      setIsEventFormOpen(true);
   };
 
   const handleSaveEvent = async (eventData) => {
+    // On utilise directement ces valeurs au lieu de reconstruire depuis day/hour
+    
+    console.log("Données reçues de EventForm:", eventData);
+
+    // Validation : s'assurer que startTime et endTime existent
+    if (!eventData.startTime || !eventData.endTime) {
+      showNotification("Dates de début et de fin requises", "error");
+      console.error("startTime ou endTime manquant:", eventData);
+      return;
+    }
+
+    // Ajouter userId au payload
+    const payload = {
+      ...eventData,
+      userId: currentUser.id, 
+    };
+
     try {
-      const useGoogleMaps = getGoogleMapsPreference();
       if (eventToEdit) {
-        const eventId = eventToEdit.id;
-        const updatedEventPayload = { ...eventToEdit, ...eventData };
-        const savedEvent = await updateEvent(eventId, updatedEventPayload, useGoogleMaps);
-        const formattedEvent = formatEventForCalendar(savedEvent);
-        formattedEvent.color = eventData.color || eventToEdit.color;
-        setEvents(events.map(e => e.id === eventId ? formattedEvent : e));
-        showNotification("Événement modifié !", "success");
+        // Modification
+        const updated = await updateEvent(eventToEdit.id, payload);
+        setEvents(events.map(evt => evt.id === updated.id ? formatEventForCalendar(updated) : evt));
+        showNotification("Événement modifié avec succès", "success");
       } else {
-        const newEventPayload = { ...eventData, userId: currentUser.id };
-        const createdEvent = await createEvent(newEventPayload, useGoogleMaps);
-        const formattedEvent = formatEventForCalendar(createdEvent);
-        formattedEvent.color = eventData.color;
-        setEvents(prev => [...prev, formattedEvent]);
-        showNotification("Événement créé avec succès !", "success");
+        // Création - CORRECTION : On n'envoie plus userId comme 2ème paramètre
+        const created = await createEvent(payload);
+        setEvents([...events, formatEventForCalendar(created)]);
+        showNotification("Événement créé avec succès", "success");
       }
       setIsEventFormOpen(false);
       setEventToEdit(null);
-    } catch (error){
-      const msg = error.response?.data || "Impossible de sauvegarder l'événement";
-      showNotification(msg, "error");
+    } catch (error) {
+      showNotification(eventToEdit ? "Erreur modification" : "Erreur création", "error");
     }
   };
 
+  /**
+   * Met à jour un événement existant
+   * Utilisé par ConflictModal pour sauvegarder les modifications
+   */
+  const handleUpdateEvent = async (eventId, eventData) => {
+    try {
+      // Appel API
+      const updated = await updateEvent(eventId, eventData);
+      
+      // Mise à jour de la liste locale des événements
+      setEvents(prevEvents => 
+        prevEvents.map(evt => 
+          evt.id === eventId ? formatEventForCalendar(updated) : evt
+        )
+      );
+      
+      // Notification de succès
+      showNotification("Événement modifié avec succès", "success");
+      
+      return updated;
+    } catch (error) {
+      console.error('[UPDATE] Erreur mise à jour événement:', error);
+      showNotification("Erreur lors de la modification", "error");
+      throw error;
+    }
+  };
+
+  // Suppression d'un événement et de ses conflits associés
   const handleDeleteEvent = async (eventId) => {
     try {
-      const event = events.find(e => e.id === eventId);
-      if (!event) return;
+      // Appel API
       await deleteEvent(eventId);
-      if (event.taskId) {
-        const task = tasks.find(t => t.id === event.taskId);
-        if (task) {
-          const updatedTask = { ...task, scheduledTime: null };
-          await updateTask(event.taskId, updatedTask, currentUser.id);
-          setTasks(tasks.map(t => t.id === event.taskId ? updatedTask : t));
-        }
+      
+      // Retrait de la liste locale
+      setEvents(prevEvents => prevEvents.filter(e => e.id !== eventId));
+      
+      // Retrait des conflits associés
+      setConflicts(prevConflicts => 
+        prevConflicts.filter(c => 
+          c.eventId !== eventId && c.conflictingWithId !== eventId
+        )
+      );
+      
+      // Si plus de conflits, fermer la modal
+      const remainingConflicts = conflicts.filter(c => 
+        c.eventId !== eventId && c.conflictingWithId !== eventId
+      );
+      
+      if (remainingConflicts.length === 0) {
+        setShowConflictModal(false);
+        showNotification("Tous les conflits ont été résolus", "success");
+      } else {
+        showNotification("Événement supprimé", "success");
       }
-      setEvents(events.filter(e => e.id !== eventId));
-      showNotification("Événement supprimé", "success");
-    } catch {
-      showNotification("Impossible de supprimer l'événement", "error");
+    } catch (error) {
+      console.error('[DELETE] Erreur suppression événement:', error);
+      showNotification("Erreur lors de la suppression", "error");
+      throw error;
     }
   };
 
   const handleMoveEvent = async (eventId, newDay, newHour) => {
-    try {
-      const event = events.find(e => e.id === eventId);
-      if (!event || !event.taskId) return;
-      const task = tasks.find(t => t.id === event.taskId);
-      if (!task) return;
+    const event = events.find(e => e.id === eventId);
+    if (!event || !event.taskId) return;
 
+    const task = tasks.find(t => t.id === event.taskId);
+    if (!task) return;
+
+    try {
       const startTime = new Date(newDay);
       startTime.setHours(newHour, 0, 0, 0);
-      const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + (task.estimatedDuration || 60));
+      const duration = task.duration || 60;
+      const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
 
       const updatedEvent = {
         ...event,
@@ -454,6 +486,107 @@ function SchedulePage() {
     }
   };
 
+  // --- GESTION SYNCHRO GOOGLE CALENDAR (CORRIGÉE) ---
+  const handleSyncGoogle = async () => {
+    if (!currentUser) {
+      showNotification("Utilisateur non connecté", "error");
+      return;
+    }
+
+    // Empêcher les appels concurrents
+    if (isSyncing) {
+      return;
+    }
+
+    try {
+      setIsSyncing(true);
+      showNotification("Synchronisation avec Google en cours...", "info");
+      
+      // Appel de l'API de synchronisation
+      const result = await syncGoogleCalendar(currentUser.id);
+      
+      // CAS 1 : Succès
+      if (result && result.success) {
+        // RECHARGEMENT IMPORTANT : Récupérer les nouveaux événements importés
+        await loadUserData(currentUser);
+        
+        showNotification(
+          result.message || "Calendrier synchronisé avec succès !", 
+          "success"
+        );
+        // Fermer la modal si elle était ouverte
+        if (showConflictModal) {
+          setShowConflictModal(false);
+          setConflicts([]);
+        }
+      }
+      // CAS 2 : Conflits détectés
+      else if (result && result.hasConflicts) {
+        setConflicts(result.conflicts || []);
+        setShowConflictModal(true);
+        showNotification(
+          `${result.conflictCount} conflit(s) détecté(s). Veuillez les résoudre.`,
+          "error"
+        );
+      }
+      // CAS 3 : Erreur nécessitant une reconnexion
+      else if (result && result.needsReauth) {
+        showNotification(
+          result.message || "Reconnexion à Google nécessaire",
+          "error"
+        );
+        // Proposer de rediriger vers la page de configuration
+        setTimeout(() => {
+          if (window.confirm("Votre connexion Google a expiré. Voulez-vous vous reconnecter maintenant ?")) {
+            navigate('/setup');
+          }
+        }, 1000);
+      }
+      // CAS 4 : Erreur retryable
+      else if (result && result.retryable) {
+        showNotification(
+          result.message || "Erreur temporaire. Réessayez plus tard.",
+          "error"
+        );
+        // Optionnel : proposer de réessayer automatiquement
+        setTimeout(() => {
+          if (window.confirm("Voulez-vous réessayer la synchronisation maintenant ?")) {
+            handleSyncGoogle();
+          }
+        }, 2000);
+      }
+      // CAS 5 : Autre erreur
+      else {
+        showNotification(
+          result?.message || "Échec de la synchronisation.",
+          "error"
+        );
+      }
+    } catch (error) {
+      console.error("[SYNC] Erreur de synchronisation:", error);
+      showNotification(
+        error.message || "Erreur inattendue lors de la synchronisation",
+        "error"
+      );
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+  
+  // Fonction pour fermer la modal de conflits
+  const handleCloseConflictModal = () => {
+    setShowConflictModal(false);
+    // Ne pas vider les conflits immédiatement pour permettre l'animation de sortie
+    setTimeout(() => {
+      setConflicts([]);
+    }, 300);
+  };
+
+  // Fonction pour naviguer vers la configuration
+  const handleNavigateToSetup = () => {
+    navigate('/setup');
+  };
+
   if (loading) {
     return (
       <div className="schedule-page">
@@ -484,7 +617,28 @@ function SchedulePage() {
                 {selectedTeam ? `Espace de travail : ${selectedTeam.name}` : "Votre espace personnel"}
             </p>
           </div>
-          <button className="btn-reshuffle" onClick={handleReshuffle}>Réorganiser l'agenda ⚡</button>
+          <div className="welcome-actions">
+                {/* Indicateur de statut Google */}
+                <GoogleSyncStatus 
+                  userId={currentUser.id} 
+                  onNavigateToSetup={handleNavigateToSetup}
+                />
+                
+            <div className="action-buttons">
+              <button className="btn-reshuffle" onClick={handleReshuffle} disabled={loading}>
+                ⚡ Réorganiser
+              </button>
+
+              {/* Bouton Synchro */}
+              <button 
+                className="btn-sync" 
+                onClick={handleSyncGoogle} 
+                disabled={isSyncing}
+              >
+                {isSyncing ? '🔄 Synchronisation...' : '🔄 Synchro Google'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -579,6 +733,17 @@ function SchedulePage() {
       <div className="chat-assistant-wrapper fixed bottom-6 right-6 z-50">
         <ChatAssistant />
       </div>
+
+      {/* Modal de gestion des conflits */}
+      {showConflictModal && (
+        <ConflictModal
+          conflicts={conflicts}
+          onClose={handleCloseConflictModal}
+          onSync={handleSyncGoogle}
+          onUpdateEvent={handleUpdateEvent}
+          onDeleteEvent={handleDeleteEvent}
+        />
+      )}
     </div>
   );
 }

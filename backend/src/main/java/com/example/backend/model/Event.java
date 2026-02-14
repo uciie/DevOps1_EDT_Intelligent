@@ -5,9 +5,12 @@ import java.util.List;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hibernate.annotations.Index;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -30,7 +33,11 @@ public class Event {
     private Long id;
 
     private String summary;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime startTime;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime endTime;
 
     @Enumerated(EnumType.STRING)
@@ -57,6 +64,31 @@ public class Event {
 
     @Enumerated(EnumType.STRING)
     private EventStatus status = EventStatus.PLANNED;
+
+    @Index(name = "idx_google_event_id")
+    private String googleEventId;
+
+    @Column(name = "last_synced_at")
+    private LocalDateTime lastSyncedAt;
+
+    @Enumerated(EnumType.STRING)
+    private EventSource source = EventSource.LOCAL; // LOCAL ou GOOGLE
+
+    @Column(name = "sync_status")
+    @Enumerated(EnumType.STRING)
+    private SyncStatus syncStatus = SyncStatus.SYNCED; // SYNCED, PENDING, CONFLICT
+
+    public enum EventSource {
+        LOCAL,
+        GOOGLE
+    }
+
+    public enum SyncStatus {
+        FAILED,
+        SYNCED,
+        PENDING,
+        CONFLICT
+    }
 
     public enum EventStatus {
         PLANNED,
@@ -159,6 +191,18 @@ public class Event {
     public void setCategory(ActivityCategory category) {
         this.category = category;
     }
+
+    public String getGoogleEventId() { return googleEventId; }
+    public void setGoogleEventId(String googleEventId) { this.googleEventId = googleEventId; }
+
+    public LocalDateTime getLastSyncedAt() { return lastSyncedAt; }
+    public void setLastSyncedAt(LocalDateTime lastSyncedAt) { this.lastSyncedAt = lastSyncedAt; }
+
+    public EventSource getSource() { return source; }
+    public void setSource(EventSource source) { this.source = source; }
+
+    public SyncStatus getSyncStatus() { return syncStatus; }
+    public void setSyncStatus(SyncStatus syncStatus) { this.syncStatus = syncStatus; }
 
     // --- Méthodes standard ---
 

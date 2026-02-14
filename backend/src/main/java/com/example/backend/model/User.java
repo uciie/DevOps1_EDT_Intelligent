@@ -37,6 +37,14 @@ public class User {
     @JsonIgnore // Important pour éviter les boucles infinies lors de la sérialisation JSON
     private Set<Team> teams = new HashSet<>();
 
+    // Champs pour stocker les tokens OAuth2 de Google
+    @Column(name = "google_access_token", length = 1024)
+    private String googleAccessToken;
+
+    // Champ pour stocker le refresh token de Google
+    @Column(name = "google_refresh_token", length = 1024)
+    private String googleRefreshToken;
+
     /**
      * Constructeur par défaut.
      */
@@ -91,4 +99,24 @@ public class User {
     // Ajoutez les getters/setters pour teams
     public Set<Team> getTeams() { return teams; }
     public void setTeams(Set<Team> teams) { this.teams = teams; }
+
+    // Getters et setters pour les tokens Google
+    public String getGoogleAccessToken() {
+        return googleAccessToken;
+    }
+    public void setGoogleAccessToken(String googleAccessToken) {
+        this.googleAccessToken = googleAccessToken;
+    }
+
+    public String getGoogleRefreshToken() {
+        return googleRefreshToken;
+    }
+    public void setGoogleRefreshToken(String googleRefreshToken) {
+        this.googleRefreshToken = googleRefreshToken;
+    }
+
+    // Méthode utilitaire pour vérifier si l'utilisateur est connecté à Google
+    public boolean isGoogleLinked() {
+        return this.googleAccessToken != null && !this.googleAccessToken.isEmpty();
+    }
 }

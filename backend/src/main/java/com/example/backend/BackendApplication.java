@@ -2,12 +2,16 @@ package com.example.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.retry.annotation.EnableRetry;
 
 /**
  * Classe principale de l'application backend.
  * Point d'entrée pour l'application Spring Boot.
  */
 @SpringBootApplication(scanBasePackages = "com.example")
+@EnableScheduling
+@EnableRetry
 public class BackendApplication {
 
     /**

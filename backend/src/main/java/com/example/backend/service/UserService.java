@@ -1,15 +1,30 @@
 package com.example.backend.service;
 
 import org.springframework.stereotype.Service;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.example.backend.model.User;
 import com.example.backend.repository.UserRepository;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserService {
+
+    @Value("${google.client.id}")
+    private String clientId;
+
+    @Value("${google.client.secret}")
+    private String clientSecret;
+
+    @Value("${google.redirect.uri}")
+    private String redirectUri;
 
     private final UserRepository userRepository;
 
@@ -110,5 +125,56 @@ public class UserService {
      */
     public User getUserByUsername(String username) {
         return userRepository.findByUsername(username).orElse(null);
+    }
+
+    /**
+     * Échange le code d'autorisation Google contre des tokens et les enregistre pour l'utilisateur.
+     * 
+     * @param userId l'ID de l'utilisateur
+     * @param code le code d'autorisation reçu de Google
+     * @return l'utilisateur mis à jour avec les tokens Google
+     * @throws IOException si une erreur survient lors de l'échange du code
+     */
+    public User saveGoogleTokens(Long userId, String code) throws IOException {
+        GoogleTokenResponse response = new GoogleAuthorizationCodeTokenRequest(
+                new NetHttpTransport(),
+                JacksonFactory.getDefaultInstance(),
+                "https://oauth2.googleapis.com/token",
+                clientId,
+                clientSecret,
+                code,
+                redirectUri)
+                .execute();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        user.setGoogleAccessToken(response.getAccessToken());
+        
+        // Le refresh token n'est envoyé par Google que lors de la première autorisation 
+        // ou si l'accès est forcé en mode "offline"
+        if (response.getRefreshToken() != null) {
+            user.setGoogleRefreshToken(response.getRefreshToken());
+        }
+
+        return userRepository.save(user);
+    }
+
+    /**
+     * Révoque l'accès Google de l'utilisateur en effaçant ses tokens en base.
+     * Note : Cette méthode n'appelle PAS l'API de révocation Google (optionnel,
+     * voir commentaire ci-dessous). Elle efface simplement les tokens localement.
+     *
+     * @param userId l'ID de l'utilisateur
+     * @return l'utilisateur mis à jour
+     */
+    public User unlinkGoogleAccount(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé avec l'ID: " + userId));
+
+        user.setGoogleAccessToken(null);
+        user.setGoogleRefreshToken(null);
+
+        return userRepository.save(user);
     }
 }
