@@ -255,7 +255,7 @@ public class CalendarImportService {
      * @param googleEvents La liste des événements actuellement présents sur Google Calendar
      * @return Le nombre d'événements supprimés
      */
-    @Transactional
+    
     private int deleteOrphanedGoogleEvents(User user, List<com.google.api.services.calendar.model.Event> googleEvents) {
         // 1. Extraire les googleEventId actuellement sur Google
         List<String> currentGoogleIds = googleEvents != null ? googleEvents.stream()

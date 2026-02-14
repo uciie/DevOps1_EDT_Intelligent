@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.List;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -171,9 +172,14 @@ class GoogleCalendarServiceTest {
         when(userRepository.findById(42L)).thenReturn(java.util.Optional.of(user));
 
         // find private CalendarOperation interface
-        Class<?> opIface = null;
+        Class<?> opIface = Arrays.stream(GoogleCalendarService.class.getDeclaredClasses())
+            .filter(Class::isInterface)
+            .filter(c -> "CalendarOperation".equals(c.getSimpleName()))
+            .findFirst()
+            .orElse(null);
+        assertThat(opIface).isNotNull();
         for (Class<?> c : GoogleCalendarService.class.getDeclaredClasses()) {
-            if (c.getSimpleName().equals("CalendarOperation")) {
+            if (c.isInterface() && c.getSimpleName().equals("CalendarOperation")) {
                 opIface = c;
                 break;
             }
@@ -223,10 +229,15 @@ class GoogleCalendarServiceTest {
         GoogleCalendarService spySvc = spy(service);
         doReturn(true).when(spySvc).refreshAccessToken(user);
 
-        // find CalendarOperation interface
-        Class<?> opIface = null;
+        // find private CalendarOperation interface
+        Class<?> opIface = Arrays.stream(GoogleCalendarService.class.getDeclaredClasses())
+            .filter(Class::isInterface)
+            .filter(c -> "CalendarOperation".equals(c.getSimpleName()))
+            .findFirst()
+            .orElse(null);
+        assertThat(opIface).isNotNull();
         for (Class<?> c : GoogleCalendarService.class.getDeclaredClasses()) {
-            if (c.getSimpleName().equals("CalendarOperation")) {
+            if (c.isInterface() && c.getSimpleName().equals("CalendarOperation")) {
                 opIface = c;
                 break;
             }

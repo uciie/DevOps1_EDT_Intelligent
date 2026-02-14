@@ -114,8 +114,6 @@ public class EventController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            // Log l'erreur pour debugging
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Erreur serveur : " + e.getMessage());
         }
@@ -138,7 +136,6 @@ public class EventController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Erreur serveur : " + e.getMessage());
         }
@@ -177,7 +174,6 @@ public class EventController {
             eventService.recalculateAllTravelTimes(userId, useGoogleMaps);
             return ResponseEntity.ok(Map.of("message", "Temps de trajets recalculés avec succès"));
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Erreur lors du recalcul : " + e.getMessage());
         }

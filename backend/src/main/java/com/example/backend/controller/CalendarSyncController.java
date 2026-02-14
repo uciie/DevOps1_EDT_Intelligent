@@ -50,6 +50,7 @@ public class CalendarSyncController {
     @PostMapping("/sync/pull/{userId}")
     public ResponseEntity<Map<String, Object>> pullNow(@PathVariable Long userId) {
         Map<String, Object> response = new HashMap<>();
+        String success = "success";
         
         try {
             log.info("[SYNC-MANUAL] Début de la synchronisation manuelle pour l'utilisateur {}", userId);
@@ -61,7 +62,7 @@ public class CalendarSyncController {
             // Vérification du token Google
             if (user.getGoogleAccessToken() == null || user.getGoogleAccessToken().isBlank()) {
                 log.warn("[SYNC-MANUAL] Utilisateur {} sans token Google", userId);
-                response.put("success", false);
+                response.put(success, false);
                 response.put("message", "Compte Google non lié. Veuillez vous connecter à Google Calendar.");
                 response.put("errorCode", "NO_GOOGLE_TOKEN");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
@@ -71,7 +72,7 @@ public class CalendarSyncController {
             calendarSyncService.syncUser(userId);
 
             log.info("[SYNC-MANUAL] Synchronisation bidirectionnelle réussie pour l'utilisateur {}", userId);
-            response.put("success", true);
+            response.put(success, true);
             response.put("message", "Synchronisation Google Calendar effectuée avec succès (bidirectionnelle)");
             response.put("userId", userId);
             response.put("timestamp", System.currentTimeMillis());
@@ -84,7 +85,7 @@ public class CalendarSyncController {
             
             SyncConflictDTO conflicts = e.getConflictDetails();
             
-            response.put("success", false);
+            response.put(success, false);
             response.put("message", "Des conflits de créneaux ont été détectés");
             response.put("errorCode", "SCHEDULE_CONFLICTS");
             response.put("conflicts", conflicts.getConflicts());
@@ -97,7 +98,7 @@ public class CalendarSyncController {
             log.error("[SYNC-MANUAL] Erreur API Google pour l'utilisateur {} : {} (Code: {})", 
                      userId, e.getMessage(), e.getErrorCode());
             
-            response.put("success", false);
+            response.put(success, false);
             response.put("message", e.getMessage());
             response.put("errorCode", e.getErrorCode());
             response.put("retryable", e.isRetryable());
@@ -128,7 +129,7 @@ public class CalendarSyncController {
         } catch (RuntimeException e) {
             log.error("[SYNC-MANUAL] Erreur lors de la synchronisation pour l'utilisateur {} : {}", 
                      userId, e.getMessage());
-            response.put("success", false);
+            response.put(success, false);
             response.put("message", "Erreur : " + e.getMessage());
             response.put("errorCode", "SYNC_FAILED");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
@@ -136,7 +137,7 @@ public class CalendarSyncController {
         } catch (Exception e) {
             log.error("[SYNC-MANUAL] Erreur inattendue pour l'utilisateur {} : {}", 
                      userId, e.getMessage(), e);
-            response.put("success", false);
+            response.put(success, false);
             response.put("message", "Une erreur inattendue s'est produite");
             response.put("errorCode", "UNEXPECTED_ERROR");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
