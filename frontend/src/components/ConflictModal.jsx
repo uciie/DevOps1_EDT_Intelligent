@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Edit, Trash2, Save, CheckCircle, X } from 'lucide-react';
 import '../styles/components/ConflictModal.css';
 

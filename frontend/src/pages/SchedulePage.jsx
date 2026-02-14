@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Calendar from '../components/Calendar';
 import TodoList from '../components/TodoList';
 import EventForm from '../components/form/EventForm';
@@ -305,7 +305,6 @@ function SchedulePage() {
     const startTime = new Date(day);
     startTime.setHours(hour, 0, 0, 0);
     const duration = task.duration || 60;
-    const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
 
     try {
       const planified = await planifyTask(taskId, startTime.toISOString(), currentUser.id);

@@ -21,7 +21,7 @@ vi.mock('react-router-dom', async () => {
   return {
     ...actual,
     useLocation: () => mockLocation,
-    Link: ({ children, to }) => <a href={to}>{children}</a>
+    Link: ({ children, to, ...props }) => <a href={to} {...props}>{children}</a>
   };
 });
 
@@ -357,15 +357,13 @@ describe('SetupPage', () => {
       const toggle = document.querySelector('.switch input[type="checkbox"]');
       await user.click(toggle);
 
-      // Then
+      // Then: wait for the success message, then wait for the real timeout-based redirect
       await waitFor(() => {
         expect(screen.getByText(/Mise à jour terminée/i)).toBeInTheDocument();
       }, { timeout: 3000 });
 
-      // La redirection se fait après 1 seconde
-      vi.advanceTimersByTime(1000);
-      
-      expect(window.location.href).toBe('/schedule');
+      // Wait for the actual redirection that occurs after 1s
+      await waitFor(() => expect(window.location.href).toBe('/schedule'), { timeout: 2000 });
     });
 
     it('⚠️ Devrait gérer les erreurs de recalcul', async () => {
@@ -416,7 +414,7 @@ describe('SetupPage', () => {
   // ═══════════════════════════════════════════════════════════════════════════
 
   describe('Notifications de succès', () => {
-    it('✅ Devrait afficher la notification si vient de GoogleCallback', () => {
+    it('✅ Devrait afficher la notification si vient de GoogleCallback', async () => {
       // Given
       mockLocation.state = { 
         success: true, 
@@ -430,8 +428,10 @@ describe('SetupPage', () => {
         </BrowserRouter>
       );
 
-      // Then
-      expect(screen.getByText(/Compte Google lié avec succès/i)).toBeInTheDocument();
+      // Then (notification set asynchronously inside useEffect)
+      await waitFor(() => {
+        expect(screen.getByText(/Compte Google lié avec succès/i)).toBeInTheDocument();
+      });
     });
 
     it('✅ Devrait afficher la notification de déconnexion', async () => {
@@ -479,7 +479,9 @@ describe('SetupPage', () => {
         </BrowserRouter>
       );
 
-      expect(screen.getByText(/Test notification/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/Test notification/i)).toBeInTheDocument();
+      });
 
       // Trouver et cliquer sur le bouton de fermeture
       const closeButtons = screen.getAllByRole('button');
@@ -544,7 +546,7 @@ describe('SetupPage', () => {
       window.location = { href: '' };
 
       // When - État initial déconnecté
-      const { rerender } = render(
+      const rendered = render(
         <BrowserRouter>
           <SetupPage />
         </BrowserRouter>
@@ -556,8 +558,11 @@ describe('SetupPage', () => {
 
       // Simulation de reconnexion après OAuth
       api.get.mockResolvedValueOnce({ data: connectedUser });
-      
-      rerender(
+
+      // Unmount and mount again so useEffect runs and fetches the new mocked user
+      rendered.unmount();
+
+      render(
         <BrowserRouter>
           <SetupPage />
         </BrowserRouter>
@@ -670,9 +675,11 @@ describe('SetupPage', () => {
       const toggle = document.querySelector('.switch input[type="checkbox"]');
       await user.click(toggle);
 
-      // Then
+      // Then - wait for the link to be disabled while loading
       const backLink = screen.getByRole('link', { name: /Retour à l'emploi du temps/i });
-      expect(backLink).toHaveClass('disabled');
+      await waitFor(() => {
+        expect(backLink).toHaveClass('disabled');
+      });
     });
   });
 });

@@ -25,6 +25,8 @@ function SetupPage() {
     const fetchData = async () => {
       const currentUser = getCurrentUser();
       if (currentUser) {
+        setUser(currentUser);
+
         try {
           // 1. On récupère les infos fraîches du backend pour voir si les tokens sont là
           const response = await api.get(`/users/username/${currentUser.username}`);
@@ -55,7 +57,13 @@ function SetupPage() {
     fetchData();
     
     const savedPref = localStorage.getItem("useGoogleMaps");
-    if (savedPref !== null) setUseGoogleMaps(JSON.parse(savedPref));
+    if (savedPref !== null) {
+      try {
+        setUseGoogleMaps(JSON.parse(savedPref));
+      } catch (e) {
+        console.warn('Invalid useGoogleMaps value in localStorage, ignoring.');
+      }
+    }
   }, [location]);
 
   // Fonction pour fermer la notification

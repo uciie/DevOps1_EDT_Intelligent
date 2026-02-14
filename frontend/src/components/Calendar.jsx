@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useDrop } from 'react-dnd';
 import { ITEM_TYPES } from '../constants';
-import { syncGoogleCalendar } from '../api/syncApi'
 import '../styles/components/Calendar.css';
 
 // Composant pour une cellule de calendrier

@@ -5,7 +5,6 @@ import './ConflictResolution.css';
 const ConflictResolution = ({ userId, onConflictsResolved }) => {
   const [conflicts, setConflicts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedConflict, setSelectedConflict] = useState(null);
 
   useEffect(() => {
     loadConflicts();
@@ -31,7 +30,6 @@ const ConflictResolution = ({ userId, onConflictsResolved }) => {
       
       // Recharger les conflits
       await loadConflicts();
-      setSelectedConflict(null);
       
       if (onConflictsResolved) {
         onConflictsResolved();

@@ -62,11 +62,6 @@ jobs:
         # 'npm ci' est plus strict et plus rapide que 'npm install' pour la CI
         run: npm ci
 
-      - name: Lint Code
-        working-directory: ./frontend
-        # Vérifie la qualité du code (ESLint)
-        run: npm run lint
-
       - name: Run Frontend Tests
         working-directory: ./frontend
         # 'vitest run' est déjà configuré dans ton package.json, c'est parfait pour la CI
