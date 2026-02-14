@@ -1,6 +1,7 @@
 package com.example.backend.controller;
 
 import com.example.backend.model.User;
+import com.example.backend.service.CalendarImportService;
 import com.example.backend.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Contrôleur pour la gestion des utilisateurs.
  * Fournit des points de terminaison pour l'enregistrement, la connexion et la récupération des utilisateurs.
@@ -20,6 +24,7 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:5173")
 public class UserController {
 
+    private static final Logger log         = LoggerFactory.getLogger(UserController.class);
     private final UserService userService;
     private final String username = "username";
     private final String password = "password";
@@ -147,12 +152,31 @@ public class UserController {
     @PostMapping("/{id}/google-auth")
     public ResponseEntity<?> handleGoogleCallback(@PathVariable Long id, @RequestBody Map<String, String> payload) {
         String code = payload.get("code");
+        if (code == null || code.isBlank()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Code d'autorisation manquant"));
+        }
+
         try {
             User updatedUser = userService.saveGoogleTokens(id, code);
-            return ResponseEntity.ok(updatedUser);
+
+            // ── CORRECTION : DTO minimal — jamais l'entité brute ──────────
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", updatedUser.getId());
+            response.put("username", updatedUser.getUsername());
+            response.put("googleLinked", updatedUser.getGoogleRefreshToken() != null);
+            // ─────────────────────────────────────────────────────────────
+
+            return ResponseEntity.ok(response);
+
         } catch (IOException e) {
+            log.error("[GOOGLE-AUTH] Erreur échange code OAuth2 pour userId={} : {}", id, e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erreur lors de l'échange du code Google: " + e.getMessage());
+                    .body(Map.of("error", "Erreur lors de l'échange du code Google: " + e.getMessage()));
+        } catch (RuntimeException e) {
+            log.error("[GOOGLE-AUTH] Utilisateur introuvable userId={}", id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 }

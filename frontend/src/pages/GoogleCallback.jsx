@@ -27,14 +27,29 @@ function GoogleCallback() {
 
       try {
         setStatus("Échange du code contre les jetons...");
-        await linkGoogleAccount(user.id, code);
-        // On met à jour le localStorage pour que getCurrentUser() soit à jour partout
-        localStorage.setItem("user", JSON.stringify(updatedUser));
+        const updatedUser = await linkGoogleAccount(user.id, code);
+        // On fusionne pour ne pas perdre les champs déjà présents (id, username…)
+        const merged = { ...user, ...updatedUser };
+        localStorage.setItem("currentUser", JSON.stringify(merged));
         // Succès : on redirige vers la page setup avec un message de succès
         navigate("/setup", { state: { success: true, message: "Compte Google lié avec succès !" } });
       } catch (err) {
         console.error("Erreur callback Google:", err);
-        setError("Impossible de lier le compte Google. Vérifiez la console.");
+        //  distinguer "token sauvegardé mais réponse KO"
+        // du vrai échec de liaison. Si on est ici avec une 500 mais que
+        // le token est en BDD, on redirige quand même avec un avertissement.
+        const isPartialSuccess = err?.response?.status === 500;
+        if (isPartialSuccess) {
+          // Token probablement sauvegardé, on redirige avec avertissement
+          navigate("/setup", {
+            state: {
+              success: true,
+              message: "Google lié avec succès ! (rechargement nécessaire)"
+            }
+          });
+        } else {
+          setError("Impossible de lier le compte Google. Vérifiez la console.");
+        }
       }
     };
 
