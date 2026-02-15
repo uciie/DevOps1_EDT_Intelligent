@@ -2,7 +2,8 @@ name: Release PDF Documentation
 
 on:
   release:
-    types: [created]
+    # Déclenche lors de la publication ou de la modification de la release
+    types: [published, edited]
   workflow_dispatch:
 
 jobs:
@@ -15,7 +16,7 @@ jobs:
   build-pdf:
     needs: generate-uml
     runs-on: ubuntu-latest
-    # Correction 1 : Ajout des permissions explicites pour écrire dans la release
+    # Ajout des permissions explicites pour écrire dans la release
     permissions:
       contents: write
     
@@ -39,15 +40,18 @@ jobs:
             --standalone
             doc/doc_technique.md
 
-      # Correction 2 : Vérification de l'existence du fichier avant l'upload
+      # Vérification de l'existence du fichier avant l'upload
       - name: Check file existence
         run: ls -l doc/doc_technique.pdf
 
       - name: Upload PDF to Release
-        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
+        # La condition permet l'exécution en mode release ET en mode manuel
+        if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         with:
-          # Utilisation de GITHUB_TOKEN automatique
+          # Chemin complet vers le fichier généré par Pandoc
           files: doc/doc_technique.pdf
+          # Force l'ID de la release ou du tag pour le mode manuel
+          tag_name: ${{ github.event.release.tag_name || github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
