@@ -50,6 +50,11 @@ public class GeminiService {
             - Modifier l'agenda : annuler un matin (`cancel_morning`),un midi ('cancel_noon'), un après-midi  (`cancel_afternoon`), ou un créneau précis (`cancel_events_slot`).
             - Organiser : déplacer une activité (`move_activity`) ou ajouter un événement (`add_event`).
             
+            Règles pour l'ajout d'événements :
+            1. Tu peux ajouter PLUSIEURS événements en une seule fois via `add_events_batch`.
+            2. Si l'utilisateur demande une RÉCURRENCE (ex: "Sport tous les lundis ce mois-ci"), tu dois CALCULER toutes les dates précises et les envoyer via `add_events_batch`.
+            3. Tu dois ASSIGNER une catégorie à chaque événement parmi : WORK, STUDY, SPORT, LEISURE, OTHER. Déduis la catégorie selon le titre (ex: "Réunion" -> WORK, "Foot" -> SPORT).
+
             Instructions :
             1. Formate toujours les dates et heures en ISO-8601 (YYYY-MM-DDTHH:mm:ss).
             2. Si une information est manquante (ex: l'heure pour un événement), demande-la précisément.
@@ -167,6 +172,30 @@ public class GeminiService {
 
         );
         
+        functionDeclarations.add(Map.of(
+        "name", "add_events_batch",
+        "description", "Ajoute une liste d'événements en une seule fois. Utile pour les récurrences ou les ajouts multiples.",
+        "parameters", Map.of(
+            "type", "OBJECT",
+            "properties", Map.of(
+                "events", Map.of(
+                    "type", "ARRAY",
+                    "description", "Liste des événements à ajouter",
+                    "items", Map.of(
+                        "type", "OBJECT",
+                        "properties", Map.of(
+                            "summary", Map.of("type", "STRING", "description", "Titre de l'événement"),
+                            "start", Map.of("type", "STRING", "description", "Date de début ISO-8601"),
+                            "end", Map.of("type", "STRING", "description", "Date de fin ISO-8601"),
+                            "category", Map.of("type", "STRING", "description", "Catégorie (WORK, STUDY, SPORT, LEISURE, OTHER)")
+                        ),
+                        "required", List.of("summary", "start", "end", "category")
+                    )
+                )
+            ),
+            "required", List.of("events")
+        )
+    ));
 
         // Payload final avec outils activés
         var requestBody = Map.of(
