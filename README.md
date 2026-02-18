@@ -8,7 +8,7 @@
 [![Build](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/build.yml/badge.svg)](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/build.yml)
 [![Tests & SonarCloud](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/test.yml/badge.svg)](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/test.yml)
 
-> **Emploi du temps intelligent** — Optimisation automatique de planning, import ICS et gestion de tâches.
+> **Emploi du temps intelligent** – Optimisation automatique de planning, import ICS et gestion de tâches.
 
 ---
 
@@ -24,7 +24,12 @@
     - [Prérequis Système](#prérequis-système)
     - [Backend (Java / Spring Boot)](#backend-java--spring-boot)
     - [Frontend (React / Vite)](#frontend-react--vite)
-  - [Installation des Prérequis Système](#installation-des-prérequis-système)
+  - [Installation avec Docker](#installation-avec-docker)
+    - [Prérequis](#prérequis)
+    - [Services orchestrés](#services-orchestrés)
+    - [Configuration des fichiers .env](#configuration-des-fichiers-env)
+    - [Lancement](#lancement)
+  - [Installation (SANS Docker) des Prérequis Système](#installation-sans-docker-des-prérequis-système)
     - [1. Java 21 (JDK)](#1-java-21-jdk)
     - [2. Node.js 22 \& NPM](#2-nodejs-22--npm)
     - [3. PostgreSQL](#3-postgresql)
@@ -139,7 +144,74 @@ Le frontend est une SPA (Single Page Application) développée avec **React 19**
 
 ---
 
-## Installation des Prérequis Système
+## Installation avec Docker
+
+Cette méthode est la plus simple pour lancer l'ensemble du projet en une seule commande, sans avoir à installer Java, Node.js ou PostgreSQL localement.
+
+### Prérequis
+
+* **[Docker](https://docs.docker.com/get-docker/)** (v20+)
+* **[Docker Compose](https://docs.docker.com/compose/install/)** (v2+ — inclus dans Docker Desktop)
+
+### Services orchestrés
+
+Le fichier `docker-compose.yaml` orchestre trois services :
+
+| Service | Description | Port exposé |
+| :--- | :--- | :--- |
+| `db` | Base de données PostgreSQL 15 | — |
+| `backend` | API Spring Boot | `8080` |
+| `frontend` | Interface React / Vite | `5173` |
+
+Le `backend` dépend de `db`, et le `frontend` dépend du `backend`. Docker Compose gère automatiquement l'ordre de démarrage.
+
+### Configuration des fichiers .env
+
+Avant de lancer Docker, vous devez créer les deux fichiers `.env` suivants (ils sont chargés automatiquement par le `docker-compose.yaml` via `env_file`).
+
+**`./backend/.env`**
+```properties
+DB_URL=jdbc:postgresql://<votre-host>/neondb?sslmode=require
+DB_USER=<votre-user>
+DB_PASSWORD=<votre-password>
+GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
+SPRING_PROFILES_ACTIVE=dev
+CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI
+VOTRE_CLIENT_ID=VOTRE_CLE_GOOGLE_CLIENT
+VOTRE_SECRET_CLIENT=VOTRE_CLE_GOOGLE_CLIENT_SECRET
+```
+
+**`./frontend/.env`**
+```properties
+VITE_GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
+VITE_CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI
+VITE_GOOGLE_CLIENT_ID=VOTRE_CLE_GOOGLE_CLIENT
+VITE_GOOGLE_REDIRECT_URI=VOTRE_CLE_GOOGLE_URI
+```
+
+> Pour obtenir ces clés, référez-vous à la section [Comment Obtenir les configurations du fichier .env](#4-comment-obtenir-les-configurations-du-fichier-env) ci-dessous.
+
+### Lancement
+
+Depuis la racine du projet :
+
+```bash
+docker compose up --build
+```
+
+L'application sera accessible sur **http://localhost:5173** et l'API backend sur **http://localhost:8080**.
+
+Pour arrêter les services :
+
+```bash
+docker compose down
+```
+
+> **Mode watch (développement) :** Le `docker-compose.yaml` est configuré avec `develop.watch`, ce qui permet la synchronisation automatique des fichiers sources (`./frontend/src` et `./backend/src`) sans avoir à rebuilder l'image entière à chaque modification.
+
+---
+
+## Installation (SANS Docker) des Prérequis Système 
 
 Avant de configurer le projet, vous devez installer les environnements d'exécution sur votre machine.
 
@@ -218,7 +290,8 @@ DB_PASSWORD=<votre-password>
 # Clé API : contacter l'équipe pour l'accès ou utiliser votre propre clé
 # Google Maps API 
 GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
-SPRING_PROFILES=external-api
+#SPRING_PROFILES=external-api
+SPRING_PROFILES_ACTIVE=dev
 
 # Gemini AI API
 CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI
@@ -308,8 +381,4 @@ npm run dev
 ## Kanban
 [Kanban](https://trello.com/invite/b/696e35985f2da4aedf80f810/ATTIfd33f201485e160c93be5212ebf775a6130CAEEF/devopsprof)
 
-> Projet universitaire M1 MIAGE 2024-2025 — Université Paris Nanterre.
-
-
-
-
+> Projet universitaire M1 MIAGE 2024-2025 – Université Paris Nanterre.
