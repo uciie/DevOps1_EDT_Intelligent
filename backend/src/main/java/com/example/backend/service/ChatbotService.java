@@ -39,38 +39,31 @@ public class ChatbotService {
     }
 
     public String handleUserRequest(Long userId, String message) {
-        // 1. Récupérer l'historique récent (ex: 10 derniers messages)
-        List<ChatMessage> history = chatMessageRepository.findTop10ByUserIdOrderByTimestampDesc(userId);
+    List<ChatMessage> history = chatMessageRepository.findTop10ByUserIdOrderByTimestampDesc(userId);
+    GeminiService.GeminiResponse response = geminiService.chatWithGemini(message, history);
 
-        // 2. Appeler Gemini avec l'historique
-        GeminiService.GeminiResponse response = geminiService.chatWithGemini(message, history);
+    // Sauvegarde du message utilisateur
+    chatMessageRepository.save(new ChatMessage(userId, "user", message));
 
-        // 3. Sauvegarder le message de l'utilisateur
-        chatMessageRepository.save(new ChatMessage(userId, "user", message));
-
-        if (response != null && !response.candidates().isEmpty()) {
-            GeminiService.Part firstPart = response.candidates().get(0).content().parts().get(0);
+    // Vérification en cascade pour éviter les NPE
+    if (response != null && response.candidates() != null && !response.candidates().isEmpty()) {
+        var content = response.candidates().get(0).content();
+        if (content != null && content.parts() != null && !content.parts().isEmpty()) {
+            GeminiService.Part firstPart = content.parts().get(0);
             
-            String replyText = "";
-
+            String replyText;
             if (firstPart.functionCall() != null) {
-                // Exécution de fonction
-                String functionName = firstPart.functionCall().name();
-                Map<String, Object> args = firstPart.functionCall().args();
-                replyText = executeAction(userId, functionName, args);
+                replyText = executeAction(userId, firstPart.functionCall().name(), firstPart.functionCall().args());
             } else {
-                // Réponse texte simple
-                replyText = firstPart.text();
+                replyText = firstPart.text() != null ? firstPart.text() : "L'IA n'a pas renvoyé de texte.";
             }
             
-            // 4. Sauvegarder la réponse du chatbot
             chatMessageRepository.save(new ChatMessage(userId, "model", replyText));
-
             return replyText;
         }
-
-        return "Désolé, je n'ai pas pu traiter votre demande.";
     }
+    return "Désolé, je rencontre une difficulté technique pour formuler une réponse.";
+}
     
     private String executeAction(Long userId, String functionName, Map<String, Object> args) {
         switch (functionName) {
@@ -93,6 +86,8 @@ public class ChatbotService {
                 Task task = new Task();
                 User user = userRepository.findById(userId).orElseThrow();
                 task.setUser(user);
+                Object titleObj = args.get("title");
+                if (titleObj == null) return "Erreur : titre manquant";
                 task.setTitle(args.get("title").toString());
                 task.setPriority(Integer.parseInt(args.get("priority").toString()));
                 taskRepository.save(task);
@@ -140,11 +135,44 @@ public class ChatbotService {
                 // Gère "Récupérer une tache en fonction de son nom"
                 String nameQuery = args.get("name").toString();
                 return formatTasks(taskRepository.findByUser_IdAndTitleContainingIgnoreCase(userId, nameQuery));
+            case "add_events_batch":
+                return handleEventsBatch(userId, args);
+
             default:
                 return "Action " + functionName + " exécutée, mais aucun retour spécifique configuré.";
         }
     }
+    private String handleEventsBatch(Long userId, Map<String, Object> args) {
+    // 1. Récupérer la liste des événements depuis les arguments
+    List<Map<String, Object>> eventsData = (List<Map<String, Object>>) args.get("events");
+    
+    if (eventsData == null || eventsData.isEmpty()) {
+        return "Je n'ai reçu aucun événement à ajouter.";
+    }
 
+    // 2. Récupérer l'utilisateur
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+    int count = 0;
+    for (Map<String, Object> data : eventsData) {
+        try {
+            String summary = data.get("summary").toString();
+            LocalDateTime start = parseDateTime(data.get("start"));
+            LocalDateTime end = parseDateTime(data.get("end"));
+            
+            // Note : Si votre entité Event ne gère pas encore la catégorie, 
+            // ignorez data.get("category") pour l'instant.
+            Event event = new Event(summary, start, end, user);
+            eventRepository.save(event);
+            count++;
+        } catch (Exception e) {
+            System.err.println("Erreur lors de l'ajout d'un événement du batch : " + e.getMessage());
+        }
+    }
+
+    return String.format("Succès ! J'ai ajouté %d événements à votre agenda.", count);
+}
     private String deleteEventsInRange(Long userId, LocalDateTime start, LocalDateTime end, String label) {
         List<Event> toDelete = eventRepository.findByUser_IdAndStartTimeBetween(userId, start, end);
         if (toDelete.isEmpty()) return "Rien à annuler pour " + label + ".";

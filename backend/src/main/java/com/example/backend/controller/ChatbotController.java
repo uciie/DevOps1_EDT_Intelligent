@@ -48,9 +48,8 @@ public class ChatbotController {
             // Renvoie un code 429 avec le message explicite
             return ResponseEntity.status(429).body("Oups ! Je suis surchargé (Quota dépassé). Revenez dans quelques instants.");
         } catch (Exception e) {
-            // Log de l'erreur
-            System.err.println("Erreur ChatbotController: " + e.getMessage());
-            return ResponseEntity.internalServerError().body("Une erreur interne est survenue.");
-        }
+            e.printStackTrace(); // Affiche la ligne exacte de l'erreur dans la console
+            return ResponseEntity.internalServerError().body("Erreur : " + e.getClass().getSimpleName());
+        }  
     }
 }

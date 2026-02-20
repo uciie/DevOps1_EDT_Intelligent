@@ -79,7 +79,7 @@ public class GeminiService {
         contents.add(Map.of("role", "user", "parts", List.of(Map.of("text", userMessage))));
 
         // Définition des outils disponibles
-        var functionDeclarations = List.of(
+        List<Map<String, Object>> functionDeclarations = new ArrayList<>(List.of(
             defineTool("list_today_events", 
                 "Liste tous les événements prévus aujourd'hui pour l'utilisateur.",
                 Map.of(), // Pas de paramètres
@@ -170,7 +170,7 @@ public class GeminiService {
                 List.of("date"))
 
 
-        );
+        ));
         
         functionDeclarations.add(Map.of(
         "name", "add_events_batch",
