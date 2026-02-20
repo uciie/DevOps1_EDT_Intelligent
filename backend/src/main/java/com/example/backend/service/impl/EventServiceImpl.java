@@ -9,11 +9,14 @@ import com.example.backend.model.User;
 import com.example.backend.repository.EventRepository;
 import com.example.backend.repository.TravelTimeRepository;
 import com.example.backend.repository.UserRepository;
+import com.example.backend.service.SyncDelegateService;
 import com.example.backend.service.EventService;
 import com.example.backend.service.TravelTimeCalculator;
 import com.example.backend.service.TravelTimeService;
 import com.example.backend.repository.TeamRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +28,14 @@ import java.util.stream.Collectors;
 
 /**
  * Implémentation du service pour la gestion des événements.
+ * 
+ * CORRECTION MAJEURE : Isolation de la synchronisation Google pour éviter
+ * le rollback de la transaction principale en cas d'erreur de synchronisation.
  */
 @Service
 public class EventServiceImpl implements EventService {
+
+    private static final Logger log = LoggerFactory.getLogger(EventServiceImpl.class);
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
@@ -41,13 +49,16 @@ public class EventServiceImpl implements EventService {
     private final TravelTimeCalculator simpleCalculator;
 
     // Injection des dépendances nécessaires
+    private final SyncDelegateService syncDelegateService;
+
     public EventServiceImpl(EventRepository eventRepository, 
                             UserRepository userRepository,
                             TravelTimeService travelTimeService,
                             TravelTimeRepository travelTimeRepository,
                             TravelTimeCalculator primaryCalculator,
                             @Qualifier("simpleTravelTimeCalculator") TravelTimeCalculator simpleCalculator,
-                            TeamRepository teamRepository) {
+                            TeamRepository teamRepository,
+                            SyncDelegateService syncDelegateService) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.travelTimeService = travelTimeService;
@@ -55,6 +66,7 @@ public class EventServiceImpl implements EventService {
         this.primaryCalculator = primaryCalculator;
         this.simpleCalculator = simpleCalculator;
         this.teamRepository = teamRepository;
+        this.syncDelegateService = syncDelegateService;
     }
 
     // --- Helper pour choisir le calculateur ---
@@ -69,9 +81,6 @@ public class EventServiceImpl implements EventService {
 
     // --- Implémentation des méthodes ---
 
-    /**
-     * Récupère tous les événements d'un utilisateur, triés par heure de début (logique de l'optimiseur).
-     */
     @Override
     public List<Event> getEventsByUserId(Long userId) {
         return eventRepository.findByUser_IdOrderByStartTime(userId);
@@ -99,15 +108,18 @@ public class EventServiceImpl implements EventService {
                 user
         );
         if (eventRequest.getCategory() != null) {
-        try {
-            event.setCategory(ActivityCategory.valueOf(eventRequest.getCategory()));
-        } catch (IllegalArgumentException e) {
-            // Gérer le cas où la catégorie n'existe pas ou mettre une valeur par défaut
+            try {
+                event.setCategory(ActivityCategory.valueOf(eventRequest.getCategory()));
+            } catch (IllegalArgumentException e) {
+                event.setCategory(ActivityCategory.AUTRE);
+            }
+        } else {
             event.setCategory(ActivityCategory.AUTRE);
         }
-        } else {
-            event.setCategory(ActivityCategory.AUTRE); // Valeur par défaut
-        }
+        
+        // Marquer l'événement comme créé localement
+        event.setSource(Event.EventSource.LOCAL);
+        event.setSyncStatus(Event.SyncStatus.PENDING);
 
         // Ajouter la localisation si fournie
         if (eventRequest.getLocation() != null) {
@@ -153,13 +165,9 @@ public class EventServiceImpl implements EventService {
                     if (estimatedArrival.isAfter(event.getStartTime())) {
                         throw new IllegalArgumentException(
                             String.format("Impossible d'arriver à l'heure ! Fin de l'événement précédent : %s. " +
-                                          "Temps de trajet (%s) : %d min. Arrivée estimée : %s. " +
-                                          "Début de l'événement prévu : %s.",
-                                          departureTime.toLocalTime(),
-                                          mode,
-                                          durationMinutes,
-                                          estimatedArrival.toLocalTime(),
-                                          event.getStartTime().toLocalTime())
+                                "Durée du trajet : %d min. Arrivée estimée : %s. " +
+                                "Début de l'événement : %s.", 
+                                departureTime, durationMinutes, estimatedArrival, event.getStartTime())
                         );
                     }
                     
@@ -171,27 +179,47 @@ public class EventServiceImpl implements EventService {
                     // Pour simplifier, on suppose que createTravelTime fait le job, mais pour le RECALCUL global, on sera plus explicite.
                     travelTimeService.createTravelTimeWithDuration(previousEvent, savedEvent, mode, durationMinutes);
                     
+                    // Synchronisation Google APRÈS sauvegarde, dans une transaction séparée
+                    if (user.isGoogleLinked()) {
+                        syncDelegateService.syncGoogleCalendarInNewTransaction(user.getId());
+                    }
+                    
                     return savedEvent;
-
-                } catch (java.lang.IllegalArgumentException e) {
-                    // Relance l'exception pour qu'elle soit gérée par le contrôleur (retour 400)
-                    throw e; 
+                } catch (IllegalArgumentException e) {
+                    throw e;
+                } catch (Exception e) {
+                    log.error("Erreur lors du calcul de faisabilité : {}", e.getMessage());
+                    throw new RuntimeException("Erreur technique lors de la vérification de faisabilité", e);
                 }
             }
         }
 
-        // Si pas de conflit ou pas de vérification nécessaire, sauvegarde simple
-        return eventRepository.save(event);
+        // Sauvegarde de l'événement
+        Event savedEvent = eventRepository.save(event);
+        
+        // ── SYNCHRONISATION GOOGLE (TRANSACTION SÉPARÉE) ──
+        // CORRECTION : On appelle la méthode avec transaction séparée
+        if (user.isGoogleLinked()) {
+            syncDelegateService.syncGoogleCalendarInNewTransaction(user.getId());
+        } else {
+            log.info("[EVENT-CREATE] Synchronisation Google sautée : Le compte n'est pas lié.");
+        }
+        
+        return savedEvent;
     }
 
     /**
      * Met à jour un événement existant.
+     * 
+     * CORRECTION MAJEURE : La synchronisation Google est maintenant dans une
+     * transaction séparée pour éviter le rollback de la mise à jour locale.
      */
     @Override
     @Transactional
     public Event updateEvent(Long id, EventRequest eventRequest) {
         Event event = getEventById(id);
 
+        // Mise à jour des champs
         if (eventRequest.getSummary() != null) {
             event.setSummary(eventRequest.getSummary());
         }
@@ -202,8 +230,7 @@ public class EventServiceImpl implements EventService {
             event.setEndTime(eventRequest.getEndTime());
         }
         
-        // --- CORRECTION MAJEURE ICI ---
-        // Si un objet LocationRequest est fourni (même vide), on traite la mise à jour.
+        // Mise à jour de la localisation
         if (eventRequest.getLocation() != null) {
             Location location = eventRequest.getLocation().toLocation();
             // On assigne la location DIRECTEMENT. Si 'location' est null (car l'adresse était vide),
@@ -211,8 +238,7 @@ public class EventServiceImpl implements EventService {
             event.setLocation(location);
         }
 
-        // --- VERIFICATION DE FAISABILITE AVANT SAUVEGARDE (AJOUT POUR UPDATE) ---
-        // Si l'utilisateur a spécifié un mode de transport et que l'événement a une localisation
+        // --- VERIFICATION DE FAISABILITE AVANT SAUVEGARDE ---
         if (eventRequest.getTransportMode() != null && event.getLocation() != null) {
             
             // 1. Récupérer les événements de l'utilisateur pour trouver le précédent
@@ -246,29 +272,77 @@ public class EventServiceImpl implements EventService {
                 
                 Event savedEvent = eventRepository.save(event);
                 travelTimeService.createTravelTimeWithDuration(previousEvent, savedEvent, mode, durationMinutes);
+                
+                // Marquer pour synchronisation si événement Google
+                if (savedEvent.getGoogleEventId() != null) {
+                    savedEvent.setSyncStatus(Event.SyncStatus.PENDING);
+                    eventRepository.save(savedEvent);
+                }
+                
+                // Synchronisation Google dans transaction séparée
+                User user = event.getUser();
+                if (user.isGoogleLinked()) {
+                    try {
+                        syncDelegateService.syncGoogleCalendarInNewTransaction(user.getId());
+                    } catch (Exception e) {
+                        log.warn("Impossible de marquer l'événement pour synchronisation : {}", e.getMessage());
+                    }
+                }
+                
                 return savedEvent;
             }
         }
 
-        return eventRepository.save(event);
+        // Sauvegarder AVANT la synchronisation
+        Event updatedEvent = eventRepository.save(event);
+
+        // Marquer pour synchronisation si c'est un événement Google
+        if (updatedEvent.getGoogleEventId() != null) {
+            updatedEvent.setSyncStatus(Event.SyncStatus.PENDING);
+            eventRepository.save(updatedEvent);
+        }
+
+        // ── SYNCHRONISATION GOOGLE (TRANSACTION SÉPARÉE - NON BLOQUANTE) ──
+        User user = event.getUser();
+        if (user.isGoogleLinked()) {
+            // Cette méthode utilise REQUIRES_NEW, donc une transaction séparée
+            // Si elle échoue, updatedEvent est déjà sauvegardé et ne sera PAS rollback
+            syncDelegateService.syncGoogleCalendarInNewTransaction(user.getId());
+        } else {
+            log.debug("[EVENT-UPDATE] Synchronisation Google sautée : Le compte n'est pas lié.");
+        }
+        return updatedEvent;
     }
 
-    /**
-     * Supprime un événement (logique de 5512fe3).
-     */
     @Override
     @Transactional
     public void deleteEvent(Long id) {
         if (!eventRepository.existsById(id)) {
             throw new IllegalArgumentException("Event not found with id: " + id);
         }
-        // Grâce aux cascades ajoutées dans Event.java, ceci supprimera aussi la Location liée
-        eventRepository.deleteById(id);
+        
+        Event eventToDelete = getEventById(id);
+        
+        // Si l'événement a un googleEventId, le marquer pour suppression
+        if (eventToDelete.getGoogleEventId() != null && !eventToDelete.getGoogleEventId().trim().isEmpty()) {
+            eventToDelete.setStatus(Event.EventStatus.PENDING_DELETION);
+            eventToDelete.setSyncStatus(Event.SyncStatus.PENDING);
+            eventRepository.save(eventToDelete);
+            
+            // Synchronisation Google dans transaction séparée
+            User user = eventToDelete.getUser();
+            if (user.isGoogleLinked()) {
+                syncDelegateService.syncGoogleCalendarInNewTransaction(user.getId());
+            } else {
+                log.debug("[EVENT-DELETE] Synchronisation Google sautée : Le compte n'est pas lié.");
+            }
+        } else {
+            // Suppression directe si pas de googleEventId
+            eventRepository.deleteById(id);
+            log.info("Événement {} supprimé directement (pas synchronisé avec Google)", id);
+        }
     }
 
-    /**
-     * Récupère les événements d'un utilisateur dans une période donnée (logique de 5512fe3).
-     */
     @Override
     public List<Event> getEventsByUserIdAndPeriod(Long userId, LocalDateTime start, LocalDateTime end) {
         return eventRepository.findByUser_IdAndStartTimeBetween(userId, start, end);
@@ -301,8 +375,7 @@ public class EventServiceImpl implements EventService {
                     TravelTime existingTt = travelTimeRepository.findByFromEventAndToEvent(current, next)
                             .orElse(null);
 
-                    // --- CORRECTION 500 : GESTION DU MODE NULL ---
-                    TravelTime.TransportMode mode = TravelTime.TransportMode.DRIVING; // Valeur par défaut
+                    TravelTime.TransportMode mode = TravelTime.TransportMode.DRIVING;
                     
                     // Si un trajet existe mais que son mode est corrompu (null), on garde DRIVING
                     if (existingTt != null && existingTt.getMode() != null) {
@@ -322,9 +395,8 @@ public class EventServiceImpl implements EventService {
                 }
             } catch (Exception e) {
                 //--- LOG L'ERREUR AU LIEU DE PLANTER TOUT LE SERVEUR ---
-                System.err.println("ERREUR NON BLOQUANTE lors du recalcul event " + current.getId() + " -> " + next.getId());
-                System.err.println("Cause : " + e.getMessage());
-                e.printStackTrace();
+                log.error("ERREUR NON BLOQUANTE lors du recalcul event {} -> {} : {}", 
+                         current.getId(), next.getId(), e.getMessage());
             }
         }
     }
@@ -350,7 +422,7 @@ public class EventServiceImpl implements EventService {
                 anonymized.setId(event.getId());
                 anonymized.setStartTime(event.getStartTime());
                 anonymized.setEndTime(event.getEndTime());
-                anonymized.setSummary("Occupé"); // Masquage du titre
+                anonymized.setSummary("Occupé");
                 anonymized.setLocation(null);
                 return anonymized;
             }).collect(Collectors.toList());

@@ -10,6 +10,7 @@ import SchedulePage from "./pages/SchedulePage";
 import ActivityPage from "./pages/ActivityPage";
 import SetupPage from "./pages/SetupPage"; // Import de la nouvelle page
 import NotificationPage from "./pages/NotificationPage";
+import GoogleCallback from "./pages/GoogleCallback";
 import { getCurrentUser, logoutUser } from "./api/authApi";
 import { getPendingInvitations } from "./api/teamApi";
 import PrivateRoute from "./components/PrivateRoute";
@@ -101,7 +102,6 @@ function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/about" element={<About />} />
               <Route path="/notifications" element={<NotificationPage />} />
-              
               {/* Routes protégées */}
               <Route
                 path="/schedule"
@@ -127,6 +127,7 @@ function App() {
                   </PrivateRoute>
                 }
               />
+              <Route path="/google-callback" element={<GoogleCallback />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>

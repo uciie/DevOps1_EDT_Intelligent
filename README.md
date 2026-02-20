@@ -8,7 +8,7 @@
 [![Build](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/build.yml/badge.svg)](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/build.yml)
 [![Tests & SonarCloud](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/test.yml/badge.svg)](https://github.com/uciie/DevOps1_EDT_Intelligent/actions/workflows/test.yml)
 
-> **Emploi du temps intelligent** — Optimisation automatique de planning, import ICS et gestion de tâches.
+> **Emploi du temps intelligent** – Optimisation automatique de planning, import ICS et gestion de tâches.
 
 ---
 
@@ -24,7 +24,12 @@
     - [Prérequis Système](#prérequis-système)
     - [Backend (Java / Spring Boot)](#backend-java--spring-boot)
     - [Frontend (React / Vite)](#frontend-react--vite)
-  - [Installation des Prérequis Système](#installation-des-prérequis-système)
+  - [Installation avec Docker](#installation-avec-docker)
+    - [Prérequis](#prérequis)
+    - [Services orchestrés](#services-orchestrés)
+    - [Configuration des fichiers .env](#configuration-des-fichiers-env)
+    - [Lancement](#lancement)
+  - [Installation (SANS Docker) des Prérequis Système](#installation-sans-docker-des-prérequis-système)
     - [1. Java 21 (JDK)](#1-java-21-jdk)
     - [2. Node.js 22 \& NPM](#2-nodejs-22--npm)
     - [3. PostgreSQL](#3-postgresql)
@@ -56,6 +61,11 @@ Ce projet a été réalisé dans le cadre de notre cursus DevOps, avec pour obje
 1.  **Importe** vos contraintes existantes (cours, réunions) via des fichiers `.ics` (ex: ENT universitaire, Google Calendar).
 2.  **Analyse** les créneaux libres.
 3.  **Optimise et insère automatiquement** vos tâches à faire (To-Do List) dans les "trous" de votre emploi du temps, selon des règles de priorité et de durée.
+4.  **Calcul des temps de trajet** : Intégration avec Google Maps pour prévoir vos déplacements entre deux événements.
+5.  **Collaboration** : Système de gestion d'équipe avec invitations et partage d'activités.
+6. **Authentification OAuth 2.0** : Connexion sécurisée via votre compte Google.
+7. **Synchronisation Bidirectionnelle** : Importez vos calendriers Google et exportez vos événements locaux en un clic.
+8. **Gestion intelligente des conflits** : Interface dédiée pour choisir entre la version locale ou Google lors d'une détection de doublons ou de modifications contradictoires.
 
 ###  Public visé
 * **Étudiants :** Pour jongler entre les cours, les révisions et les projets de groupe sans conflit.
@@ -89,7 +99,7 @@ Pour garantir la qualité et la maintenabilité du code, nous avons mis en place
 
 ##  Stack Technique et Outils
 
-Cette section détaille les technologies et librairies clés utilisées pour le développement, le build et les tests du projet.
+Cette section détaille les technologies et librairies clés utilisées pour le développement, le build et les tests du projet. Si besoin, il y a une [video tuto](https://www.youtube.com/watch?v=1TSkfovqWuQ)
 
 ###  Prérequis Système
 * **Java 21** (JDK) : Nécessaire pour le backend Spring Boot.
@@ -134,15 +144,90 @@ Le frontend est une SPA (Single Page Application) développée avec **React 19**
 
 ---
 
-## Installation des Prérequis Système
+## Installation avec Docker
+
+Cette méthode est la plus simple pour lancer l'ensemble du projet en une seule commande, sans avoir à installer Java, Node.js ou PostgreSQL localement.
+
+### Prérequis
+
+* **[Docker](https://docs.docker.com/get-docker/)** (v20+)
+* **[Docker Compose](https://docs.docker.com/compose/install/)** (v2+ — inclus dans Docker Desktop)
+
+### Services orchestrés
+
+Le fichier `docker-compose.yaml` orchestre trois services :
+
+| Service | Description | Port exposé |
+| :--- | :--- | :--- |
+| `db` | Base de données PostgreSQL 15 | — |
+| `backend` | API Spring Boot | `8080` |
+| `frontend` | Interface React / Vite | `5173` |
+
+Le `backend` dépend de `db`, et le `frontend` dépend du `backend`. Docker Compose gère automatiquement l'ordre de démarrage.
+
+### Configuration des fichiers .env
+
+Avant de lancer Docker, vous devez créer les deux fichiers `.env` suivants (ils sont chargés automatiquement par le `docker-compose.yaml` via `env_file`).
+
+**`./backend/.env`**
+```properties
+DB_URL=jdbc:postgresql://<votre-host>/neondb?sslmode=require
+DB_USER=<votre-user>
+DB_PASSWORD=<votre-password>
+GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
+SPRING_PROFILES_ACTIVE=dev
+CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI
+VOTRE_CLIENT_ID=VOTRE_CLE_GOOGLE_CLIENT
+VOTRE_SECRET_CLIENT=VOTRE_CLE_GOOGLE_CLIENT_SECRET
+```
+
+**`./frontend/.env`**
+```properties
+VITE_GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
+VITE_CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI
+VITE_GOOGLE_CLIENT_ID=VOTRE_CLE_GOOGLE_CLIENT
+VITE_GOOGLE_REDIRECT_URI=VOTRE_CLE_GOOGLE_URI
+```
+
+> Pour obtenir ces clés, référez-vous à la section [Comment Obtenir les configurations du fichier .env](#4-comment-obtenir-les-configurations-du-fichier-env) ci-dessous.
+
+### Lancement
+
+Depuis la racine du projet :
+
+```bash
+docker compose up --build
+```
+
+L'application sera accessible sur **http://localhost:5173** et l'API backend sur **http://localhost:8080**.
+
+Pour arrêter les services :
+
+```bash
+docker compose down
+```
+
+> **Mode watch (développement) :** Le `docker-compose.yaml` est configuré avec `develop.watch`, ce qui permet la synchronisation automatique des fichiers sources (`./frontend/src` et `./backend/src`) sans avoir à rebuilder l'image entière à chaque modification.
+
+---
+
+## Installation (SANS Docker) des Prérequis Système 
 
 Avant de configurer le projet, vous devez installer les environnements d'exécution sur votre machine.
+
+<span style="color:red">**Si besoin, il y a une [video tuto](https://www.youtube.com/watch?v=1TSkfovqWuQ)**</span>
 
 ### 1. Java 21 (JDK)
 
 Le backend utilise **Spring Boot 3.5.6**, qui nécessite Java 21.
 
 * **Installation :** Téléchargez le JDK 21 (via [Oracle](https://www.oracle.com/java/technologies/downloads/) ou [Adoptium](https://adoptium.net/)).
+```bash
+# Mise à jour
+sudo apt update
+# Installation de java/javac 21
+sudo apt install openjdk-21-jdk
+```
 * **Vérification :** Ouvrez un terminal et tapez :
 ```bash
 java -version
@@ -156,6 +241,14 @@ java -version
 Le frontend nécessite Node.js pour gérer les dépendances et le serveur de développement Vite.
 
 * **Installation :** Téléchargez la version LTS (ou v22) sur [nodejs.org](https://nodejs.org/).
+```bash
+# Ajouter le dépôt NodeSource pour Node.js 22
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+# Installer Node.js
+sudo apt-get install -y nodejs
+# Installer npm
+sudo apt install npm
+```
 * **Vérification :**
 ```bash
 node -v
@@ -195,9 +288,18 @@ DB_URL=jdbc:postgresql://<votre-host>/neondb?sslmode=require
 DB_USER=<votre-user>
 DB_PASSWORD=<votre-password>
 # Clé API : contacter l'équipe pour l'accès ou utiliser votre propre clé
+# Google Maps API 
 GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
-GOOGLE_MAPS_INTEGRATION_TESTS=true
-SPRING_PROFILES=external-api
+#SPRING_PROFILES=external-api
+SPRING_PROFILES_ACTIVE=dev
+
+# Gemini AI API
+CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI
+
+# Google OAuth 2.0
+VOTRE_CLIENT_ID=VOTRE_CLE_GOOGLE_CLIENT
+VOTRE_SECRET_CLIENT=VOTRE_CLE_GOOGLE_CLIENT_SECRET
+
 ```
 
 ### 3. Configuration du Frontend (React + Vite)
@@ -208,15 +310,23 @@ Vite utilise des variables d'environnement préfixées par `VITE_` pour des rais
 2. Créez un fichier nommé `.env`.
 3. Ajoutez la clé API Google Maps (nécessaire pour le composant de carte) :
 ```properties
-VITE_GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE # le même que celui du backend
+# les même que celles du backend
+VITE_GOOGLE_MAPS_API_KEY=VOTRE_CLE_GOOGLE
+VITE_CHATBOT_API_KEY=VOTRE_CLE_GOOGLE_AI 
+VITE_GOOGLE_CLIENT_ID=VOTRE_CLE_GOOGLE_CLIENT
+VITE_GOOGLE_REDIRECT_URI=VOTRE_CLE_GOOGLE_URI
 ```
 
 ### 4. Comment Obtenir les configurations du fichier .env
-`DB_URL`, `DB_USER`, `DB_PASSWORD` On l'obtient en allant sur le site de Neon (Neon.tech), on se connecte avec son compte Neon (Ou on créer) créer un nouveau projet, en haut à droite appuyer sur le bouton connect, on change ensuite le langage en java, et on obtient une ligne de texte qui contient l'URL, l'user, et le password
+`DB_URL`, `DB_USER`, `DB_PASSWORD` On l'obtient en allant sur le site de [Neon](https://neon.com/), on se connecte avec son compte Neon (Ou on créer) créer un nouveau projet, en haut à droite appuyer sur le bouton connect, on change ensuite le langage en java, et on obtient une ligne de texte qui contient l'URL, l'user, et le password
 
 DB_URL devrait ressembler à : `jdbc:postgresql:///neondb?sslmode=require&channel_binding=require DB_USER` devrait ressembler à : `neondb_owner`
 
-Pour obtenir l'api de google maps, il faut aller sur google cloud, rechercher `distance matrix api`, cliquer sur `enable`/`activer`, ensuite vérifier votre identité sur le site de google, et voila!
+Pour obtenir l'api de google maps, [voir la documentation](./doc/README-MAPS.md)
+
+Pour obtenir l'api de google client, [voir la documentation](./doc/README-MAPS.md)
+
+Pour obtenir l'api de google ai studio, [voir la documentation](./doc/README-AI.md)
 
 ---
 
@@ -271,6 +381,4 @@ npm run dev
 ## Kanban
 [Kanban](https://trello.com/invite/b/696e35985f2da4aedf80f810/ATTIfd33f201485e160c93be5212ebf775a6130CAEEF/devopsprof)
 
-> Projet universitaire M1 MIAGE 2024-2025 — Université Paris Nanterre.
-
-
+> Projet universitaire M1 MIAGE 2024-2025 – Université Paris Nanterre.

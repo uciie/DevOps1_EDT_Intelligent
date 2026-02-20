@@ -124,6 +124,27 @@
   min-width: 0; /* Important pour le grid */
 }
 
+/* Bouton Synchronisation Google Agenda responsive */
+.btn-sync {
+  padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(1rem, 2.5vw, 1.5rem);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: clamp(6px, 1vw, 8px);
+  font-size: clamp(0.875rem, 1.5vw, 1rem);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+.btn-sync:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
 /* Bouton Reshuffle responsive */
 .btn-reshuffle {
   padding: clamp(0.5rem, 1.5vw, 0.75rem) clamp(1rem, 2.5vw, 1.5rem);
@@ -484,4 +505,133 @@
     height: 24px;
     font-size: 16px;
   }
+}
+
+
+/* Layout amélioré pour welcome-actions */
+.welcome-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Responsive pour welcome-actions */
+@media (max-width: 968px) {
+  .welcome-actions {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .action-buttons {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .action-buttons .btn-reshuffle,
+  .action-buttons .btn-sync {
+    flex: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .schedule-welcome {
+    padding: 1rem;
+  }
+
+  .welcome-actions {
+    gap: 0.75rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-buttons .btn-reshuffle,
+  .action-buttons .btn-sync {
+    width: 100%;
+  }
+}
+
+/* Amélioration de la notification pour les erreurs de synchronisation */
+.notification.notification-warning {
+  border-left: 4px solid #ffc107;
+}
+
+.notification-icon.warning {
+  color: #ffc107;
+}
+
+/* Animation pour le bouton de synchronisation en cours */
+.btn-sync.syncing {
+  animation: syncing 1.5s ease-in-out infinite;
+}
+
+@keyframes syncing {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Style pour les boutons désactivés */
+.btn-sync:disabled,
+.btn-reshuffle:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Amélioration visuelle du header welcome */
+.schedule-welcome {
+  position: relative;
+  overflow: hidden;
+}
+
+.schedule-welcome::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(255, 255, 255, 0.05) 100%);
+  pointer-events: none;
+}
+
+/* Effet de brillance sur les boutons d'action */
+.btn-sync::before,
+.btn-reshuffle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.3), 
+    transparent);
+  transition: left 0.5s;
+}
+
+.btn-sync:hover::before,
+.btn-reshuffle:hover::before {
+  left: 100%;
+}
+
+.btn-sync,
+.btn-reshuffle {
+  position: relative;
+  overflow: hidden;
 }

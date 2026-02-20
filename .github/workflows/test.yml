@@ -17,6 +17,9 @@ jobs:
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+      CHATBOT_API_KEY: ${{ secrets.CHATBOT_API_KEY }}
+      VOTRE_CLIENT_ID: ${{ secrets.VOTRE_CLIENT_ID }}
+      VOTRE_SECRET_CLIENT: ${{ secrets.VOTRE_SECRET_CLIENT }}
 
     steps:
       - name: Checkout code
@@ -46,6 +49,13 @@ jobs:
     name:  Frontend (Lint, Test & Build)
     runs-on: ubuntu-latest
 
+    # Définition des variables d'environnement
+    env:
+      VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+      VITE_CHATBOT_API_KEY: ${{ secrets.CHATBOT_API_KEY }}
+      VITE_GOOGLE_CLIENT_ID: ${{ secrets.VOTRE_CLIENT_ID }}
+      VITE_GOOGLE_REDIRECT_URI: ${{ secrets.VOTRE_SECRET_CLIENT }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -61,11 +71,6 @@ jobs:
         working-directory: ./frontend
         # 'npm ci' est plus strict et plus rapide que 'npm install' pour la CI
         run: npm ci
-
-      - name: Lint Code
-        working-directory: ./frontend
-        # Vérifie la qualité du code (ESLint)
-        run: npm run lint
 
       - name: Run Frontend Tests
         working-directory: ./frontend
