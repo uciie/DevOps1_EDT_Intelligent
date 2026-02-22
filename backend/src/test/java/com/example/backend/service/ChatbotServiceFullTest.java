@@ -9,6 +9,7 @@ import com.example.backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import com.example.backend.repository.ChatMessageRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -27,6 +28,7 @@ class ChatbotServiceFullTest {
     private UserRepository userRepository;
     private GeminiService geminiService;
     private ChatbotService chatbotService;
+    private ChatMessageRepository chatMessageRepository;
 
     @BeforeEach
     void setUp() {
@@ -34,7 +36,8 @@ class ChatbotServiceFullTest {
         taskRepository = mock(TaskRepository.class);
         userRepository = mock(UserRepository.class);
         geminiService = mock(GeminiService.class);
-        chatbotService = new ChatbotService(geminiService, eventRepository, taskRepository, userRepository);
+        chatMessageRepository = mock(ChatMessageRepository.class);
+        chatbotService = new ChatbotService(geminiService, chatMessageRepository, eventRepository, taskRepository, userRepository);
 
         User user = new User();
         user.setId(1L);
@@ -49,7 +52,7 @@ class ChatbotServiceFullTest {
                 new GeminiService.Part(null, funcCall)
             )))
         ));
-        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
+        when(geminiService.chatWithGemini(anyString(), anyList())).thenReturn(response);
     }
 
     // 1. LISTER ÉVÉNEMENTS (DATES & CRÉNEAUX)

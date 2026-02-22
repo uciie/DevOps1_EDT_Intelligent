@@ -31,4 +31,5 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     // Suppression par utilisateur + priorité (utilisé par le Chatbot)
     void deleteByUser_IdAndPriority(Long userId, int priority);
 
+    List<Task> findByUser_IdAndTitleContainingIgnoreCase(Long userId, String title);
 }
