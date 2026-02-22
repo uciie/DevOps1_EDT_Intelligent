@@ -43,7 +43,7 @@ class GeminiServiceTest {
         when(client.generateContent(anyString(), anyString(), any(), eq(GeminiService.GeminiResponse.class)))
             .thenReturn(expected);
 
-        var response = service.chatWithGemini("Hello");
+        var response = service.chatWithGemini("Hello", List.of());
 
         assertNotNull(response);
         assertEquals("Test OK", response.candidates().get(0).content().parts().get(0).text());
