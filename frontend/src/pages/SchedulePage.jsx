@@ -170,12 +170,13 @@ function SchedulePage() {
   const refreshData = async (silent = false) => {
     try {
       if (!silent) setLoading(true); // On affiche le spinner seulement si ce n'est pas silencieux
-      setPageError(null);
 
       const user = getCurrentUser();
-      if (!user) return;
-
-      // --- LOGIQUE DE FETCH (Copiez ici le contenu de votre ancien useEffect) ---
+      if (!user) {
+        setPageError("Utilisateur non connecté");
+        return;
+      }
+      setPageError(null);
       
       // 1. Tâches
       const [rawTasksResponse, rawDelegatedResponse] = await Promise.all([
@@ -209,9 +210,6 @@ function SchedulePage() {
     }
   };
 
-  useEffect(() => {
-    refreshData(false); // Chargement initial avec spinner
-  }, []);
 
   // --- GESTION DES ÉQUIPES ---
 
