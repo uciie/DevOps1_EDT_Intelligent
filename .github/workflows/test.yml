@@ -8,7 +8,7 @@ on:
 jobs:
   # --- JOB 1 : BACKEND (JAVA) ---
   backend:
-    name: ☕ Backend (Test & Build)
+    name:  Backend (Test & Build)
     runs-on: ubuntu-latest
     
     # Définition des variables d'environnement
