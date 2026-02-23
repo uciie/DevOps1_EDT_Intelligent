@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:15-alpine
+    env_file:
+      - ./backend/.env
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_DB=neondb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+
+    develop:
+      watch:
+      - action: sync
+        path: ./frontend/src
+        target: /app/src
+        ignore:
+          - node_modules/
+      - action: rebuild
+        path: ./frontend/package.json
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - db
+
+    develop:
+      watch:
+      - action: sync
+        path: ./backend/src
+        target: /app/src
+        ignore:
+          - build/
+
+      - action: rebuild
+        path: ./backend/build.gradle
+      - action: rebuild
+        path: ./backend/src/main/resources/application.properties
+        
+volumes:
+  postgres_data:

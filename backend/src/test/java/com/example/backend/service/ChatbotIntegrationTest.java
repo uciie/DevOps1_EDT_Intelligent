@@ -9,6 +9,7 @@ import com.example.backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import com.example.backend.repository.ChatMessageRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -25,6 +26,7 @@ class ChatbotIntegrationTest {
     private EventRepository eventRepository;
     private TaskRepository taskRepository;
     private UserRepository userRepository;
+    private ChatMessageRepository chatMessageRepository;
     private GeminiService geminiService;
     private ChatbotService chatbotService;
 
@@ -33,10 +35,10 @@ class ChatbotIntegrationTest {
         eventRepository = mock(EventRepository.class);
         taskRepository = mock(TaskRepository.class);
         userRepository = mock(UserRepository.class);
+        chatMessageRepository = mock(ChatMessageRepository.class);
         geminiService = mock(GeminiService.class);
         
-        chatbotService = new ChatbotService(geminiService, eventRepository, taskRepository, userRepository);
-
+        chatbotService = new ChatbotService(geminiService, chatMessageRepository, eventRepository, taskRepository, userRepository);
         // Mock d'un utilisateur par défaut pour les tests de création
         User user = new User();
         user.setId(1L);
@@ -55,7 +57,7 @@ class ChatbotIntegrationTest {
             new GeminiService.Candidate(new GeminiService.Content(List.of(part)))
         ));
 
-        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
+        when(geminiService.chatWithGemini(anyString(), anyList())).thenReturn(response);
 
         // 2. Appel du service
         String result = chatbotService.handleUserRequest(1L, "Ajoute faire les courses en prio 1");
@@ -76,7 +78,7 @@ class ChatbotIntegrationTest {
             new GeminiService.Candidate(new GeminiService.Content(List.of(new GeminiService.Part(null, funcCall))))
         ));
 
-        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
+        when(geminiService.chatWithGemini(anyString(), anyList())).thenReturn(response);
         
         // Simuler la présence d'un événement à supprimer
         Event e = new Event();
@@ -97,7 +99,7 @@ class ChatbotIntegrationTest {
             new GeminiService.Candidate(new GeminiService.Content(List.of(new GeminiService.Part("Bonjour !", null))))
         ));
 
-        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
+        when(geminiService.chatWithGemini(anyString(), anyList())).thenReturn(response);
 
         String result = chatbotService.handleUserRequest(1L, "Coucou");
 
