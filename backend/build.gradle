@@ -64,6 +64,16 @@ dependencies {
     // Configuration Spring Retry 
     implementation 'org.springframework.retry:spring-retry:1.3.4'
     implementation 'org.springframework:spring-aspects:6.0.13'
+
+    // Le cœur de LangChain4j
+    implementation 'dev.langchain4j:langchain4j:0.31.0'
+    
+    // Le connecteur spécifique pour Claude (Anthropic)
+    implementation 'dev.langchain4j:langchain4j-anthropic:0.31.0'
+
+    // Optionnel : Pour voir les logs de l'IA (très utile pour débugger tes prompts)
+    implementation 'org.slf4j:slf4j-api:2.0.7'
+    implementation 'ch.qos.logback:logback-classic:1.4.8'
 }
 
 tasks.named('test') {
