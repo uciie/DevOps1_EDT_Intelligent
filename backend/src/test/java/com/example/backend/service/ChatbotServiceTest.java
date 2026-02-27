@@ -1,22 +1,30 @@
 package com.example.backend.service;
 
-import com.example.backend.model.Task;
-import com.example.backend.model.User;
-import com.example.backend.repository.EventRepository;
-import com.example.backend.repository.TaskRepository;
-import com.example.backend.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import com.example.backend.repository.ChatMessageRepository;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.example.backend.model.Event;
+import com.example.backend.model.Task;
+import com.example.backend.model.User;
+import com.example.backend.repository.ChatMessageRepository;
+import com.example.backend.repository.EventRepository;
+import com.example.backend.repository.TaskRepository;
+import com.example.backend.repository.UserRepository;
 
 class ChatbotServiceTest {
 
@@ -33,6 +41,7 @@ class ChatbotServiceTest {
         eventRepository = mock(EventRepository.class);
         taskRepository = mock(TaskRepository.class);
         userRepository = mock(UserRepository.class);
+        chatMessageRepository = mock(ChatMessageRepository.class);
         chatbotService = new ChatbotService(geminiService, chatMessageRepository, eventRepository, taskRepository, userRepository);
     }
 
@@ -82,14 +91,13 @@ class ChatbotServiceTest {
 
     @Test
     void handleUserRequest_executesCancelMorning() {
-        var funcCall = new GeminiService.FunctionCall("cancel_morning", Collections.emptyMap());
-        var part = new GeminiService.Part(null, funcCall);
+        var funcCall = new GeminiService.FunctionCall("cancel_morning", Map.of("date", "2026-01-25"));        var part = new GeminiService.Part(null, funcCall);
         var content = new GeminiService.Content(List.of(part));
         var response = new GeminiService.GeminiResponse(List.of(new GeminiService.Candidate(content)));
 
         when(geminiService.chatWithGemini(anyString(), anyList())).thenReturn(response);
-        when(eventRepository.findByUser_IdAndStartTimeBetween(anyLong(), any(), any())).thenReturn(Collections.emptyList());
-
+        when(eventRepository.findByUser_IdAndStartTimeBetween(anyLong(), any(), any()))
+            .thenReturn(List.of(new Event()));
         String result = chatbotService.handleUserRequest(1L, "Annule ma matinée");
         assertTrue(result.contains("annulé"));
         verify(eventRepository).deleteAll(anyList());

@@ -1,25 +1,30 @@
 package com.example.backend.service;
 
-import com.example.backend.model.Event;
-import com.example.backend.model.Task;
-import com.example.backend.model.User;
-import com.example.backend.repository.EventRepository;
-import com.example.backend.repository.TaskRepository;
-import com.example.backend.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import com.example.backend.repository.ChatMessageRepository;
-
-import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import com.example.backend.model.Event;
+import com.example.backend.model.Task;
+import com.example.backend.model.User;
+import com.example.backend.repository.ChatMessageRepository;
+import com.example.backend.repository.EventRepository;
+import com.example.backend.repository.TaskRepository;
+import com.example.backend.repository.UserRepository;
 
 class ChatbotIntegrationTest {
 
@@ -73,7 +78,7 @@ class ChatbotIntegrationTest {
     @Test
     void handleUserRequest_shouldExecuteCancelAfternoon() {
         // Simulation de l'appel fonctionnel "cancel_afternoon"
-        var funcCall = new GeminiService.FunctionCall("cancel_afternoon", Collections.emptyMap());
+        var funcCall = new GeminiService.FunctionCall("cancel_afternoon", Map.of("date", "2026-01-25"));
         var response = new GeminiService.GeminiResponse(List.of(
             new GeminiService.Candidate(new GeminiService.Content(List.of(new GeminiService.Part(null, funcCall))))
         ));
