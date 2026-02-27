@@ -39,27 +39,32 @@ public class ChatbotService {
     }
 
     public String handleUserRequest(Long userId, String message) {
-    List<ChatMessage> history = chatMessageRepository.findTop10ByUserIdOrderByTimestampDesc(userId);
-    GeminiService.GeminiResponse response = geminiService.chatWithGemini(message, history);
+        List<ChatMessage> history = chatMessageRepository.findTop10ByUserIdOrderByTimestampDesc(userId);
+        GeminiService.GeminiResponse response = geminiService.chatWithGemini(message, history);
 
-    // Sauvegarde du message utilisateur
-    chatMessageRepository.save(new ChatMessage(userId, "user", message));
+        // Sauvegarde du message utilisateur
+        chatMessageRepository.save(new ChatMessage(userId, "user", message));
 
-    // Vérification en cascade pour éviter les NPE
-    if (response != null && response.candidates() != null && !response.candidates().isEmpty()) {
-        var content = response.candidates().get(0).content();
-        if (content != null && content.parts() != null && !content.parts().isEmpty()) {
-            GeminiService.Part firstPart = content.parts().get(0);
+        // Vérification en cascade pour éviter les NPE
+        if (response != null && response.candidates() != null && !response.candidates().isEmpty()) {
+            var content = response.candidates().get(0).content();
+            if (content != null && content.parts() != null && !content.parts().isEmpty()) {
+                GeminiService.Part firstPart = content.parts().get(0);
             
-            String replyText;
-            if (firstPart.functionCall() != null) {
-                replyText = executeAction(userId, firstPart.functionCall().name(), firstPart.functionCall().args());
-            } else {
-                replyText = firstPart.text() != null ? firstPart.text() : "L'IA n'a pas renvoyé de texte.";
-            }
+                String textForDatabase;
+                String textForUser;
+                if (firstPart.functionCall() != null) {
+                    String rawResult = executeAction(userId, firstPart.functionCall().name(), firstPart.functionCall().args());
+                    textForDatabase = "[Résultat Système] : " + rawResult;
+                    textForUser = rawResult;
+                } else {
+                    String aiText = firstPart.text() != null ? firstPart.text() : "L'IA n'a pas renvoyé de texte.";
+                    textForDatabase = aiText;
+                    textForUser = aiText;
+                }
             
-            chatMessageRepository.save(new ChatMessage(userId, "model", replyText));
-            return replyText;
+            chatMessageRepository.save(new ChatMessage(userId, "model", textForDatabase));
+            return textForUser;
         }
     }
     return "Désolé, je rencontre une difficulté technique pour formuler une réponse.";

@@ -59,6 +59,7 @@ public class GeminiService {
             1. Formate toujours les dates et heures en ISO-8601 (YYYY-MM-DDTHH:mm:ss).
             2. Si une information est manquante (ex: l'heure pour un événement), demande-la précisément.
             3. Confirme toujours l'action réalisée à l'utilisateur de manière concise.
+            4. IMPORTANT : Si tu vois "[Résultat Système]" dans l'historique, cela signifie qu'une action a déjà été exécutée. Ne répète jamais ces résultats et concentre-toi uniquement sur la NOUVELLE demande de l'utilisateur.
             """, currentDate);
         
         List<Map<String, Object>> contents = new ArrayList<>();
