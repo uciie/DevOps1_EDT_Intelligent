@@ -1,25 +1,32 @@
 package com.example.backend.service;
 
-import com.example.backend.model.Event;
-import com.example.backend.model.Task;
-import com.example.backend.model.User;
-import com.example.backend.repository.EventRepository;
-import com.example.backend.repository.TaskRepository;
-import com.example.backend.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import com.example.backend.repository.ChatMessageRepository;
-
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.example.backend.model.Event;
+import com.example.backend.model.Task;
+import com.example.backend.model.User;
+import com.example.backend.repository.ChatMessageRepository;
+import com.example.backend.repository.EventRepository;
+import com.example.backend.repository.TaskRepository;
+import com.example.backend.repository.UserRepository;
 
 class ChatbotServiceFullTest {
 
@@ -80,13 +87,17 @@ class ChatbotServiceFullTest {
     // 3. ANNULATIONS (MATIN / APRÈS-MIDI / CRÉNEAU)
     @Test
     void testCancelMorningAndAfternoon() {
+
+        when(eventRepository.findByUser_IdAndStartTimeBetween(anyLong(), any(), any()))
+            .thenReturn(List.of(new Event()));
+            
         // Test Matin
-        mockGeminiFunction("cancel_morning", Collections.emptyMap());
+        mockGeminiFunction("cancel_morning", Map.of("date", "2026-01-25"));
         chatbotService.handleUserRequest(1L, "Annule mon matin");
         verify(eventRepository, atLeastOnce()).deleteAll(anyList());
 
         // Test Après-midi
-        mockGeminiFunction("cancel_afternoon", Collections.emptyMap());
+        mockGeminiFunction("cancel_afternoon", Map.of("date", "2026-01-25"));
         chatbotService.handleUserRequest(1L, "Libère mon après-midi");
         verify(eventRepository, atLeast(2)).deleteAll(anyList());
     }
