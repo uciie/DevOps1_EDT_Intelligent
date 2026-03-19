@@ -74,6 +74,8 @@ dependencies {
     // Optionnel : Pour voir les logs de l'IA (très utile pour débugger tes prompts)
     implementation 'org.slf4j:slf4j-api:2.0.7'
     implementation 'ch.qos.logback:logback-classic:1.4.8'
+
+    implementation 'org.apache.pdfbox:pdfbox:3.0.1'
 }
 
 tasks.named('test') {
