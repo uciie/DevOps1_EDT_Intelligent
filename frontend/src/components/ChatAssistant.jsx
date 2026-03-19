@@ -3,7 +3,7 @@ import "../styles/components/ChatAssistant.css";
 import { getCurrentUser } from "../api/authApi";
 import { sendChatMessage } from "../api/chatbotApi";
 
-export default function ChatAssistant() {
+export default function ChatAssistant({onRefresh}) {
   const [isOpen, setIsOpen] = useState(true);
   const messagesEndRef = useRef(null);
   const now = new Date();
@@ -73,6 +73,10 @@ export default function ChatAssistant() {
       
       // 3. Afficher la réponse de l'assistant
       addMessage(response, "assistant");
+
+      if (onRefresh) {
+        onRefresh();
+      }
       
     } catch (error) {
       console.error("Erreur chatbot:", error);

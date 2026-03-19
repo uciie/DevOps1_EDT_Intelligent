@@ -7,6 +7,7 @@ import com.example.backend.repository.TaskRepository;
 import com.example.backend.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import com.example.backend.repository.ChatMessageRepository;
 
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +25,7 @@ class ChatbotServiceTest {
     private TaskRepository taskRepository;
     private UserRepository userRepository;
     private ChatbotService chatbotService;
+    private ChatMessageRepository chatMessageRepository;
 
     @BeforeEach
     void setUp() {
@@ -31,7 +33,7 @@ class ChatbotServiceTest {
         eventRepository = mock(EventRepository.class);
         taskRepository = mock(TaskRepository.class);
         userRepository = mock(UserRepository.class);
-        chatbotService = new ChatbotService(geminiService, eventRepository, taskRepository, userRepository);
+        chatbotService = new ChatbotService(geminiService, chatMessageRepository, eventRepository, taskRepository, userRepository);
     }
 
     @Test
@@ -41,7 +43,7 @@ class ChatbotServiceTest {
         var content = new GeminiService.Content(List.of(part));
         var response = new GeminiService.GeminiResponse(List.of(new GeminiService.Candidate(content)));
         
-        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
+        when(geminiService.chatWithGemini(anyString(), anyList())).thenReturn(response);
 
         String result = chatbotService.handleUserRequest(1L, "Salut");
         assertEquals("Bonjour, comment puis-je vous aider ?", result);
@@ -55,7 +57,7 @@ class ChatbotServiceTest {
         var content = new GeminiService.Content(List.of(part));
         var response = new GeminiService.GeminiResponse(List.of(new GeminiService.Candidate(content)));
 
-        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
+        when(geminiService.chatWithGemini(anyString(), anyList())).thenReturn(response);
         when(userRepository.findById(1L)).thenReturn(Optional.of(new User()));
 
         String result = chatbotService.handleUserRequest(1L, "Ajoute la tâche Acheter du pain en priorité 1");
@@ -71,7 +73,7 @@ class ChatbotServiceTest {
         var content = new GeminiService.Content(List.of(part));
         var response = new GeminiService.GeminiResponse(List.of(new GeminiService.Candidate(content)));
 
-        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
+        when(geminiService.chatWithGemini(anyString(), anyList())).thenReturn(response);
         when(taskRepository.findByUser_Id(1L)).thenReturn(Collections.emptyList());
 
         String result = chatbotService.handleUserRequest(1L, "Liste mes tâches");
@@ -85,7 +87,7 @@ class ChatbotServiceTest {
         var content = new GeminiService.Content(List.of(part));
         var response = new GeminiService.GeminiResponse(List.of(new GeminiService.Candidate(content)));
 
-        when(geminiService.chatWithGemini(anyString())).thenReturn(response);
+        when(geminiService.chatWithGemini(anyString(), anyList())).thenReturn(response);
         when(eventRepository.findByUser_IdAndStartTimeBetween(anyLong(), any(), any())).thenReturn(Collections.emptyList());
 
         String result = chatbotService.handleUserRequest(1L, "Annule ma matinée");

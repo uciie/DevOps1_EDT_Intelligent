@@ -11,6 +11,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Collections;
+import java.util.List;
+import com.example.backend.model.ChatMessage;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -57,7 +60,8 @@ class GeminiServiceIntegrationTest {
 
         // 2) Appel réel au service
         try {
-            GeminiResponse resp = geminiService.chatWithGemini(prompt);
+            List<ChatMessage> emptyHistory = Collections.emptyList();
+            GeminiResponse resp = geminiService.chatWithGemini(prompt, emptyHistory);
             
             assertNotNull(resp, "La réponse ne doit pas être nulle");
             
