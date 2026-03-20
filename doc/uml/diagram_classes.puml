@@ -36,6 +36,10 @@ interface TaskService << interface >> {
   + TaskService(): 
 }
 
+class FileParsingService {
+  + FileParsingService(): 
+}
+
 interface ICalendarParser << interface >> {
   + ICalendarParser(): 
 }
@@ -82,6 +86,11 @@ class TeamServiceImpl {
   - taskRepository: TaskRepository
 }
 
+class AISchedulingService {
+  + AISchedulingService(): 
+  - aiClient: SmartScheduler
+}
+
 class EventServiceImpl {
   + EventServiceImpl(): 
   - eventRepository: EventRepository
@@ -92,6 +101,11 @@ class EventServiceImpl {
   - primaryCalculator: TravelTimeCalculator
   - simpleCalculator: TravelTimeCalculator
   - syncDelegateService: SyncDelegateService
+}
+
+class AIChatHistoryService {
+  + AIChatHistoryService(): 
+  - histories: Map
 }
 
 class GoogleMapsTravelTimeCalculator {
@@ -113,6 +127,10 @@ class DefaultScheduleOptimizerService {
 
 interface TaskSelectionStrategy << interface >> {
   + TaskSelectionStrategy(): 
+}
+
+interface SmartScheduler << interface >> {
+  + SmartScheduler(): 
 }
 
 class DefaultTaskSelectionStrategy {
@@ -146,6 +164,14 @@ class GeminiService {
   - apiKey: String
   - model: String
   - httpClient: GeminiHttpClient
+}
+
+class AIWorkflowService {
+  + AIWorkflowService(): 
+  - fileParsingService: FileParsingService
+  - aiSchedulingService: AISchedulingService
+  - taskService: TaskService
+  - scheduleOptimizerService: ScheduleOptimizerService
 }
 
 interface TravelTimeCalculator << interface >> {
@@ -236,6 +262,12 @@ class LegacyProfileEnvProcessor {
   + LegacyProfileEnvProcessor(): 
 }
 
+class AIConfig {
+  + AIConfig(): 
+  - apiKey: String
+  - modelName: String
+}
+
 class WebConfig {
   + WebConfig(): 
 }
@@ -314,6 +346,11 @@ class TeamController {
   - teamService: TeamService
 }
 
+class AITestController {
+  + AITestController(): 
+  - aiSchedulingService: AISchedulingService
+}
+
 class CalendarSyncController {
   + CalendarSyncController(): 
   - userRepository: UserRepository
@@ -324,6 +361,12 @@ class TravelTimeController {
   + TravelTimeController(): 
   - travelTimeRepository: TravelTimeRepository
   - travelTimeService: TravelTimeService
+}
+
+class UploadDocController {
+  + UploadDocController(): 
+  - workflowService: AIWorkflowService
+  - userRepository: UserRepository
 }
 
 class UserController {
@@ -357,6 +400,27 @@ interface GeminiHttpClient << interface >> {
   + GeminiHttpClient(): 
 }
 
+class AIHistoryRequest {
+  + AIHistoryRequest(): 
+  - userFeedback: String
+  - currentTasks: List
+}
+
+class AIPlanningResponse {
+  + AIPlanningResponse(): 
+  - globalExplanation: String
+  - tasks: List
+}
+
+class AIProposedTask {
+  + AIProposedTask(): 
+  - id: String
+  - title: String
+  - durationMinutes: int
+  - dependencies: List
+  - reasoning: String
+}
+
 class FocusBlock {
   + FocusBlock(): 
   - id: Long
@@ -370,9 +434,9 @@ class FocusBlock {
    id: Long
    startTime: LocalDateTime
    endTime: LocalDateTime
+   flexibility: int
    user: User
    status: String
-   flexibility: int
 }
 
 class TeamInvitation {
@@ -383,10 +447,10 @@ class TeamInvitation {
   - inviter: User
   - status: Status
    id: Long
+   inviter: User
    team: Team
    status: Status
    invitedUser: User
-   inviter: User
 }
 
 class TravelTime {
@@ -404,8 +468,8 @@ class TravelTime {
    startTime: LocalDateTime
    endTime: LocalDateTime
    user: User
-   durationMinutes: int
    mode: TransportMode
+   durationMinutes: int
    fromEvent: Event
    toEvent: Event
    distanceKm: Double
@@ -463,12 +527,12 @@ class User {
   - googleRefreshToken: String
    id: Long
    googleAccessToken: String
+   tasks: List
    events: List
    password: String
    teams: Set
    googleRefreshToken: String
    username: String
-   tasks: List
 }
 
 class ActivityLog {
@@ -536,13 +600,13 @@ class Event {
    syncStatus: SyncStatus
    startTime: LocalDateTime
    endTime: LocalDateTime
+   lastSyncedAt: LocalDateTime
    googleEventId: String
    user: User
    category: ActivityCategory
-   task: Task
    status: EventStatus
+   task: Task
    userId: Long
-   lastSyncedAt: LocalDateTime
 }
 
 class UserFocusPreference {
@@ -570,9 +634,9 @@ class Location {
    id: Long
    address: String
    displayName: String
+   fullDescription: String
    latitude: Double
    longitude: Double
-   fullDescription: String
 }
 
 CalendarImportService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
@@ -599,6 +663,7 @@ TeamServiceImpl "1" *-[#595959,plain]-> "teamRepository\n1" TeamRepository
 TeamServiceImpl "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
 TeamServiceImpl "1" *-[#595959,plain]-> "invitationRepository\n1" TeamInvitationRepository
 TeamServiceImpl "1" *-[#595959,plain]-> "taskRepository\n1" TaskRepository
+AISchedulingService "1" *-[#595959,plain]-> "aiClient\n1" SmartScheduler
 EventService <|.. EventServiceImpl
 EventServiceImpl "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
 EventServiceImpl "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
@@ -625,6 +690,10 @@ CalendarSyncService "1" *-[#595959,plain]-> "calendarImportService\n1" CalendarI
 GoogleCalendarService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
 GoogleCalendarService "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
 GeminiService "1" *-[#595959,plain]-> "httpClient\n1" GeminiHttpClient
+AIWorkflowService "1" *-[#595959,plain]-> "fileParsingService\n1" FileParsingService
+AIWorkflowService "1" *-[#595959,plain]-> "aiSchedulingService\n1" AISchedulingService
+AIWorkflowService "1" *-[#595959,plain]-> "taskService\n1" TaskService
+AIWorkflowService "1" *-[#595959,plain]-> "scheduleOptimizerService\n1" ScheduleOptimizerService
 ChatbotService "1" *-[#595959,plain]-> "geminiService\n1" GeminiService
 ChatbotService "1" *-[#595959,plain]-> "chatMessageRepository\n1" ChatMessageRepository
 ChatbotService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
@@ -644,14 +713,19 @@ ScheduleController "1" *-[#595959,plain]-> "optimizerService\n1" ScheduleOptimiz
 EventController "1" *-[#595959,plain]-> "eventService\n1" EventService
 EventController "1" *-[#595959,plain]-> "focusService\n1" FocusService
 TeamController "1" *-[#595959,plain]-> "teamService\n1" TeamService
+AITestController "1" *-[#595959,plain]-> "aiSchedulingService\n1" AISchedulingService
 CalendarSyncController "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
 CalendarSyncController "1" *-[#595959,plain]-> "calendarSyncService\n1" CalendarSyncService
 TravelTimeController "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTimeRepository
 TravelTimeController "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService
+UploadDocController "1" *-[#595959,plain]-> "workflowService\n1" AIWorkflowService
+UploadDocController "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
 UserController "1" *-[#595959,plain]-> "userService\n1" UserService
 CalendarImportController "1" *-[#595959,plain]-> "importService\n1" CalendarImportService
 GeminiHttpClient <|.. FallbackGeminiHttpClient
 GeminiHttpClient <|.. RestGeminiHttpClient
+AIHistoryRequest "1" *-[#595959,plain]-> "currentTasks\n*" AIProposedTask
+AIPlanningResponse "1" *-[#595959,plain]-> "tasks\n*" AIProposedTask
 FocusBlock "1" *-[#595959,plain]-> "user\n1" User
 TeamInvitation "1" *-[#595959,plain]-> "team\n1" Team
 TeamInvitation "1" *-[#595959,plain]-> "invitedUser\n1" User
