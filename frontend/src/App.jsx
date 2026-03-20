@@ -15,6 +15,7 @@ import { getCurrentUser, logoutUser } from "./api/authApi";
 import { getPendingInvitations } from "./api/teamApi";
 import PrivateRoute from "./components/PrivateRoute";
 import "./styles/App.css";
+import FocusAiPage from "./pages/FocusAiPage"; // Import de ta nouvelle page
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -63,7 +64,8 @@ function App() {
               {currentUser && (
                 <>
                 <Link to="/schedule" className="nav-link">Mon Emploi du Temps</Link>
-                <Link to="/activity" className="nav-link">Activités</Link> 
+                <Link to="/activity" className="nav-link">Activités</Link>
+                <Link to="/focus-ai" className="nav-link">AI Document-to-Schedule </Link>
                 <Link to="/setup" className="nav-link">Configuration</Link>
                 <Link to="/notifications" className="nav-link">Notifications
                   {notifCount > 0 && <span className="notif-badge">{notifCount}</span>}
@@ -124,6 +126,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <SetupPage />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/focus-ai"
+                element={
+                  <PrivateRoute>
+                    <FocusAiPage />
                   </PrivateRoute>
                 }
               />
