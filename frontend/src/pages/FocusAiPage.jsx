@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-// On importe les fonctions nommées et l'utilitaire d'auth
-import { uploadSchedulePdf, confirmTasks } from '../api/focusAiApi'; 
+
+
 import { getCurrentUser } from '../api/authApi';
 import '../styles/pages/FocusAiPage.css';
+
+import { uploadSchedulePdf, confirmTasks, refineSchedule } from '../api/focusAiApi';
 
 const FocusAiPage = () => {
     const [file, setFile] = useState(null);
@@ -67,15 +69,34 @@ const FocusAiPage = () => {
         }
     };
 
+    const [feedback, setFeedback] = useState('');
+
+    const handleRefine = async () => {
+    if (!feedback.trim()) return;
+    
+    setLoading(true);
+    setError('');
+    try {
+        // Le flux d'échange : on envoie le texte + les suggestions actuelles
+        const data = await refineSchedule(feedback, suggestions.tasks);
+        setSuggestions(data); // On remplace les anciennes suggestions par les nouvelles
+        setFeedback(''); // On vide le champ texte
+    } catch (err) {
+        setError("L'IA n'a pas pu modifier le planning. Réessayez.");
+    } finally {
+        setLoading(false);
+    }
+};
+
     // Si pas d'utilisateur, on peut afficher un message d'attente ou d'erreur
     if (!currentUser && !error) return <div className="loading-screen">Chargement du profil...</div>;
 
     return (
         <div className="focus-ai-container">
             <header className="focus-header">
-                <h1>Focus AI ✨</h1>
+                <h1> AI Document-to-Schedule ✨</h1>
                 <p className="subtitle">
-                    Bonjour <strong>{currentUser?.username || 'Étudiant'}</strong>, uploadez votre emploi du temps pour commencer.
+                    Bonjour <strong>{currentUser?.username || 'Étudiant'}</strong>, uploadez votre document du temps pour commencer.
                 </p>
             </header>
 
@@ -130,7 +151,27 @@ const FocusAiPage = () => {
                     </div>
                 </div>
             )}
+            {/* --- NOUVEAU : Bloc de discussion --- */}
+        <div className="refine-section">
+            <h3>Pas satisfait ?</h3>
+            <p>Demandez à l'IA d'ajuster le planning (ex: "Mets le README à la fin") :</p>
+            <div className="refine-input-group">
+                <input 
+                    type="text" 
+                    placeholder="Votre demande de modification..." 
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    disabled={loading}
+                />
+                <button className="btn-secondary" onClick={handleRefine} disabled={loading || !feedback}>
+                    {loading ? "Mise à jour..." : "Modifier avec l'IA"}
+                </button>
+            </div>
         </div>
+   
+        </div>
+        
+        
     );
 };
 

@@ -30,3 +30,17 @@ export const confirmTasks = async (userId, globalExplanation, tasks) => {
         throw error;
     }
 };
+
+
+export const refineSchedule = async (userFeedback, currentTasks) => {
+    try {
+        const response = await api.post(`/refine-ai`, {
+            userFeedback: userFeedback,
+            currentTasks: currentTasks
+        });
+        return response.data; // Renvoie le nouveau AIPlanningResponse
+    } catch (error) {
+        console.error("Erreur lors du raffinement du planning:", error);
+        throw error;
+    }
+};

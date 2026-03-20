@@ -34,14 +34,15 @@ public class AIWorkflowService {
      */
     public AIPlanningResponse handleDocumentUpload(String sessionId, MultipartFile file) throws IOException {
         String extractedText = fileParsingService.extractText(file);
-        return aiSchedulingService.processRequest(sessionId, extractedText);
+        // CORRECTION : On enlève sessionId
+        return aiSchedulingService.processRequest(extractedText);
     }
-
     /**
      * ÉTAPE 1 BIS : Gérer les retours de l'utilisateur (Chat continu).
      */
     public AIPlanningResponse handleChatFeedback(String sessionId, String userComment) {
-        return aiSchedulingService.processRequest(sessionId, userComment);
+        // CORRECTION : On enlève sessionId
+        return aiSchedulingService.processRequest(userComment);
     }
 
     /**

@@ -237,3 +237,22 @@
 .task-card h4 {
     margin-top: var(--space-4);
 }
+
+.refine-section {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #6200ee;
+}
+.refine-input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+.refine-input-group input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
