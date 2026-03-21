@@ -171,6 +171,32 @@ Permet de partager des tâches et d'inviter des membres dans une équipe.
 
 ---
 
+### Planification par IA (Document-to-Schedule)
+
+Cette fonctionnalité permet de transformer un document brut (PDF) en un planning structuré et optimisé. Contrairement à une génération statique, l'utilisateur peut affiner les résultats via un dialogue naturel avec l'IA.
+
+#### Implémentation
+L'orchestration est assurée par le `AIWorkflowService`. Le texte est extrait par le `FileParsingService` puis envoyé au `AISchedulingService`. Ce dernier utilise l'API **Groq** via une interface **LangChain4j** (`SmartScheduler`) pour garantir un typage strict des réponses JSON.
+
+#### Diagramme de séquence
+![Workflow AI Document-to-Schedule](uml/seq-AIdoc.png)
+
+#### Diagramme de classes associé
+![Classes du module AI](uml/diagclas-AIdoc.png)
+
+### Import d'Événements Culturels (Open Data IDF)
+
+L'application permet d'enrichir l'agenda avec des données culturelles fiables provenant de la région Île-de-France.
+
+#### Implémentation
+Le `IDFEventService` interroge l'API Open Data Île-de-France en temps réel à l'aide de `RestTemplate`. Les données récupérées sont mappées dans un `EventDTO` avant d'être converties en entités `Event` persistées en base de données SQL.
+
+#### Diagramme de séquence
+![Flux d'importation Open Data IDF](uml/seq-IDFevent.png)
+
+#### Diagramme de classes associé
+![Classes du module IDF](uml/diagclas-IDFevent.png)
+
 ### Synchronisation avec Google Agenda
 
 La synchronisation bidirectionnelle avec Google Agenda repose sur le protocole OAuth 2.0 et l'API Google Calendar v3. Elle s'articule autour de trois services Spring Boot : `UserService`, `CalendarSyncService` et `SyncDelegateService`.
@@ -194,6 +220,9 @@ Un conflit est déclaré lorsqu'un événement local présente un `updatedAt` po
 #### Diagramme de séquence
 
 ![Synchronisation bidirectionnelle Google Agenda](uml/sequence_SyncGoogle.png)
+
+
+
 
 ---
 
