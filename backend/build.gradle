@@ -82,6 +82,12 @@ dependencies {
     //implementation 'ch.qos.logback:logback-classic:1.4.8'
 
     implementation 'org.apache.pdfbox:pdfbox:3.0.1'
+
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+    testAnnotationProcessor 'org.projectlombok:lombok'
 }
 
 tasks.named('test') {

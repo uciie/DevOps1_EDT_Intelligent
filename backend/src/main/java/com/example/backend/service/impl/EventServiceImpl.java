@@ -1,6 +1,7 @@
 package com.example.backend.service.impl;
 
 import com.example.backend.controller.EventController.EventRequest;
+import com.example.backend.dto.EventDTO;
 import com.example.backend.model.ActivityCategory;
 import com.example.backend.model.Event;
 import com.example.backend.model.Location;
@@ -427,4 +428,50 @@ public class EventServiceImpl implements EventService {
                 return anonymized;
             }).collect(Collectors.toList());
     }
+
+
+@Override
+@Transactional
+public Event addExternalEvent(EventDTO eventDto, Long userId) {
+    User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("Utilisateur non trouvé"));
+
+    // 1. Création et sauvegarde de l'événement (ton code actuel)
+    Event event = new Event();
+    event.setSummary(eventDto.getTitle());
+    event.setStartTime(eventDto.getStart());
+    event.setEndTime(eventDto.getEnd());
+    event.setUser(user);
+    event.setSource(Event.EventSource.LOCAL);
+    
+    if (eventDto.getLocation() != null) {
+        Location loc = new Location();
+        loc.setName(eventDto.getLocation());
+        loc.setAddress(eventDto.getAddress());
+        event.setLocation(loc);
+    }
+
+    Event savedEvent = eventRepository.save(event);
+
+    // --- 🔍 LOG DE VÉRIFICATION ---
+    List<Event> allUserEvents = eventRepository.findByUser_IdOrderByStartTime(userId);
+    
+    System.out.println("\n=== [VÉRIFICATION BDD - USER " + userId + "] ===");
+    System.out.println("Nombre total d'événements en base : " + allUserEvents.size());
+    for (Event e : allUserEvents) {
+        System.out.println(String.format(" - [%d] %s | Début: %s | Source: %s", 
+            e.getId(), 
+            e.getSummary(), 
+            e.getStartTime(),
+            e.getSource()));
+    }
+    System.out.println("==========================================\n");
+
+    // 2. Synchro Google (ton code actuel)
+    if (user.isGoogleLinked()) {
+        syncDelegateService.syncGoogleCalendarInNewTransaction(user.getId());
+    }
+
+    return savedEvent;
+}
 }

@@ -1,6 +1,7 @@
 package com.example.backend.service;
 
 import com.example.backend.controller.EventController.EventRequest;
+import com.example.backend.dto.EventDTO;
 import com.example.backend.model.Event;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,4 +40,5 @@ public interface EventService {
     // Lire le calendrier d'un coéquipier
     // requesterId = celui qui veut voir, targetUserId = celui qu'on regarde
     List<Event> getTeamMemberEvents(Long requesterId, Long memberId);
+    Event addExternalEvent(EventDTO eventDto, Long userId);
 }
