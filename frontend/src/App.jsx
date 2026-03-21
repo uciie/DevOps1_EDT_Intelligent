@@ -8,23 +8,23 @@ import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import SchedulePage from "./pages/SchedulePage";
 import ActivityPage from "./pages/ActivityPage";
-import SetupPage from "./pages/SetupPage"; // Import de la nouvelle page
+import SetupPage from "./pages/SetupPage"; 
 import NotificationPage from "./pages/NotificationPage";
 import GoogleCallback from "./pages/GoogleCallback";
 import { getCurrentUser, logoutUser } from "./api/authApi";
 import { getPendingInvitations } from "./api/teamApi";
 import PrivateRoute from "./components/PrivateRoute";
 import "./styles/App.css";
-import FocusAiPage from "./pages/FocusAiPage"; // Import de ta nouvelle page
+import FocusAiPage from "./pages/FocusAiPage"; 
+import EventPage from "./components/EventPage";
 
 function App() {
   const [currentUser, setCurrentUser] = useState(null);
-  const [notifCount, setNotifCount] = useState(0); // État pour le compteur
+  const [notifCount, setNotifCount] = useState(0); 
 
   useEffect(() => {
     const user = getCurrentUser();
     setCurrentUser(user);
-    // Charger le nombre d'invitations au démarrage
     if (user) {
       fetchNotifCount(user.id);
     }
@@ -33,11 +33,9 @@ function App() {
   const handleLogout = () => {
     logoutUser();
     setCurrentUser(null);
-    // Redirection optionnelle vers l'accueil après déconnexion
     window.location.href = '/'; 
   };
 
-  // Fonction pour récupérer le nombre d'invitations en attente
   const fetchNotifCount = async (userId) => {
     try {
       const res = await getPendingInvitations(userId);
@@ -49,9 +47,7 @@ function App() {
   };
 
   return (
-    // pour le drag-and-drop
     <DndProvider backend={HTML5Backend}>
-      {/* BrowserRouter pour le routage */}
       <BrowserRouter>
         <div className="app">
           <nav className="app-nav">
@@ -61,15 +57,18 @@ function App() {
 
             <div className="nav-links">
               <Link to="/" className="nav-link">Accueil</Link>
+              {/* Ajout du lien Événements accessible à tous ou seulement connectés */}
+              <Link to="/events" className="nav-link">✨ Événements</Link>
+              
               {currentUser && (
                 <>
-                <Link to="/schedule" className="nav-link">Mon Emploi du Temps</Link>
-                <Link to="/activity" className="nav-link">Activités</Link>
-                <Link to="/focus-ai" className="nav-link">AI Document-to-Schedule </Link>
-                <Link to="/setup" className="nav-link">Configuration</Link>
-                <Link to="/notifications" className="nav-link">Notifications
-                  {notifCount > 0 && <span className="notif-badge">{notifCount}</span>}
-                </Link>
+                  <Link to="/schedule" className="nav-link">Mon Emploi du Temps</Link>
+                  <Link to="/activity" className="nav-link">Activités</Link>
+                  <Link to="/focus-ai" className="nav-link">AI Document-to-Schedule </Link>
+                  <Link to="/setup" className="nav-link">Configuration</Link>
+                  <Link to="/notifications" className="nav-link">Notifications
+                    {notifCount > 0 && <span className="notif-badge">{notifCount}</span>}
+                  </Link>
                 </>
               )}
               <Link to="/about" className="nav-link">À propos</Link>
@@ -77,13 +76,10 @@ function App() {
 
             <div className="nav-actions">
               {currentUser ? (
-                // CAS 1 : Utilisateur connecté
-                // On affiche UNIQUEMENT le bouton de déconnexion (pas de badge pseudo)
                 <button onClick={handleLogout} className="btn-logout">
                   Se déconnecter
                 </button>
               ) : (
-                // CAS 2 : Utilisateur non connecté
                 <>
                   <Link to="/login" className="btn-nav-login">
                     Se connecter
@@ -99,11 +95,14 @@ function App() {
           <main className="app-main">
             <Routes>
               <Route path="/" element={<Home />} />
-              {/* On passe setCurrentUser à LoginPage pour mettre à jour l'état après connexion */}
               <Route path="/login" element={<LoginPage onLogin={(user) => setCurrentUser(user)} />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/about" element={<About />} />
               <Route path="/notifications" element={<NotificationPage />} />
+              
+              {/* --- NOUVELLE ROUTE ÉVÉNEMENTS --- */}
+              <Route path="/events" element={<EventPage />} />
+
               {/* Routes protégées */}
               <Route
                 path="/schedule"

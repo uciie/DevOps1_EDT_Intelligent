@@ -153,19 +153,21 @@ function SchedulePage() {
     }
   };
 
-  useEffect(() => {
+
+useEffect(() => {
     const init = async () => {
         const user = getCurrentUser();
         if (!user) {
-          setPageError("Utilisateur non connecté");
-          setLoading(false);
-          return;
+            setPageError("Utilisateur non connecté");
+            setLoading(false);
+            return;
         }
         setCurrentUser(user);
-        await loadUserData(user);
+        // On appelle refreshData qui contient déjà la logique de normalisation
+        await refreshData(false); 
     };
     init();
-  }, []);
+}, []); // S'exécute au montage
 
   const refreshData = async (silent = false) => {
     try {

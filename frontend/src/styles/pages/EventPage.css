@@ -1,0 +1,143 @@
+/* src/components/EventPage.css */
+
+/* --- Conteneur Principal --- */
+.event-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background-color: #f9f9f9;
+    color: #000000; /* Texte par défaut en noir */
+}
+
+.event-header h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #000000;
+}
+
+/* --- Barre de recherche --- */
+.search-bar {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 40px;
+}
+
+.search-bar input {
+    width: 400px;
+    padding: 12px 20px;
+    border-radius: 30px;
+    border: 2px solid #000000; /* Bordure noire pour le style */
+    color: #000000;
+}
+
+/* --- Grille et Cartes --- */
+.event-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+}
+
+.event-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #eee;
+}
+
+.event-card:hover {
+    transform: translateY(-10px);
+}
+
+/* --- Image --- */
+.card-image-container {
+    height: 180px;
+    overflow: hidden;
+    background-color: #eee;
+}
+
+.event-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* --- Corps de la carte --- */
+.card-body {
+    padding: 20px;
+    flex-grow: 1;
+    color: #000000; /* Force le texte en noir */
+}
+
+.card-body h2 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #000000; /* Titre en noir */
+    line-height: 1.3;
+}
+
+.card-body p {
+    color: #000000; /* Description et infos en noir */
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+}
+
+/* --- Nouveau : Badges de Mots-clés --- */
+.keywords-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 10px 0;
+}
+
+.tag-badge {
+    background: #000000; /* Badge fond noir */
+    color: #ffffff;    /* Texte blanc pour le contraste */
+    padding: 3px 10px;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+/* --- Pied de carte et Boutons --- */
+.card-footer {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #eee;
+}
+
+.btn-visit {
+    text-decoration: none;
+    background-color: #000000; /* Bouton noir */
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+}
+
+.btn-visit:hover {
+    background-color: #333333;
+}
+
+.btn-add-calendar {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.loader {
+    text-align: center;
+    padding: 50px;
+    color: #000000;
+    font-weight: bold;
+}
