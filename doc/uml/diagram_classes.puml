@@ -125,6 +125,12 @@ class DefaultScheduleOptimizerService {
   - focusService: FocusService
 }
 
+class IDFEventService {
+  + IDFEventService(): 
+  - restTemplate: RestTemplate
+  - objectMapper: ObjectMapper
+}
+
 interface TaskSelectionStrategy << interface >> {
   + TaskSelectionStrategy(): 
 }
@@ -276,6 +282,28 @@ class UmlGenerator {
   + UmlGenerator(): 
 }
 
+class EventDTO {
+  + EventDTO(): 
+  - title: String
+  - description: String
+  - start: LocalDateTime
+  - end: LocalDateTime
+  - location: String
+  - address: String
+  - eventUrl: String
+  - image: String
+  - keywords: List
+   location: String
+   address: String
+   start: LocalDateTime
+   end: LocalDateTime
+   title: String
+   description: String
+   eventUrl: String
+   image: String
+   keywords: List
+}
+
 class TimeSlot {
   + TimeSlot(): 
   - start: LocalDateTime
@@ -369,6 +397,13 @@ class UploadDocController {
   - userRepository: UserRepository
 }
 
+class IDFEventController {
+  + IDFEventController(): 
+  - idfEventService: IDFEventService
+  - eventService: EventService
+  - eventRepository: EventRepository
+}
+
 class UserController {
   + UserController(): 
   - userService: UserService
@@ -434,9 +469,9 @@ class FocusBlock {
    id: Long
    startTime: LocalDateTime
    endTime: LocalDateTime
-   flexibility: int
    user: User
    status: String
+   flexibility: int
 }
 
 class TeamInvitation {
@@ -447,10 +482,10 @@ class TeamInvitation {
   - inviter: User
   - status: Status
    id: Long
-   inviter: User
    team: Team
    status: Status
    invitedUser: User
+   inviter: User
 }
 
 class TravelTime {
@@ -527,12 +562,12 @@ class User {
   - googleRefreshToken: String
    id: Long
    googleAccessToken: String
-   tasks: List
    events: List
    password: String
    teams: Set
    googleRefreshToken: String
    username: String
+   tasks: List
 }
 
 class ActivityLog {
@@ -600,13 +635,13 @@ class Event {
    syncStatus: SyncStatus
    startTime: LocalDateTime
    endTime: LocalDateTime
-   lastSyncedAt: LocalDateTime
    googleEventId: String
    user: User
    category: ActivityCategory
    status: EventStatus
    task: Task
    userId: Long
+   lastSyncedAt: LocalDateTime
 }
 
 class UserFocusPreference {
@@ -634,9 +669,9 @@ class Location {
    id: Long
    address: String
    displayName: String
-   fullDescription: String
    latitude: Double
    longitude: Double
+   fullDescription: String
 }
 
 CalendarImportService "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
@@ -720,6 +755,9 @@ TravelTimeController "1" *-[#595959,plain]-> "travelTimeRepository\n1" TravelTim
 TravelTimeController "1" *-[#595959,plain]-> "travelTimeService\n1" TravelTimeService
 UploadDocController "1" *-[#595959,plain]-> "workflowService\n1" AIWorkflowService
 UploadDocController "1" *-[#595959,plain]-> "userRepository\n1" UserRepository
+IDFEventController "1" *-[#595959,plain]-> "idfEventService\n1" IDFEventService
+IDFEventController "1" *-[#595959,plain]-> "eventService\n1" EventService
+IDFEventController "1" *-[#595959,plain]-> "eventRepository\n1" EventRepository
 UserController "1" *-[#595959,plain]-> "userService\n1" UserService
 CalendarImportController "1" *-[#595959,plain]-> "importService\n1" CalendarImportService
 GeminiHttpClient <|.. FallbackGeminiHttpClient
